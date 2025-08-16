@@ -1,0 +1,17 @@
+export enum StatusCodeEnum {
+  OK = 200,
+  NOT_FOUND = 404,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  BAD_REQUEST = 400,
+  SERVER_ERROR = 500,
+  FIRESTORE_PERMISSION_DENIED = "permission-denied",
+  FIRESTORE_NOT_FOUND = "not-found",
+  FIRESTORE_UNAVAILABLE = "unavailable",
+  FIRESTORE_DEADLINE_EXCEEDED = "deadline-exceeded",
+  FIRESTORE_ALREADY_EXISTS = "already-exists",
+  FIRESTORE_FAILED_PRECONDITION = "failed-precondition",
+  FIRESTORE_ABORTED = "aborted",
+  FIRESTORE_INTERNAL = "internal",
+  FIRESTORE_UNKNOWN = "unknown",
+}
