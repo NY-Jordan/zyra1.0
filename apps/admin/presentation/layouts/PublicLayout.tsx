@@ -1,8 +1,7 @@
-'use client'
-import React, { useEffect, useLayoutEffect } from "react"
+"use client"
+import React, { useLayoutEffect } from "react"
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth"
-import { Toaster } from "@zyra/ui/components/sonner"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -18,8 +17,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   }, [router])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <main className="w-full max-w-md mx-auto p-6">
+    <div className="min-h-screen w-full bg-background">
+      <main className="min-h-screen w-full">
         {children}
       </main>
     </div>
