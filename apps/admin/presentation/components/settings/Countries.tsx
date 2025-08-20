@@ -1,16 +1,11 @@
 'use client'
 import React, { useState } from 'react'
 import { Button } from '@zyra/ui/components/button'
-import { Input } from '@zyra/ui/components/input'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import ConfirmModal from '../CofirmModal'
-import { useCountries } from '@/usecases/useCountries'
-
-type Country = {
-  id: string
-  name: string
-  active: boolean
-}
+import CountryModal, { CountryData } from './CountryModal'
+import { useCountries, Country } from '@/usecases/useCountries'
 
 export default function Countries() {
   const {
@@ -26,35 +21,33 @@ export default function Countries() {
     updatePending,
   } = useCountries()
 
-  const [newCountry, setNewCountry] = useState('')
-  const [editModal, setEditModal] = useState<{ open: boolean; country: Country | null }>({ open: false, country: null })
-  const [editName, setEditName] = useState('')
+  const [countryModal, setCountryModal] = useState<{ open: boolean; country: Country | null }>({ open: false, country: null })
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null }>({ open: false, id: null })
   const [toggleModal, setToggleModal] = useState<{ open: boolean; country: Country | null }>({ open: false, country: null })
 
   const handleAdd = () => {
-    if (!newCountry.trim()) return
-    if (countries.some(c => c.name.toLowerCase() === newCountry.trim().toLowerCase())) {
-      toast.error("Ce pays existe déjà.")
-      return
+    setCountryModal({ open: true, country: null })
+  }
+
+  const handleSubmitCountry = (data: Omit<CountryData, 'id'>) => {
+    if (countryModal.country) {
+      // Edit mode
+      updateCountry(countryModal.country.id, data)
+      toast.success('Le pays a été modifié avec succès')
+    } else {
+      // Add mode
+      if (countries.some(c => c.name.toLowerCase() === data.name.trim().toLowerCase())) {
+        toast.error("Ce pays existe déjà.")
+        return
+      }
+      addCountry(data)
+      toast.success('Le pays a été ajouté avec succès')
     }
-    addCountry(newCountry.trim())
-    setNewCountry('')
-    toast.success('Le pays a été ajouté avec succès')
+    setCountryModal({ open: false, country: null })
   }
 
   const handleEdit = (country: Country) => {
-    setEditModal({ open: true, country })
-    setEditName(country.name)
-  }
-
-  const confirmEdit = () => {
-    if (editModal.country && editName.trim()) {
-      updateCountry(editModal.country.id, editName.trim())
-      toast.success('Le pays a été modifié avec succès')
-    }
-    setEditModal({ open: false, country: null })
-    setEditName('')
+    setCountryModal({ open: true, country })
   }
 
   const handleDelete = (id: string) => {
@@ -83,23 +76,20 @@ export default function Countries() {
 
   return (
     <div className="bg-white rounded shadow p-6 space-y-6">
-      <h2 className="font-bold text-2xl mb-4">Pays</h2>
-      <div className="flex gap-2 mb-4">
-        <Input
-          value={newCountry}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCountry(e.target.value)}
-          placeholder="Ajouter un pays"
-          className="w-64"
-        />
-        <Button type="button" onClick={handleAdd} disabled={addPending}>
-          Ajouter
+      <div className="flex items-center justify-between">
+        <h2 className="font-bold text-2xl">Pays</h2>
+        <Button onClick={handleAdd} className="flex items-center gap-2">
+          <Plus size={16} />
+          Nouveau pays
         </Button>
       </div>
+      
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
           <thead>
             <tr className="bg-gray-50">
               <th className="px-4 py-2 text-left">Nom</th>
+              <th className="px-4 py-2 text-left">Devise</th>
               <th className="px-4 py-2 text-left">Statut</th>
               <th className="px-4 py-2 text-left">Actions</th>
             </tr>
@@ -107,13 +97,13 @@ export default function Countries() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={3} className="text-center py-6 text-gray-500">
+                <td colSpan={4} className="text-center py-6 text-gray-500">
                   Chargement...
                 </td>
               </tr>
             ) : countries.length === 0 ? (
               <tr>
-                <td colSpan={3} className="text-center py-6 text-gray-500">
+                <td colSpan={4} className="text-center py-6 text-gray-500">
                   Aucun pays trouvé.
                 </td>
               </tr>
@@ -121,6 +111,11 @@ export default function Countries() {
               countries.map((country: Country) => (
                 <tr key={country.id} className="border-t">
                   <td className="px-4 py-2">{country.name}</td>
+                  <td className="px-4 py-2">
+                    <span className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">
+                      {country.currency}
+                    </span>
+                  </td>
                   <td className="px-4 py-2">
                     {country.active ? (
                       <span className="text-green-600 font-semibold">Actif</span>
@@ -160,28 +155,13 @@ export default function Countries() {
         </table>
       </div>
 
-      <ConfirmModal
-        open={editModal.open}
-        title="Modifier le pays"
-        description={
-          <div>
-            <Input
-              value={editName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditName(e.target.value)}
-              placeholder="Nom du pays"
-              className="w-full"
-              autoFocus
-            />
-          </div>
-        }
-        onCancel={() => {
-          setEditModal({ open: false, country: null })
-          setEditName('')
-        }}
-        onConfirm={confirmEdit}
-        confirmLabel="Enregistrer"
-        loading={updatePending}
-        confirmVariant="default"
+      {/* Country Modal */}
+      <CountryModal
+        isOpen={countryModal.open}
+        onClose={() => setCountryModal({ open: false, country: null })}
+        country={countryModal.country}
+        onSubmit={handleSubmitCountry}
+        loading={addPending || updatePending}
       />
 
       <ConfirmModal

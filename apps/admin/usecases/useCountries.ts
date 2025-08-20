@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchCollection, createDocument, editDocument, deleteDocument } from '@zyra/conf/lib/query'
 
-type Country = {
+export type Country = {
   id: string
   name: string
+  currency: string
   active: boolean
 }
 
@@ -17,13 +18,15 @@ export function useCountries() {
       return res.map((c: any) => ({
         id: c.id,
         name: c.name,
+        currency: c.currency || 'XAF',
         active: c.active ?? true,
       }))
     },
   })
 
   const addMutation = useMutation({
-    mutationFn: async (name: string) => createDocument('countries', { name, active: true }),
+    mutationFn: async (data: { name: string; currency: string; active: boolean }) => 
+      createDocument('countries', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['countries'] })
     },
@@ -44,8 +47,8 @@ export function useCountries() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) =>
-      editDocument('countries', id, { name }),
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Country> }) =>
+      editDocument('countries', id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['countries'] })
     },
@@ -57,7 +60,7 @@ export function useCountries() {
     addCountry: addMutation.mutate,
     toggleCountry: toggleMutation.mutate,
     deleteCountry: deleteMutation.mutate,
-    updateCountry: (id: string, name: string) => updateMutation.mutate({ id, name }),
+    updateCountry: (id: string, data: Partial<Country>) => updateMutation.mutate({ id, data }),
     addPending: addMutation.isPending,
     togglePending: toggleMutation.isPending,
     deletePending: deleteMutation.isPending,

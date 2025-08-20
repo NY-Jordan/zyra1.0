@@ -9,9 +9,11 @@ import {
   Calendar,
   CreditCard,
   Wrench,
+  Package,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from "lucide-react"
 import { Logo } from "../common/Logo"
 import MenuItem from "./MenuItem"
@@ -25,6 +27,8 @@ const menu = [
   { icon: <Calendar className="h-5 w-5" />, label: "Réservations", to: "/reservations" },
   { icon: <CreditCard className="h-5 w-5" />, label: "Transactions", to: "/transactions", isComingSoon : true },
   { icon: <Wrench className="h-5 w-5" />, label: "Services", to: "/services" },
+  { icon: <Package className="h-5 w-5" />, label: "Forfaits", to: "/packages" },
+  { icon: <Sparkles className="h-5 w-5" />, label: "Fonctionnalités Salon", to: "/features" },
   { icon: <Settings className="h-5 w-5" />, label: "Paramètres", to: "/settings" },
 ]
 
