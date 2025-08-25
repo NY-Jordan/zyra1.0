@@ -1,8 +1,9 @@
 'use client'
-import  { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm, Controller, SubmitHandler } from "react-hook-form"
 import { Button } from "@zyra/ui/components/button"
 import { Input } from "@zyra/ui/components/input"
+import PageHeader from "@/presentation/components/common/PageHeader"
 import ProtectedLayout from "@/presentation/layouts/ProtectedLayout"
 import { ISalonFormValues } from "@zyra/conf/domain/entities/salons.entities"
 import { fetchCollection, editDocument } from "@zyra/conf/lib/query"
@@ -104,21 +105,31 @@ export default function UpdateSalon({ params }: { params: Promise<{ id: string }
 
   if (!initialSalon) {
     return (
-      <ProtectedLayout pageTitle="Modifier un salon">
+      <>
+        <PageHeader 
+          title="Modifier un salon"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Salons", href: "/salons" },
+            { label: "Chargement...", isCurrent: true }
+          ]}
+        />
         <div className="p-8 text-center">Chargement...</div>
-      </ProtectedLayout>
+      </>
     )
   }
 
   return (
-    <ProtectedLayout
-      pageTitle="Modifier un salon"
-      breadcrumbs={[
-        { label: "Dashboard", href: "/" },
-        { label: "Salons", href: "/salons" },
-        { label: "Modifier", isCurrent: true }
-      ]}
-    >
+    <>
+      <PageHeader 
+        title="Modifier un salon"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Salons", href: "/salons" },
+          { label: "Modifier", isCurrent: true }
+        ]}
+      />
+
       <div className="w-full mx-2 flex flex-col md:flex-row gap-8">
         <div className="flex-1 w-2/3 bg-white rounded-xl shadow-lg p-8">
           <h2 className="text-2xl font-bold mb-2 text-gray-800">Informations du salon</h2>
@@ -348,6 +359,6 @@ export default function UpdateSalon({ params }: { params: Promise<{ id: string }
           </form>
         </div>
       </div>
-    </ProtectedLayout>
+    </>
   )
 }

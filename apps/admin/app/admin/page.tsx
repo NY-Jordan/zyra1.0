@@ -2,6 +2,7 @@
 import DashboardCards from "@/presentation/components/DashboardCards";
 import ReservationsChart from "@/presentation/components/ReservationsChart";
 import { Building2, Users } from "lucide-react";
+import PageHeader from "@/presentation/components/common/PageHeader";
 import ProtectedLayout from "@/presentation/layouts/ProtectedLayout";
 
 // Données fictives pour les tableaux
@@ -91,45 +92,47 @@ function TableSection({
 
 export default function Home() {
   return (
-    <ProtectedLayout>
-      <div>
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Tableau de bord</h1>
+    <>
+      <PageHeader 
+        title="Tableau de bord"
+        breadcrumbs={[
+          { label: "Dashboard", isCurrent: true }
+        ]}
+      />
+
+      <div className="space-y-8">
         <DashboardCards />
 
         {/* Graph reservations */}
-        <div className="mt-8">
-          <ReservationsChart />
-        </div>
+        <ReservationsChart />
 
         {/* Salons les plus actifs */}
-        <div className="mt-8">
-          <TableSection
-            title="Salons les plus actifs"
-            columns={["Salon", "Propriétaire", "Créé le", "Réservations"]}
-            data={salons.map((s) => ({
-              "Salon": (
-                <span className="flex items-center gap-2">
-                  <img
-                    src={reservationLogo}
-                    alt={s.name}
-                    className="w-7 h-7 rounded-full bg-gray-100 border object-cover"
-                  />
-                  {s.name}
-                </span>
-              ),
-              "Propriétaire": s.owner,
-              "Créé le": s.createdAt,
-              "Réservations": (
-                <span className="font-semibold text-blue-700">{s.reservations}</span>
-              ),
-            }))}
-            icon={<Building2 className="w-6 h-6 text-blue-600" />}
-            onSeeMore={() => {}}
-          />
-        </div>
+        <TableSection
+          title="Salons les plus actifs"
+          columns={["Salon", "Propriétaire", "Créé le", "Réservations"]}
+          data={salons.map((s) => ({
+            "Salon": (
+              <span className="flex items-center gap-2">
+                <img
+                  src={reservationLogo}
+                  alt={s.name}
+                  className="w-7 h-7 rounded-full bg-gray-100 border object-cover"
+                />
+                {s.name}
+              </span>
+            ),
+            "Propriétaire": s.owner,
+            "Créé le": s.createdAt,
+            "Réservations": (
+              <span className="font-semibold text-blue-700">{s.reservations}</span>
+            ),
+          }))}
+          icon={<Building2 className="w-6 h-6 text-blue-600" />}
+          onSeeMore={() => {}}
+        />
 
         {/* Utilisateurs et réservations en bas, côte à côte */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <TableSection
             title="Les derniers clients"
             columns={["Client", "Email", "Inscrit le"]}
@@ -168,6 +171,6 @@ export default function Home() {
           />
         </div>
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

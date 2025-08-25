@@ -4,15 +4,16 @@ import React, { useState } from 'react'
 import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import { Plus, Search } from 'lucide-react'
+import PageHeader from '@/presentation/components/common/PageHeader'
 import FeatureModal from '@/presentation/components/features/FeatureModal'
 import FeatureTable from '@/presentation/components/features/FeatureTable'
 import Pagination from '@/presentation/components/common/Pagination'
-import { useFeaturesUseCases } from '../../usecases/featuresUseCases'
+import { useFeaturesUseCases } from '@/usecases/featuresUseCases'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@zyra/ui/components/select'
 import { FeatureDisplayData } from '@zyra/conf/domain/entities/features.entities'
 import { FeatureTypeEnum } from '@zyra/conf/domain/enums/FeatureTypeEnum'
-import { useLanguage } from '../../hooks/useLanguage'
-import defaultFeatures from '../../data/defaultFeatures'
+import { useLanguage } from '@/hooks/useLanguage'
+import defaultFeatures from '@/data/defaultFeatures'
 
 export default function FeaturesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -84,14 +85,19 @@ export default function FeaturesPage() {
   const totalItems = featuresResult?.total || 0
 
   return (
-    <ProtectedLayout>
+    <>
+      <PageHeader 
+        title="Fonctionnalités Disponibles"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Fonctionnalités", isCurrent: true }
+        ]}
+      />
+
       <div className="space-y-6">
-        {/* Header */}
+        {/* Description and Import Button */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Fonctionnalités Disponibles</h1>
-            <p className="text-gray-600">Consultez les fonctionnalités disponibles pour les salons</p>
-          </div>
+          <p className="text-gray-600">Consultez les fonctionnalités disponibles pour les salons</p>
           {features.length === 0 && (
             <Button 
               variant="outline"
@@ -170,6 +176,6 @@ export default function FeaturesPage() {
           feature={editingFeature}
         />
       </div>
-    </ProtectedLayout>
+    </>
   )
 }

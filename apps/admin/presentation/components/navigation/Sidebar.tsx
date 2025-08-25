@@ -20,16 +20,16 @@ import MenuItem from "./MenuItem"
 import clsx from "clsx"
 
 const menu = [
-  { icon: <LayoutGrid className="h-5 w-5" />, label: "Tableau de bord", to: "/" },
-  { icon: <Building2 className="h-5 w-5" />, label: "Salons", to: "/salons" },
-  { icon: <Scissors className="h-5 w-5" />, label: "Coiffeurs", to: "/hair-dressers" },
-  { icon: <User className="h-5 w-5" />, label: "Utilisateurs", to: "/utilisateurs", isComingSoon : true },
-  { icon: <Calendar className="h-5 w-5" />, label: "Réservations", to: "/reservations" },
-  { icon: <CreditCard className="h-5 w-5" />, label: "Transactions", to: "/transactions", isComingSoon : true },
-  { icon: <Wrench className="h-5 w-5" />, label: "Services", to: "/services" },
-  { icon: <Package className="h-5 w-5" />, label: "Forfaits", to: "/packages" },
-  { icon: <Sparkles className="h-5 w-5" />, label: "Fonctionnalités Salon", to: "/features" },
-  { icon: <Settings className="h-5 w-5" />, label: "Paramètres", to: "/settings" },
+  { icon: <LayoutGrid className="h-5 w-5" />, label: "Tableau de bord", to: "/admin" },
+  { icon: <Building2 className="h-5 w-5" />, label: "Salons", to: "/admin/salons" },
+  { icon: <Scissors className="h-5 w-5" />, label: "Coiffeurs", to: "/admin/hair-dressers" },
+  { icon: <User className="h-5 w-5" />, label: "Utilisateurs", to: "/admin/utilisateurs", isComingSoon : true },
+  { icon: <Calendar className="h-5 w-5" />, label: "Réservations", to: "/admin/reservations" },
+  { icon: <CreditCard className="h-5 w-5" />, label: "Transactions", to: "/admin/transactions", isComingSoon : true },
+  { icon: <Wrench className="h-5 w-5" />, label: "Services", to: "/admin/services" },
+  { icon: <Package className="h-5 w-5" />, label: "Forfaits", to: "/admin/packages" },
+  { icon: <Sparkles className="h-5 w-5" />, label: "Fonctionnalités Salon", to: "/admin/features" },
+  { icon: <Settings className="h-5 w-5" />, label: "Paramètres", to: "/admin/settings" },
 ]
 
 interface SidebarProps {

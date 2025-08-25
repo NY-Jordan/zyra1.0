@@ -96,7 +96,6 @@ export default function ProtectedLayout({
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
-      
       {/* Sidebar */}
       <div
         className={`

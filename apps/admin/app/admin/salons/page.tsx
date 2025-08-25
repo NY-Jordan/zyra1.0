@@ -2,7 +2,7 @@
 import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import SalonList from '@/presentation/components/salons/SalonList'
-import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
+import PageHeader from '@/presentation/components/common/PageHeader'
 import React, { useState } from 'react'
 import { Plus } from "lucide-react"
 import { Routes } from '@zyra/conf/lib/route'
@@ -51,69 +51,80 @@ export default function Index() {
   })
 
   return (
-    <ProtectedLayout pageTitle='Liste des salons' breadcrumbs={[
-      { label: "Dashboard", href: "/" },
-      { label: "Salons", isCurrent: true }
-    ]}>
+    <>
+      <PageHeader 
+        title="Liste des salons"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Salons", isCurrent: true }
+        ]}
+      />
 
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <div className='flex flex-row gap-2 items-center'>
-          {/* Search by salon name */}
-          <Input
-            placeholder="Rechercher un salon..."
-            className="w-[220px]"
-            value={keyword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeyword(e.target.value)}
-          />
-          {/* Filter by country */}
-          <select
-            className="border rounded px-2 py-2 text-sm"
-            value={country}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCountry(e.target.value)}
+      <div className="space-y-6">
+        <div className="flex flex-wrap justify-between items-center gap-3">
+          <div className='flex flex-row gap-2 items-center'>
+            {/* Search by salon name */}
+            <Input
+              placeholder="Rechercher un salon..."
+              className="w-[220px]"
+              value={keyword}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeyword(e.target.value)}
+            />
+            {/* Filter by country */}
+            <select
+              className="border rounded px-2 py-2 text-sm"
+              value={country}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCountry(e.target.value)}
+            >
+              <option value="Tous les pays">Tous les pays</option>
+              {countries.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            {/* Filter by category */}
+            <select
+              className="border rounded px-2 py-2 text-sm"
+              value={category}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
+            >
+              <option value="Toutes les catégories">Toutes les catégories</option>
+              {categories.map((cat: any) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+            {/* Filter by status */}
+            <select
+              className="border rounded px-2 py-2 text-sm"
+              value={statut}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatut(e.target.value)}
+            >
+              {statuts.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+            {/* Filter by minimum reservations */}
+            <Input
+              type="number"
+              min={0}
+              placeholder="Min. réservations"
+              className="w-[150px]"
+              value={minReservations}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinReservations(e.target.value)}
+            />
+          </div>
+          <Button 
+            onClick={() => router.push(Routes.protected.salons.create.url)} 
+            className='hover:cursor-pointer' 
+            variant="default"
           >
-            <option value="Tous les pays">Tous les pays</option>
-            {countries.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          {/* Filter by category */}
-          <select
-            className="border rounded px-2 py-2 text-sm"
-            value={category}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
-          >
-            <option value="Toutes les catégories">Toutes les catégories</option>
-            {categories.map((cat: any) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-          {/* Filter by status */}
-          <select
-            className="border rounded px-2 py-2 text-sm"
-            value={statut}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatut(e.target.value)}
-          >
-            {statuts.map(s => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
-          {/* Filter by minimum reservations */}
-          <Input
-            type="number"
-            min={0}
-            placeholder="Min. réservations"
-            className="w-[150px]"
-            value={minReservations}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinReservations(e.target.value)}
-          />
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter un salon
+          </Button>
         </div>
-        <Button onClick={() => router.push(Routes.protected.salons.create.url)} className=' hover:cursor-pointer' variant="default">
-          <Plus className="w-4 h-4 mr-2" />
-          Ajouter un salon
-        </Button>
+
+        <SalonList salons={data.salons} />
       </div>
-      <SalonList salons={data.salons} />
-    </ProtectedLayout>
+    </>
   )
 }
 

@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import { Button } from '@zyra/ui/components/button'
-import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
+import PageHeader from '@/presentation/components/common/PageHeader'
 import HairDressersList from '@/presentation/components/hairdressers/HairDressersList'
 import CreateHairDresserModal from '@/presentation/components/hairdressers/CreateHairDresserModal'
 import { useQuery } from '@tanstack/react-query'
@@ -87,12 +87,17 @@ export default function HairDressersListPage() {
   const total = data?.total || 0
 
   return (
-    <ProtectedLayout pageTitle="Coiffeurs" breadcrumbs={[
-      { label: "Dashboard", href: "/" },
-      { label: "Coiffeurs", isCurrent: true }
-    ]}>
-      <div className="mx-auto py-8">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <>
+      <PageHeader 
+        title="Coiffeurs"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Coiffeurs", isCurrent: true }
+        ]}
+      />
+
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className='flex flex-row gap-2 items-center'>
             {/* Search by keyword */}
             <Input
@@ -133,18 +138,21 @@ export default function HairDressersListPage() {
           </div>
           <Button onClick={() => setModalOpen(true)}>Ajouter un coiffeur</Button>
         </div>
-        <HairDressersList hairDressers={hairDressers}  />
+
+        <HairDressersList hairDressers={hairDressers} />
+        
         <Pagination
           page={page}
           pageSize={PAGE_SIZE}
           total={total}
           onPageChange={setPage}
         />
+        
         <CreateHairDresserModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
         />
       </div>
-    </ProtectedLayout>
+    </>
   )
 }

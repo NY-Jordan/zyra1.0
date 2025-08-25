@@ -1,14 +1,14 @@
 'use client'
-import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
 import React, { useState } from 'react'
 import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import { Plus, Search } from 'lucide-react'
+import PageHeader from '@/presentation/components/common/PageHeader'
 import PackageModal from '@/presentation/components/packages/PackageModal'
 import PackageTable from '@/presentation/components/packages/PackageTable'
 import ConfirmModal from '@/presentation/components/CofirmModal'
 import Pagination from '@/presentation/components/common/Pagination'
-import { usePackagesUseCases } from '../../usecases/packagesUseCases'
+import { usePackagesUseCases } from '../../../usecases/packagesUseCases'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@zyra/ui/components/select'
 import { PackageData } from '@zyra/conf/domain/entities/packages.entities'
 
@@ -87,14 +87,19 @@ export default function PackagesPage() {
   const totalItems = packagesResult?.total || 0
 
   return (
-    <ProtectedLayout>
+    <>
+      <PageHeader 
+        title="Gestion des Forfaits"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Forfaits", isCurrent: true }
+        ]}
+      />
+
       <div className="space-y-6">
-        {/* Header */}
+        {/* Description and Add Button */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des Forfaits</h1>
-            <p className="text-gray-600">Gérez les forfaits pour les salons et clients</p>
-          </div>
+          <p className="text-gray-600">Gérez les forfaits pour les salons et clients</p>
           <Button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2"
@@ -175,7 +180,7 @@ export default function PackagesPage() {
           </div>
         )}
 
-        {/* Modal */}
+        {/* Modals */}
         <PackageModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
@@ -183,7 +188,6 @@ export default function PackagesPage() {
           countries={countries}
         />
 
-        {/* Confirm Delete Modal */}
         <ConfirmModal
           open={deleteConfirmOpen}
           title="Supprimer le forfait"
@@ -201,6 +205,6 @@ export default function PackagesPage() {
           loading={deletePackageMutation.isPending}
         />
       </div>
-    </ProtectedLayout>
+    </>
   )
 }

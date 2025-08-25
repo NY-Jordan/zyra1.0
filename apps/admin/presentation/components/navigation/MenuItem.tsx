@@ -22,6 +22,7 @@ export default function MenuItem({ title, to, icon, collapsed, isCommingSoon, ho
     return (
       <a
         onClick={e => {
+          if(!!isCommingSoon) return ;
           e.preventDefault()
           router.push(to)
         }}
@@ -42,6 +43,7 @@ export default function MenuItem({ title, to, icon, collapsed, isCommingSoon, ho
   return (
     <a
       onClick={e => {
+        if(!!isCommingSoon) return ;
         e.preventDefault()
         router.push(to)
       }}

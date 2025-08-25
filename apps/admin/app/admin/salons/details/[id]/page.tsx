@@ -1,12 +1,13 @@
 'use client'
 import { useRouter, useSearchParams } from "next/navigation"
-import  { useState } from "react"
-import * as React from "react";
+import { useState } from "react"
+import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@zyra/ui/components/button"
 import { Badge } from "@zyra/ui/components/badge"
 import { Card } from "@zyra/ui/components/card"
 import { Users, Scissors, Calendar, Trash2, Ban } from "lucide-react"
+import PageHeader from "@/presentation/components/common/PageHeader"
 import ProtectedLayout from "@/presentation/layouts/ProtectedLayout"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@zyra/ui/components/tabs"
 import { fetchCollection, fetchCollectionPaginate } from "@zyra/conf/lib/query"
@@ -95,9 +96,17 @@ export default function SalonDetails({ params }: { params: Promise<{ id: string 
 
   if (isLoading || !salon) {
     return (
-      <ProtectedLayout pageTitle="Détails du salon">
+      <>
+        <PageHeader 
+          title="Détails du salon"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Salons", href: "/salons" },
+            { label: "Chargement...", isCurrent: true }
+          ]}
+        />
         <div className="p-8 text-center">Chargement...</div>
-      </ProtectedLayout>
+      </>
     )
   }
 
@@ -107,13 +116,19 @@ export default function SalonDetails({ params }: { params: Promise<{ id: string 
   const services: ISalonService[] = salon?.services || []
 
   return (
-    <ProtectedLayout pageTitle="Détails du salon" breadcrumbs={[
-      { label: "Dashboard", href: "/" },
-      { label: "Salons", href: "/salons" },
-      { label: salon?.name, isCurrent: true }
-    ]}>
-      <div className="w-full mx-auto p-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+    <>
+      <PageHeader 
+        title="Détails du salon"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Salons", href: "/salons" },
+          { label: salon?.name, isCurrent: true }
+        ]}
+      />
+
+      <div className="space-y-6">
+        {/* Salon header with logo and owner info */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-6">
             <img src={salonLogo} alt={salon.name} className="w-20 h-20 rounded-full border bg-gray-100 object-cover" />
             <div>
@@ -135,6 +150,7 @@ export default function SalonDetails({ params }: { params: Promise<{ id: string 
               </Badge>
             </div>
           </div>
+          
           <div className="bg-gray-50 rounded-lg p-4 min-w-[220px]">
             <h2 className="font-semibold mb-2 text-sm text-gray-700">Propriétaire</h2>
             <div className="text-sm mb-1"><span className="font-medium">Nom :</span> {owner?.name || "-"}</div>
@@ -215,6 +231,6 @@ export default function SalonDetails({ params }: { params: Promise<{ id: string 
           </TabsContent>
         </Tabs>
       </div>
-    </ProtectedLayout>
+    </>
   )
 }

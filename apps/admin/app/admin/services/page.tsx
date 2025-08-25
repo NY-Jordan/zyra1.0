@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
-import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
+import PageHeader from '@/presentation/components/common/PageHeader'
 import React, { useState } from 'react'
 import { Plus } from "lucide-react"
 import { useRouter } from 'next/navigation'
@@ -97,52 +97,68 @@ export default function ServicesIndex() {
   }
 
   return (
-    <ProtectedLayout pageTitle='Liste des services' breadcrumbs={[
-      { label: "Dashboard", href: "/" },
-      { label: "Services", isCurrent: true }
-    ]}>
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <div className='flex flex-row gap-2 items-center'>
-          {/* Search by service name */}
-          <Input
-            placeholder="Rechercher un service..."
-            className="w-[220px]"
-            value={keyword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeyword(e.target.value)}
+    <>
+      <PageHeader 
+        title="Liste des services"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Services", isCurrent: true }
+        ]}
+      />
+
+      <div className="space-y-6">
+        <div className="flex flex-wrap justify-between items-center gap-3">
+          <div className='flex flex-row gap-2 items-center'>
+            {/* Search by service name */}
+            <Input
+              placeholder="Rechercher un service..."
+              className="w-[220px]"
+              value={keyword}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeyword(e.target.value)}
+            />
+          </div>
+          <Button 
+            onClick={() => setCreateModalOpen(true)} 
+            className='hover:cursor-pointer' 
+            variant="default"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter un service
+          </Button>
+        </div>
+
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-2">Services valides</h2>
+          <ServicesList services={validData.data as IService[]} loading={loadingValid} />
+          <Pagination
+            page={validPage}
+            pageSize={PAGE_SIZE}
+            total={validData.total}
+            onPageChange={setValidPage}
           />
         </div>
-        <Button onClick={() => setCreateModalOpen(true)} className=' hover:cursor-pointer' variant="default">
-          <Plus className="w-4 h-4 mr-2" />
-          Ajouter un service
-        </Button>
-      </div>
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-2">Services valides</h2>
-        <ServicesList services={validData.data as IService[]} loading={loadingValid} />
-        <Pagination
-          page={validPage}
-          pageSize={PAGE_SIZE}
-          total={validData.total}
-          onPageChange={setValidPage}
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2">Services défendus</h2>
+          <ServicesList services={forbiddenData.data as IService[]} loading={loadingForbidden} />
+          <Pagination
+            page={forbiddenPage}
+            pageSize={PAGE_SIZE}
+            total={forbiddenData.total}
+            onPageChange={setForbiddenPage}
+          />
+        </div>
+
+        {/* Create Service Modal */}
+        <CreateServiceModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onSubmit={handleCreateService}
+          loading={createLoading}
         />
       </div>
-      <div>
-        <h2 className="text-lg font-semibold mb-2">Services défendus</h2>
-        <ServicesList services={forbiddenData.data as IService[]} loading={loadingForbidden} />
-        <Pagination
-          page={forbiddenPage}
-          pageSize={PAGE_SIZE}
-          total={forbiddenData.total}
-          onPageChange={setForbiddenPage}
-        />
-      </div>
-      {/* Create Service Modal */}
-      <CreateServiceModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onSubmit={handleCreateService}
-        loading={createLoading}
-      />
-    </ProtectedLayout>
+    </>
   )
 }
+
+

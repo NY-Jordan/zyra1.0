@@ -1,5 +1,4 @@
 'use client'
-import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCollectionPaginate, fetchCollection } from '@zyra/conf/lib/query'
@@ -8,6 +7,7 @@ import ReservationsList from '@/presentation/components/reservations/Reservation
 import { Input } from '@zyra/ui/components/input'
 import { where } from 'firebase/firestore'
 import { Calendar22 } from '@/presentation/components/Calendar22'
+import PageHeader from '@/presentation/components/common/PageHeader'
 
 const PAGE_SIZE = 20
 
@@ -78,55 +78,55 @@ export default function ReservationsIndex() {
   })
 
   return (
-    <ProtectedLayout pageTitle='Liste des reservations' breadcrumbs={[
-      { label: "Dashboard", href: "/" },
-      { label: "Reservations", isCurrent: true }
-    ]}>
-      <div className="flex flex-wrap gap-3 mb-6 items-center">
-        <Input
-          placeholder="Rechercher par salon..."
-          className="w-[220px]"
-          value={searchSalon}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchSalon(e.target.value)}
-        />
-        <select
-          className="border rounded px-2 py-2 text-sm"
-          value={filterStatus}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterStatus(e.target.value)}
-        >
-          {statusOptions.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-        {/* <select
-          className="border rounded px-2 py-2 text-sm"
-          value={filterCountry}
-          onChange={e => setFilterCountry(e.target.value)}
-        >
-          <option value="">Tous les pays</option>
-          {countries.map((c: any) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select> */}
-        <Calendar22
-          selected={filterDate}
-          onChange={date => setFilterDate(date)}
-          dateFormat="dd MMMM yyyy"
-          placeholderText="Filtrer par date"
-          className="border rounded px-2 py-2 text-sm"
-        />
+    <>
+      <PageHeader 
+        title="Liste des réservations"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Réservations", isCurrent: true }
+        ]}
+      />
+
+      <div className="space-y-6">
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <Input
+            placeholder="Rechercher par salon..."
+            className="w-[220px]"
+            value={searchSalon}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchSalon(e.target.value)}
+          />
+          <select
+            className="border rounded px-2 py-2 text-sm"
+            value={filterStatus}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterStatus(e.target.value)}
+          >
+            {statusOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <Calendar22
+            selected={filterDate}
+            onChange={date => setFilterDate(date)}
+            dateFormat="dd MMMM yyyy"
+            placeholderText="Filtrer par date"
+            className="border rounded px-2 py-2 text-sm"
+          />
+        </div>
+
+        {/* Reservations List */}
+        <div className="bg-white rounded shadow p-4">
+          <ReservationsList
+            reservations={data.data as IReservation[]}
+            salons={salons}
+            loading={isLoading}
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={data.total}
+            onPageChange={setPage}
+          />
+        </div>
       </div>
-      <div className="bg-white rounded shadow p-4">
-        <ReservationsList
-          reservations={data.data as IReservation[]}
-          salons={salons}
-          loading={isLoading}
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={data.total}
-          onPageChange={setPage}
-        />
-      </div>
-    </ProtectedLayout>
+    </>
   )
 }

@@ -3,6 +3,7 @@ import React, { useState } from "react"
 import { useForm, Controller, SubmitHandler } from "react-hook-form"
 import { Button } from "@zyra/ui/components/button"
 import { Input } from "@zyra/ui/components/input"
+import PageHeader from "@/presentation/components/common/PageHeader"
 import ProtectedLayout from "@/presentation/layouts/ProtectedLayout"
 import { ISalonFormValues, OpeningHour } from "@zyra/conf/domain/entities/salons.entities"
 import { createSalon, checkOwnerExists } from "@/services/SalonServices"
@@ -117,15 +118,17 @@ export default function CreateSalon() {
   }
 
   return (
-    <ProtectedLayout
-      pageTitle="Créer un salon"
-      breadcrumbs={[
-        { label: "Dashboard", href: "/" },
-        { label: "Salons", href: "/salons" },
-        { label: "Créer", isCurrent: true }
-      ]}
-    >
-      <div className=" w-full mx-2 flex flex-col md:flex-row gap-8">
+    <>
+      <PageHeader 
+        title="Créer un salon"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Salons", href: "/salons" },
+          { label: "Créer", isCurrent: true }
+        ]}
+      />
+
+      <div className="w-full mx-2 flex flex-col md:flex-row gap-8">
         {/* Main Form */}
         <div className="flex-1 w-2/3 bg-white rounded-xl shadow-lg p-8">
           <h2 className="text-2xl font-bold mb-2 text-gray-800">Informations du salon</h2>
@@ -355,8 +358,9 @@ export default function CreateSalon() {
             </div>
           </form>
         </div>
-        {/* Card  security */}
-        <div className=" w-1/3 flex-shrink-0">
+
+        {/* Card security */}
+        <div className="w-1/3 flex-shrink-0">
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
             <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
               <span role="img" aria-label="lock">🔒</span> Sécurité du compte
@@ -440,6 +444,7 @@ export default function CreateSalon() {
           </div>
         </div>
       </div>
+
       <Dialog open={showOwnerModal} onOpenChange={setShowOwnerModal}>
         <DialogContent>
           <DialogHeader>
@@ -461,6 +466,6 @@ export default function CreateSalon() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </ProtectedLayout>
+    </>
   )
 }
