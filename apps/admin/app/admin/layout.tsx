@@ -64,9 +64,15 @@ export default function RootLayout({
 
   if (loading) {
     return (
+      <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased `}
+      >
       <div className="flex items-center justify-center h-screen w-full">
         <LoadingSpinner className="h-8 w-8" />
       </div>
+      </body>
+      </html>
     )
   }
 
