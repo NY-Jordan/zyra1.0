@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Providers } from "../components/providers";
+import { Providers } from "../../components/providers";
 import "@zyra/ui/globals.css"
+import { Toaster } from "@zyra/ui/components/sonner";
 
 
 export const metadata: Metadata = {
@@ -19,6 +20,8 @@ export default function RootLayout({
       >
         <Providers>
           {children}
+          <Toaster position="top-right"  />
+
         </Providers>
       </body>
     </html>

@@ -1,23 +1,27 @@
 import { Button } from '@zyra/ui/components/button';
 import { Input } from '@zyra/ui/components/input';
-import { FieldValues, UseFormHandleSubmit, UseFormRegister } from 'react-hook-form';
+import { FieldValues, UseFormHandleSubmit, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { useState } from 'react';
 
 interface Step2Props {
   handleSubmit: UseFormHandleSubmit<FieldValues>;
   register: UseFormRegister<FieldValues>;
   onSubmit: (data: FieldValues) => void;
+  setValue: UseFormSetValue<FieldValues>;
+  watch: UseFormWatch<FieldValues>;
   loading: boolean;
   errors: any;
   onBack: () => void;
 }
 
-export default function Step2({ handleSubmit, register, onSubmit, loading, errors, onBack }: Step2Props) {
+export default function Step2({ handleSubmit, register, onSubmit, setValue, watch, loading, errors, onBack }: Step2Props) {
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const password = watch('password');
 
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setProfilePhoto(event.target.files[0]);
+      setValue('photo', event.target.files[0]);
     }
   };
 
@@ -31,7 +35,6 @@ export default function Step2({ handleSubmit, register, onSubmit, loading, error
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Informations du propriétaire</h1>
         <p className="text-sm text-gray-600">Renseignez vos informations personnelles</p>
       </div>
-      
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 lg:space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -62,15 +65,57 @@ export default function Step2({ handleSubmit, register, onSubmit, loading, error
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+          <Input
+            type="email"
+            placeholder="Votre adresse email"
+            className="w-full h-10 lg:h-12 text-black dark:text-black focus:text-black bg-gray-50 border border-gray-300 rounded-lg focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-sm lg:text-base"
+            {...register('email', { 
+              required: "L'email est requis",
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: "L'adresse email n'est pas valide"
+              }
+            })}
+          />
+          {errors?.email && (
+            <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe *</label>
           <Input
             type="password"
             placeholder="Créer un mot de passe"
             className="w-full h-10 lg:h-12 text-black dark:text-black focus:text-black bg-gray-50 border border-gray-300 rounded-lg focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-sm lg:text-base"
-            {...register('password', { required: true })}
+            {...register('password', { 
+              required: "Le mot de passe est requis",
+              minLength: {
+                value: 8,
+                message: "Le mot de passe doit contenir au moins 8 caractères"
+              }
+            })}
           />
           {errors?.password && (
-            <p className="text-xs text-red-500 mt-1">Le mot de passe est requis</p>
+            <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe *</label>
+          <Input
+            type="password"
+            placeholder="Confirmer votre mot de passe"
+            className="w-full h-10 lg:h-12 text-black dark:text-black focus:text-black bg-gray-50 border border-gray-300 rounded-lg focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-sm lg:text-base"
+            {...register('confirmPassword', { 
+              required: "La confirmation du mot de passe est requise",
+              validate: value => 
+                value === password || "Les mots de passe ne correspondent pas"
+            })}
+          />
+          {errors?.confirmPassword && (
+            <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>
           )}
         </div>
 

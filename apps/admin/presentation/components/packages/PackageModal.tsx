@@ -34,6 +34,7 @@ type FormData = {
   features: string[] // Array des clés des features sélectionnées
   duration: number
   active: boolean
+  popular: boolean
   type: 'salon' | 'client'
 }
 
@@ -63,9 +64,10 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
       price: 0,
       currency: '',
       countryId: '',
-      features: [], // Array vide pour les features sélectionnées
+      features: [],
       duration: 30,
       active: true,
+      popular: false,
       type: UserTypeEnum.SALON
     }
   })
@@ -108,13 +110,13 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
         features: [], // Array vide
         duration: 30,
         active: true,
+        popular: false,
         type: UserTypeEnum.SALON
       })
     }
   }, [editPackage, isOpen, reset])
 
   const onSubmit = (data: FormData) => {
-    // Vérifier qu'au moins une fonctionnalité est sélectionnée
     if (data.features.length === 0) {
       toast.error('Au moins une fonctionnalité est requise')
       return
@@ -122,6 +124,7 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
 
     const dataToSubmit = {
       ...data,
+      popular :false,
       type: data.type === UserTypeEnum.SALON  ? UserTypeEnum.SALON : UserTypeEnum.CLIENT
     }
 
@@ -146,7 +149,6 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
   const toggleFeature = (featureKey: string) => {
     const currentFeatures = watchedFeatures || []
     const isSelected = currentFeatures.includes(featureKey)
-    
     if (isSelected) {
       setValue('features', currentFeatures.filter(key => key !== featureKey))
     } else {

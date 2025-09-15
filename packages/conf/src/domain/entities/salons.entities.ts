@@ -63,6 +63,15 @@ export type ICreateSalon = {
 }
 
 
+export type IRegisterSalon = {
+  name: string
+  description: string
+  phone: string
+  email?: string
+  photos?: FileList | File[] | string[]
+}
+
+
 export interface ISalonServiceSupplement {
   id : string
   name: string

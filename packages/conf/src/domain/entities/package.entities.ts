@@ -1,6 +1,7 @@
-import { UserTypeEnum } from '../enums/UserTypeEnum';
-export interface PackageData {
-  id?: string
+import { UserTypeEnum } from "../enums/UserTypeEnum"
+
+export interface IPackage {
+  id: string
   name: string
   price: number
   currency: string
@@ -9,9 +10,7 @@ export interface PackageData {
   duration: number
   popular : boolean
   active: boolean
-  type: UserTypeEnum
+  type?: UserTypeEnum.SALON | UserTypeEnum.CLIENT
   createdAt?: any
   updatedAt?: any
 }
-
-

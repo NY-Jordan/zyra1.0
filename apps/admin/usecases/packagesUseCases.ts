@@ -144,6 +144,30 @@ export const usePackagesUseCases = () => {
     })
   }
 
+  // Toggle package popular status mutation
+  const useTogglePackagePopular = () => {
+    return useMutation({
+      mutationFn: async ({ id, popular }: { id: string; popular: boolean }) => {
+        try {
+          const packageRef = doc(db, 'packages', id)
+          await updateDoc(packageRef, { popular })
+          return { success: true }
+        } catch (error) {
+          console.error('Error toggling package popular status:', error)
+          throw new Error('Failed to update package popular status')
+        }
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['packages'] })
+        toast.success('Statut du forfait mis à jour avec succès')
+      },
+      onError: (error) => {
+        console.error('Error in toggle package popular mutation:', error)
+        toast.error('Échec de la mise à jour du forfait')
+      }
+    })
+  }
+
   // Utility function to filter packages
   const filterPackages = (
     packages: any[],
@@ -176,6 +200,7 @@ export const usePackagesUseCases = () => {
     useCreatePackage,
     useUpdatePackage,
     useDeletePackage,
+    useTogglePackagePopular,
     
     // Utilities
     filterPackages,

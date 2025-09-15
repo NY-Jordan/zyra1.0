@@ -10,11 +10,13 @@ import ConfirmModal from '@/presentation/components/CofirmModal'
 import Pagination from '@/presentation/components/common/Pagination'
 import { usePackagesUseCases } from '../../../usecases/packagesUseCases'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@zyra/ui/components/select'
+import { IPackage } from '@zyra/conf/domain/entities/package.entities';
 import { PackageData } from '@zyra/conf/domain/entities/packages.entities'
+import { ICountry } from '@zyra/conf/domain/entities/countries.entities';
 
 export default function PackagesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingPackage, setEditingPackage] = useState<PackageData | null>(null)
+  const [editingPackage, setEditingPackage] = useState<IPackage | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'salon' | 'client'>('all')
   const [filterCountry, setFilterCountry] = useState('all')
@@ -27,6 +29,7 @@ export default function PackagesPage() {
     usePackages,
     useCountries,
     useDeletePackage,
+    useTogglePackagePopular,
   } = usePackagesUseCases()
 
   const { data: packagesResult, isLoading } = usePackages({
@@ -38,8 +41,9 @@ export default function PackagesPage() {
   })
   const { data: countries = [] } = useCountries()
   const deletePackageMutation = useDeletePackage()
+  const togglePopularMutation = useTogglePackagePopular()
 
-  const handleEdit = (packageData: PackageData) => {
+  const handleEdit = (packageData: IPackage) => {
     setEditingPackage(packageData)
     setIsModalOpen(true)
   }
@@ -65,6 +69,14 @@ export default function PackagesPage() {
     setPackageToDelete(null)
   }
 
+  const handleTogglePopular = (pkg: IPackage) => {
+    // Toggle the popular status
+    togglePopularMutation.mutate({
+      id: pkg.id,
+      popular: !pkg.popular
+    })
+  }
+
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setEditingPackage(null)
@@ -82,7 +94,7 @@ export default function PackagesPage() {
   }
 
   // Get packages and pagination info
-  const packages = packagesResult?.data || []
+  const packages = packagesResult?.data || [] as IPackage[]
   const totalPages = packagesResult?.totalPages || 1
   const totalItems = packagesResult?.total || 0
 
@@ -158,11 +170,12 @@ export default function PackagesPage() {
 
         {/* Table */}
         <PackageTable
-          packages={packages}
-          countries={countries}
+          packages={packages as IPackage[]}
+          countries={countries as ICountry[]}
           isLoading={isLoading}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onTogglePopular={handleTogglePopular}
         />
 
         {/* Pagination */}
@@ -184,7 +197,7 @@ export default function PackagesPage() {
         <PackageModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          package={editingPackage}
+          package={editingPackage as PackageData | null}
           countries={countries}
         />
 

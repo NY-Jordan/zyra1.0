@@ -1,12 +1,12 @@
 import { Button } from '@zyra/ui/components/button';
 import { Input } from '@zyra/ui/components/input';
 import { FieldValues, UseFormHandleSubmit, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import SalonLocationForm from './SalonLocationForm';
+import SalonLocationForm from '../SalonLocationForm';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCollection } from '@zyra/conf/lib/query';
 import { where } from 'firebase/firestore';
-import SalonGallery from './SalonGallery';
+import SalonGallery from '../SalonGallery';
 
 interface LocationData {
   address: string;
@@ -53,13 +53,13 @@ export default function Step3({ handleSubmit, register, setValue, onSubmit, load
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setSelectedCategory(value);
-    setValue('category', value);
+    setValue('salon.category', value);
   };
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setSelectedCountry(value);
-    setValue('country', value);
+    setValue('salon.country', value);
   };
 
   const handleFormSubmit = (data: FieldValues) => {
@@ -72,7 +72,6 @@ export default function Step3({ handleSubmit, register, setValue, onSubmit, load
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Informations du salon</h1>
         <p className="text-sm text-gray-600">Configurez votre salon pour finaliser votre inscription</p>
       </div>
-      
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 lg:space-y-6 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
           <div>
@@ -81,9 +80,9 @@ export default function Step3({ handleSubmit, register, setValue, onSubmit, load
               type="text"
               placeholder="Ex: Salon Prestige"
               className="w-full h-10 lg:h-12 bg-gray-50 border text-black border-gray-300 rounded-lg focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-sm lg:text-base"
-              {...register('name', { required: true })}
+              {...register('salon.name', { required: true })}
             />
-            {errors?.name && (
+            {errors?.salon?.name && (
               <p className="text-xs text-red-500 mt-1">Le nom est requis</p>
             )}
           </div>
@@ -94,9 +93,9 @@ export default function Step3({ handleSubmit, register, setValue, onSubmit, load
               type="tel"
               placeholder="Ex: +237 6 99 99 99 99"
               className="w-full h-10 lg:h-12 text-black bg-gray-50 border border-gray-300 rounded-lg focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-sm lg:text-base"
-              {...register('phone', { required: true })}
+              {...register('salon.phone', { required: true })}
             />
-            {errors?.phone && (
+            {errors?.salon?.phone && (
               <p className="text-xs text-red-500 mt-1">Le numéro de téléphone est requis</p>
             )}
           </div>
@@ -107,8 +106,8 @@ export default function Step3({ handleSubmit, register, setValue, onSubmit, load
           <Input
             type="email"
             placeholder="Ex: contact@salonprestige.com"
-            className="w-full h-10 lg:h-12 text-black bg-gray-50 border border-gray-300 rounded-lg focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-sm lg:text-base"
-            {...register('email')}
+            className="w-full h-10 lg:h-12 disabled:bg-gray-700 text-black bg-gray-50 border border-gray-300 rounded-lg focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-sm lg:text-base"
+            {...register('salon.email')}
           />
         </div>
 
@@ -158,7 +157,7 @@ export default function Step3({ handleSubmit, register, setValue, onSubmit, load
 
         {/* Gallery Section */}
         <div className="pt-2 lg:pt-4">
-          <SalonGallery onGalleryChange={(files) => console.log(files)} />
+          <SalonGallery onGalleryChange={(files) => setValue('salon.photos', files)} />
         </div>
 
         <div className="pt-4 lg:pt-6">

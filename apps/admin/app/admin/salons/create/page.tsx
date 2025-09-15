@@ -78,7 +78,7 @@ export default function CreateSalon() {
 
     const salonsWithSameName = await fetchCollection("salons", [
         where("name", "==", salonData.name)
-    ])
+    ]);
     if (salonsWithSameName.length > 0) {
       toast.error("Un salon avec ce nom existe déjà.")
       return
@@ -93,11 +93,11 @@ export default function CreateSalon() {
       return
     }
     // create the salon directly if the owner does not exist
-  await createSalon({ salon: { ...salonData, openingHours: openingHoursWithOpenDay }, owner })
-    queryClient.invalidateQueries({ queryKey: ['salons'] })
-    toast.success("Salon créé avec succès");
-    router.push(Routes.protected.salons.url)
-  }
+    await createSalon({ salon: { ...salonData, openingHours: openingHoursWithOpenDay }, owner })
+      queryClient.invalidateQueries({ queryKey: ['salons'] })
+      toast.success("Salon créé avec succès");
+      router.push(Routes.protected.salons.url)
+    }
 
   // If the user confirms in the modal, continue the creation
   const handleContinueWithExistingOwner = async () => {

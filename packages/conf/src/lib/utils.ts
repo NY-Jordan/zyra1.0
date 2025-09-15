@@ -13,6 +13,9 @@ export const formatCountdown = (ms: number) => {
     return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`
   }
 
+export function isFileArray(value: any): value is File[] {
+  return Array.isArray(value) && value.every(item => item instanceof File);
+}
 
 export function generatePassword(length = 12) {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
@@ -50,3 +53,10 @@ export function canTransitionStatusReservation(current: string, target: string) 
     (target === "cancelled" && current !== "cancelled")
   )
 }
+
+export const formatPrice = (price: number, currency: string) => {
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price) + ' ' + currency
+  }

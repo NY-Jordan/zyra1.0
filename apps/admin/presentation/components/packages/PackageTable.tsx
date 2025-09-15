@@ -1,32 +1,23 @@
 'use client'
 import React from 'react'
 import { Button } from '@zyra/ui/components/button'
-import { Edit, Trash2, Eye, Package as PackageIcon } from 'lucide-react'
+import { Edit, Trash2, Eye, Star, Package as PackageIcon } from 'lucide-react'
 import { Badge } from '@zyra/ui/components/badge'
+import { IPackage } from '@zyra/conf/domain/entities/package.entities';
+import { ICountry } from '@zyra/conf/domain/entities/countries.entities'
 
-interface Package {
-  id: string
-  name: string
-  price: number
-  currency: string
-  countryId: string
-  features: string[]
-  duration: number
-  active: boolean
-  type?: 'salon' | 'client'
-  createdAt?: any
-  updatedAt?: any
-}
+
 
 interface PackageTableProps {
-  packages: any[]
-  countries: any[]
+  packages: IPackage[]
+  countries: ICountry[]
   isLoading: boolean
-  onEdit: (pkg: any) => void
+  onEdit: (pkg: IPackage) => void
   onDelete: (id: string) => void
+  onTogglePopular: (pkg: IPackage) => void
 }
 
-export default function PackageTable({ packages, countries, isLoading, onEdit, onDelete }: PackageTableProps) {
+export default function PackageTable({ packages, countries, isLoading, onEdit, onDelete, onTogglePopular }: PackageTableProps) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg border">
@@ -57,6 +48,11 @@ export default function PackageTable({ packages, countries, isLoading, onEdit, o
     }).format(price) + ' ' + currency
   }
 
+  const getCountryName = (countryId: string) => {
+    const country = countries.find(c => c.id === countryId)
+    return country?.name || 'Pays inconnu'
+  }
+
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
       <div className="overflow-x-auto">
@@ -82,12 +78,15 @@ export default function PackageTable({ packages, countries, isLoading, onEdit, o
                 Statut
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Populaire
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {packages.map((pkg: any) => (
+            {packages.map((pkg: IPackage) => (
               <tr key={pkg.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
@@ -114,15 +113,29 @@ export default function PackageTable({ packages, countries, isLoading, onEdit, o
                   {pkg.duration} jour(s)
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {pkg.countryId}
+                  {getCountryName(pkg.countryId)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Badge variant={pkg.active ? 'default' : 'destructive'}>
                     {pkg.active ? 'Actif' : 'Inactif'}
                   </Badge>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Badge variant={pkg.popular ? 'secondary' : 'outline'} className={pkg.popular ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : ''}>
+                    {pkg.popular ? 'Populaire' : 'Standard'}
+                  </Badge>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onTogglePopular(pkg)}
+                      title={pkg.popular ? "Retirer le statut populaire" : "Rendre populaire"}
+                      className={`${pkg.popular ? 'text-amber-500 hover:text-amber-700' : 'text-gray-400 hover:text-amber-500'}`}
+                    >
+                      <Star size={16} className={pkg.popular ? 'fill-amber-500' : ''} />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
