@@ -41,16 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {children}
         <Toaster 
           position="top-right"
-          richColors
-          closeButton
-          duration={4000}
-          toastOptions={{
-            style: {
-              background: 'hsl(var(--background))',
-              color: 'hsl(var(--foreground))',
-              border: '1px solid hsl(var(--border))',
-            },
-          }}
+          
         />
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />

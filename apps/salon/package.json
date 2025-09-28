@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@api/flutterwavedoc": "link:/home/yvan/PROJECTS/zyra/apps/salon/.api/apis/flutterwavedoc",
     "@hookform/resolvers": "^3.9.1",
+    "@paypal/react-paypal-js": "^8.9.1",
     "@react-google-maps/api": "^2.20.7",
     "@tanstack/react-query": "^5.85.3",
     "@tanstack/react-query-devtools": "^5.85.3",
@@ -18,6 +20,7 @@
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "firebase": "^12.1.0",
+    "flutterwave-react-v3": "^1.3.2",
     "js-cookie": "^3.0.5",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",

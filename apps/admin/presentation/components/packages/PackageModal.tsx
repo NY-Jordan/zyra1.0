@@ -36,6 +36,7 @@ type FormData = {
   active: boolean
   popular: boolean
   type: 'salon' | 'client'
+  isFree: boolean // Nouveau champ pour forfait gratuit
 }
 
 export default function PackageModal({ isOpen, onClose, package: editPackage, countries }: PackageModalProps) {
@@ -68,12 +69,14 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
       duration: 30,
       active: true,
       popular: false,
-      type: UserTypeEnum.SALON
+      type: UserTypeEnum.SALON,
+      isFree: false
     }
   })
 
   const watchedFeatures = watch('features')
   const watchedCountryId = watch('countryId')
+  const watchedIsFree = watch('isFree')
 
   // Auto-update currency when country changes
   useEffect(() => {
@@ -89,6 +92,13 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
     }
   }, [watchedCountryId, countries, watch, reset])
 
+  // Auto-update price when isFree changes
+  useEffect(() => {
+    if (watchedIsFree) {
+      setValue('price', 0)
+    }
+  }, [watchedIsFree, setValue])
+
   useEffect(() => {
     if (editPackage) {
       reset({
@@ -99,7 +109,8 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
         features: editPackage.features || [], // Features sélectionnées comme array de clés
         duration: editPackage.duration,
         active: editPackage.active,
-        type: editPackage.type === UserTypeEnum.SALON? UserTypeEnum.SALON : UserTypeEnum.CLIENT
+        type: editPackage.type === UserTypeEnum.SALON? UserTypeEnum.SALON : UserTypeEnum.CLIENT,
+        isFree: editPackage.price === 0
       })
     } else {
       reset({
@@ -111,7 +122,8 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
         duration: 30,
         active: true,
         popular: false,
-        type: UserTypeEnum.SALON
+        type: UserTypeEnum.SALON,
+        isFree: false
       })
     }
   }, [editPackage, isOpen, reset])
@@ -254,8 +266,8 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
                 name="price"
                 control={control}
                 rules={{ 
-                  required: 'Le prix est requis',
-                  min: { value: 1, message: 'Le prix doit être supérieur à 0' }
+                  required: !watchedIsFree ? 'Le prix est requis' : false,
+                  min: !watchedIsFree ? { value: 1, message: 'Le prix doit être supérieur à 0' } : undefined
                 }}
                 render={({ field }) => (
                   <Input
@@ -263,13 +275,36 @@ export default function PackageModal({ isOpen, onClose, package: editPackage, co
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     placeholder="0"
-                    min="1"
+                    min="0"
+                    disabled={watchedIsFree}
+                    className={watchedIsFree ? 'bg-gray-100 text-gray-500' : ''}
                   />
                 )}
               />
               {errors.price && (
                 <p className="text-sm text-red-600 mt-1">{errors.price.message}</p>
               )}
+              
+              {/* Checkbox Gratuit */}
+              <div className="flex items-center gap-2 mt-2">
+                <Controller
+                  name="isFree"
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      type="checkbox"
+                      id="isFree"
+                      checked={field.value}
+                      onChange={field.onChange}
+                      className="rounded"
+                    />
+                  )}
+                />
+                <label htmlFor="isFree" className="text-sm font-medium text-green-600">
+                  <Check className="inline w-4 h-4 mr-1" />
+                  Gratuit
+                </label>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">

@@ -11,6 +11,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "../../apps/salon/services/PaymentService.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -49,16 +49,15 @@ export const ownerAuthService = {
   async checkSubscriptionStatus(userId: string) {
     try {
       const salons = await fetchCollection("salons", [
-        where("ownerId", "==", userId)
+        where("ownerId", "==", userId),
       ]);
       if (!salons || salons.length === 0) {
         return {
           hasSubscription: false,
-          redirectTo: '/salon/payment/packages',
-          message: "Veuillez sélectionner un forfait pour commencer"
+          redirectTo: '/auth/login',
+          message: "Vous ne posseder aucun salon. Veuillez contacter le support."
         };
       }
-      const salonId = salons[0].id;
       const subscriptions = await fetchCollection("subscriptions", [
         where("ownerId", "==", userId),
         where("status", "==", "active")

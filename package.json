@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "emulators": "firebase emulators:start --import=./.firebase/data/",
-    "emulators:export": "firebase emulators:export ./firebase-export",
-    "emulators:import": "firebase emulators:start --import ./firebase-export",
+    "emulators:export": "firebase emulators:export ./.firebase/data/",
+    "emulators:import": "firebase emulators:start --import ./.firebase/data/",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",

@@ -17,6 +17,12 @@ const defaultFeatures = [
     defaultValue: 50
   },
   {
+    id: "booking_limit",
+    key: "booking_limit",
+    type: FeatureTypeEnum.LIMIT,
+    defaultValue: 'unlimited'
+  },
+  {
     id: "custom_branding",
     key: "custom_branding",
     type: FeatureTypeEnum.FEATURE,

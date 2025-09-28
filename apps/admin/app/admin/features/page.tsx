@@ -40,10 +40,6 @@ export default function FeaturesPage() {
   })
   const createFeatureMutation = useCreateFeature()
 
-  const handleEdit = (featureData: FeatureDisplayData) => {
-    setEditingFeature(featureData)
-    setIsModalOpen(true)
-  }
 
   const handleView = (featureData: FeatureDisplayData) => {
     setEditingFeature(featureData)

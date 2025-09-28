@@ -3,6 +3,14 @@ import { OpeningHour } from "../domain/entities/salons.entities"
 import { GeneralConfigForm, SalonConfigForm } from "../domain/entities/settings.entities"
 import { ConfigTypeEnum } from "../domain/enums/ConfigTypeEnum"
 
+
+export const flutterWaveConfig = {
+  secretKey: 'FLWSECK_TEST-15c94cb3db3cd6a46edf101d0530aad0-X',
+  publicKey: 'FLWPUBK_TEST-c0f86cebd9fc7f3bd954c143a36f233e-X',
+  encryptionKey:  'FLWSECK_TEST5f46553a15f7'
+}
+
+
 export const URL_LOGIN_BACK = "http://localhost:3000/auth/finish-signin"
 
 export const LS_MAX_ATTEMPTS = 3

@@ -1,44 +1,66 @@
 'use client'
 import { Button } from "@zyra/ui/components/button";
 import { Input } from "@zyra/ui/components/input";
+import { Alert, AlertDescription } from "@zyra/ui/components/alert";
 import { useForm, FieldValues } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Mail, Lock, ArrowRight, LogIn } from "lucide-react";
+import { Mail, Lock, ArrowRight, LogIn, Globe, AlertCircle } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { ownerAuthService } from "@/services/ownerAuthService";
 import Link from "next/link";
 import Image from "next/image";
+import { fetchCollection } from '@zyra/conf/lib/query';
+import { where } from "firebase/firestore";
 
-export default function AuthPage() {
-  const [loading, setLoading] = useState(false);
+interface Country {
+  id: string;
+  name: string;
+  flag?: string;
+}
+
+interface Country {
+  id: string;
+  name: string;
+  code: string;
+  flag?: string;
+}
+
+export default function Login() {
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
+  const [isLoading, setIsLoading] = useState(false);
+  const [connectionError, setConnectionError] = useState('');
+  const [formError, setFormError] = useState('');
   const router = useRouter();
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+
 
   const handleAuth = async (data: FieldValues) => {
-    setLoading(true);
+    // Réinitialiser les erreurs
+    setFormError('');
+    setConnectionError('');
+    setIsLoading(true);
     try {
       const { email, password } = data;
       const user = await ownerAuthService.login(email, password);
+      console.log(user);
       const subscriptionStatus = await ownerAuthService.checkSubscriptionStatus(user.uid);
       toast.success("Connexion réussie");
       if (!subscriptionStatus.hasSubscription) {
+        setConnectionError(subscriptionStatus.message);
         toast.info(subscriptionStatus.message);
       }
-      router.push(subscriptionStatus.redirectTo);
+      setTimeout(() => {
+        router.push(subscriptionStatus.redirectTo);
+      }, 1000);
     } catch (error: any) {
-      toast.error(error.message || "Une erreur est survenue. Veuillez réessayer.");
+      setConnectionError(error.message || "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer.");
       console.error("Erreur de connexion:", error.originalError || error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  
   return (
     <div className="min-h-screen flex bg-zinc-100">
       {/* Colonne de gauche - Branding avec image de fond */}
@@ -120,6 +142,25 @@ export default function AuthPage() {
           </div>
           
           <form onSubmit={handleSubmit(handleAuth)} className="space-y-5">
+            {/* Affichage des erreurs */}
+            {connectionError && (
+              <Alert className="border-red-200 bg-red-50">
+                <AlertCircle className="h-4 w-4 text-red-500" />
+                <AlertDescription className="text-red-700">
+                  {connectionError}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {formError && (
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+                <AlertDescription className="text-amber-700">
+                  {formError}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-medium text-zinc-700">
                 Adresse e-mail
@@ -200,10 +241,10 @@ export default function AuthPage() {
             <Button
               type="submit"
               className="w-full py-6 bg-zinc-800 hover:bg-zinc-700 text-white"
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? "Connexion en cours..." : "Se connecter"}
-              {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+              {isLoading ? "Connexion en cours..." : "Se connecter"}
+              {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>
           

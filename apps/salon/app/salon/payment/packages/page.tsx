@@ -6,10 +6,8 @@ import { PackageData } from '@zyra/conf/domain/entities/packages.entities'
 import { where } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
-import HeroSection from '@/presentation/components/packages/HeroSection'
+
 import PricingSection from '@/presentation/components/packages/PricingSection'
-import FeaturesSection from '@/presentation/components/packages/FeaturesSection'
-import FAQSection from '@/presentation/components/packages/FAQSection'
 import LoadingSpinner from '@/presentation/components/common/LoadingSpinner'
 
 export default function SalonPackagesPage() {
@@ -33,19 +31,21 @@ export default function SalonPackagesPage() {
   const yearlyDiscount = 20 // percentage
 
   return (
-    <div className="h-screen bg-gradient-to-b from-white to-slate-50 overflow-x-hidden">
-      <HeroSection
-        billingPeriod={billingPeriod}
-        setBillingPeriod={setBillingPeriod}
-        yearlyDiscount={yearlyDiscount}
-      />
-      <PricingSection
-        packages={packages}
-        billingPeriod={billingPeriod}
-        yearlyDiscount={yearlyDiscount}
-      />
-      <FeaturesSection />
-      <FAQSection />
-    </div>
+    <main className="h-screen bg-white text-gray-900 overflow-y-scroll">
+      {/* Simple Header */}
+      <header className="py-12 border-b border-gray-200 text-center bg-white">
+        <h1 className="text-3xl font-bold mb-2">Forfaits salons</h1>
+        <p className="text-gray-500">Choisissez le forfait qui correspond à votre activité</p>
+      </header>
+
+      {/* Pricing Section */}
+      <section className="py-12">
+        <PricingSection
+          packages={packages}
+          billingPeriod={billingPeriod}
+          yearlyDiscount={yearlyDiscount}
+        />
+      </section>
+    </main>
   )
 }
