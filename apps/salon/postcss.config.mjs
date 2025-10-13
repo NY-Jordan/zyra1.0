@@ -1,0 +1,1 @@
+export { default } from "@zyra/ui/postcss.config";
