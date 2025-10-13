@@ -47,6 +47,9 @@ importers:
       firebase:
         specifier: ^12.1.0
         version: 12.1.0
+      font:
+        specifier: link:@vercel/turbopack-next/internal/font/google/font
+        version: link:@vercel/turbopack-next/internal/font/google/font
       lucide-react:
         specifier: ^0.475.0
         version: 0.475.0(react@19.1.1)
@@ -93,9 +96,6 @@ importers:
 
   apps/salon:
     dependencies:
-      '@api/flutterwavedoc':
-        specifier: link:/home/yvan/PROJECTS/zyra/apps/salon/.api/apis/flutterwavedoc
-        version: link:.api/apis/flutterwavedoc
       '@hookform/resolvers':
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.62.0(react@19.1.0))

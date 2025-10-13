@@ -9,10 +9,10 @@ import { getAuth } from 'firebase/auth'
 
 import PricingSection from '@/presentation/components/packages/PricingSection'
 import LoadingSpinner from '@/presentation/components/common/LoadingSpinner'
+import { BillingPeriod } from '@zyra/conf/domain/entities/subscriptions.entities'
 
 export default function SalonPackagesPage() {
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
-  const auth = getAuth();
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(BillingPeriod.MONTHLY)
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ['salon-packages'],
     queryFn: async () => {

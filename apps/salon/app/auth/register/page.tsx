@@ -12,6 +12,7 @@ import { AuthSalonOwner, checkEmailSalonAlreadyExists, checkOwnerExists, registe
 import { IRegisterSalon } from '@zyra/conf/domain/entities/salons.entities';
 import { IRegisterOwner } from '@zyra/conf/domain/entities/owners.entities';
 import { authSalonProcess } from '@/services/AuthService';
+import { SalonStatusEnum } from '@zyra/conf/domain/enums/statusEnum';
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -76,6 +77,10 @@ export default function RegisterPage() {
          phone: data.phone,
          password: data.password,
          photo: data.photo,
+         status : {
+             name : SalonStatusEnum.active,
+             createdAt : new Date(),
+           }
        };
        const ownerAuth = await registerSalon({salon, owner});
        const loginOwner = await AuthSalonOwner( ownerAuth.password, ownerAuth.email);
@@ -90,7 +95,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-zinc-50">
-      
       {/* Left: image blurred with dark overlay (visible on lg) */}
       <div className="hidden lg:block lg:w-1/2 relative">
         <div className="absolute inset-0">

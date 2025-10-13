@@ -1,6 +1,6 @@
 'use client'
 import { Geist, Geist_Mono } from "next/font/google"
-import "@zyra/ui/globals.css"
+import "../../styles/globals.css"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@zyra/ui/components/sonner"
 import { QueryClientProvider } from "@tanstack/react-query"
@@ -32,7 +32,6 @@ export default function SalonLayout({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Utilisateur connecté
         setIsAuthenticated(true);
       } else {
         router.push('/auth/login');

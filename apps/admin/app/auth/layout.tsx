@@ -1,5 +1,4 @@
 import { Geist, Geist_Mono } from "next/font/google"
-
 import "@zyra/ui/globals.css"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@zyra/ui/components/sonner";

@@ -18,8 +18,6 @@ const statuts = [
   { label: "suspendu", value: "suspended" },
 ]
 
-
-
 export default function Index() {
   const [keyword, setKeyword] = useState("")
   const [country, setCountry] = useState("Tous les pays")

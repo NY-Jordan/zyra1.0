@@ -6,10 +6,11 @@ import { auth } from '@zyra/conf/lib/firebase'
 import { toast } from 'sonner'
 import PaymentModal from './PaymentModal'
 import { formatPrice } from '@zyra/conf/lib/utils'
+import { BillingPeriod } from '@zyra/conf/domain/entities/subscriptions.entities'
 
 interface PackageCardProps {
   pkg: PackageData
-  billingPeriod: 'monthly' | 'yearly'
+  billingPeriod: BillingPeriod
   yearlyDiscount: number
   index: number
 }
@@ -43,7 +44,6 @@ export default function PackageCard({
         badge: '⭐ Populaire'
       }
     }
-    
     return {
       gradient: 'from-gray-400 to-gray-500',
       bg: 'bg-white',
@@ -94,7 +94,7 @@ export default function PackageCard({
             <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-r ${theme.gradient} flex items-center justify-center`}>
               <Icon className="h-6 w-6 text-white" />
             </div>
-            
+
             <h3 className="text-xl font-semibold text-gray-900 mb-1">{pkg.name}</h3>
             <p className="text-gray-500 text-sm">Pour votre salon</p>
           </div>
@@ -107,7 +107,6 @@ export default function PackageCard({
               </span>
               <span className="text-lg text-gray-500 ml-1">/mois</span>
             </div>
-            
             {billingPeriod === 'yearly' && (
               <div className="space-y-1">
                 <p className="text-sm text-green-600 font-medium">
@@ -155,7 +154,6 @@ export default function PackageCard({
                 </li>
               ))}
             </ul>
-            
             {(pkg.features || []).length > 6 && (
               <p className="text-xs text-gray-400 mt-3 text-center">
                 + {(pkg.features || []).length - 6} autres fonctionnalités

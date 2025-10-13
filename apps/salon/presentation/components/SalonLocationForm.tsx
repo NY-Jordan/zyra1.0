@@ -129,7 +129,6 @@ export default function SalonLocationForm({ onLocationSelect, countryCode = 'cm'
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Localisation du salon</h2>
-      
       <LoadScript
         googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
         libraries={libraries}

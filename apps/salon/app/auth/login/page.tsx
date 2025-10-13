@@ -42,7 +42,6 @@ export default function Login() {
     try {
       const { email, password } = data;
       const user = await ownerAuthService.login(email, password);
-      console.log(user);
       const subscriptionStatus = await ownerAuthService.checkSubscriptionStatus(user.uid);
       toast.success("Connexion réussie");
       if (!subscriptionStatus.hasSubscription) {
@@ -60,7 +59,6 @@ export default function Login() {
     }
   };
 
-  
   return (
     <div className="min-h-screen flex bg-zinc-100">
       {/* Colonne de gauche - Branding avec image de fond */}
@@ -77,19 +75,16 @@ export default function Login() {
           />
           <div className="absolute inset-0 bg-zinc-900/70 backdrop-blur-sm"></div>
         </div>
-        
         {/* Contenu de la colonne de gauche */}
         <div className="relative h-full flex flex-col justify-between text-white z-10">
           <div className="p-12">
             <div className="text-2xl font-bold text-white">Zyra</div>
           </div>
-          
           <div className="p-12 space-y-6">
             <h1 className="text-4xl font-bold text-white">Gérez votre salon de beauté avec simplicité.</h1>
             <p className="text-lg text-zinc-200">
               Planification, gestion des clients et facturation - tout ce dont vous avez besoin en un seul endroit.
             </p>
-            
             <div className="pt-8 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="bg-zinc-800/80 p-2 rounded-full">
@@ -99,7 +94,6 @@ export default function Login() {
                 </div>
                 <span className="text-lg text-zinc-100">Réservations en ligne 24/7</span>
               </div>
-              
               <div className="flex items-center gap-3">
                 <div className="bg-zinc-800/80 p-2 rounded-full">
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -108,7 +102,6 @@ export default function Login() {
                 </div>
                 <span className="text-lg text-zinc-100">Gestion complète des clients</span>
               </div>
-              
               <div className="flex items-center gap-3">
                 <div className="bg-zinc-800/80 p-2 rounded-full">
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +112,6 @@ export default function Login() {
               </div>
             </div>
           </div>
-          
           <div className="p-12">
             <p className="text-sm text-zinc-300">
               © {new Date().getFullYear()} Zyra. Tous droits réservés.

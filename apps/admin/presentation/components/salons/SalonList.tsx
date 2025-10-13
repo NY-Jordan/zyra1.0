@@ -149,7 +149,7 @@ export default function SalonList({ salons }: { salons: ISalon[] }) {
                 <span className="font-bold text-blue-600">{salon.reservationsCount}</span>
               </TableCell>
               <TableCell className="text-right space-x-2">
-                <Button onClick={() => router.push(`/salons/details/${salon.id}`)} variant="outline" size="sm">Voir</Button>
+                <Button onClick={() => router.push(`/admin/salons/details/${salon.id}`)} variant="outline" size="sm">Voir</Button>
                 <Button
                   variant={salon.status.name === SalonStatusEnum.suspended ? "default" : "secondary"}
                   className="hover:cursor-pointer"
@@ -161,7 +161,7 @@ export default function SalonList({ salons }: { salons: ISalon[] }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/salons/update/${salon.id}`)}
+                  onClick={() => router.push(`/admin/salons/update/${salon.id}`)}
                 >
                   Editer
                 </Button>

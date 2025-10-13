@@ -37,6 +37,10 @@ export async function createOwner(owner: IRegisterOwner) {
   await createDocument("owners", {
     ...owner,
     password: passwordHash,
+    status : {
+      name : SalonStatusEnum.payment,
+      createdAt : new Date(),
+    }
   }, firebaseUid); // Utiliser l'UID Firebase comme ID du document
   return firebaseUid; // Retourner l'UID Firebase
 }
@@ -53,7 +57,6 @@ export async function registerSalon({
 
   //  Upload photos if present and get URLs
   let photoUrls: string[] = [];
-  console.log(salon.photos instanceof File)
   if (salon.photos && isFileArray(salon.photos)) {
     const files = Array.from(salon.photos)
     for (const file of files) {
@@ -61,7 +64,6 @@ export async function registerSalon({
       photoUrls.push(url)
     }
   }
-  console.log(photoUrls);
   // add photo URLs to salon data
   const salonData = {
     ...salon,
@@ -82,7 +84,7 @@ export async function registerSalon({
     location_lng: 0,
     openingHours: [],
     status : {
-      name : SalonStatusEnum.payment,
+      name : SalonStatusEnum.active,
       createdAt : new Date(),
     }
   })

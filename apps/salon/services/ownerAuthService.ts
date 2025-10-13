@@ -2,6 +2,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { where } from "firebase/firestore";
 import { auth } from "@zyra/conf/lib/firebase";
 import { fetchCollection } from "@zyra/conf/lib/query";
+import { Subscription } from "@zyra/conf/domain/entities/subscriptions.entities";
 
 /**
  * Service d'authentification qui gère la connexion et la vérification des abonnements
@@ -42,6 +43,26 @@ export const ownerAuthService = {
   },
 
   /**
+   * Récupère les informations du propriétaire par son ID
+   * @param userId ID de l'utilisateur
+   * @returns Les informations du propriétaire
+   */
+  async getOwnerById(userId: string) {
+    try {
+      const owners = await fetchCollection("owners", [
+        where("id", "==", userId),
+      ]);
+      if (!owners || owners.length === 0) {
+        throw new Error("Propriétaire introuvable");
+      }
+      return owners[0];
+    } catch (error) {
+      console.error("Erreur lors de la récupération du propriétaire:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Vérifie si un utilisateur a un abonnement actif
    * @param userId ID de l'utilisateur
    * @returns Un objet indiquant où rediriger l'utilisateur et les messages à afficher
@@ -58,10 +79,11 @@ export const ownerAuthService = {
           message: "Vous ne posseder aucun salon. Veuillez contacter le support."
         };
       }
-      const subscriptions = await fetchCollection("subscriptions", [
-        where("ownerId", "==", userId),
-        where("status", "==", "active")
-      ]);
+      const subscriptions  = await fetchCollection("subscriptions", [
+        where("userId", "==", userId),
+        where("status", "==", "active"),
+        where("endDate", ">=", new Date())
+      ]) as Subscription[] | undefined;
       if (!subscriptions || subscriptions.length === 0) {
         // Aucun abonnement actif trouvé
         return {
@@ -72,7 +94,7 @@ export const ownerAuthService = {
       } else {
         return {
           hasSubscription: true,
-          redirectTo: '/salon',
+          redirectTo: '/salon/dashboard',
           message: "Connexion réussie"
         };
       }

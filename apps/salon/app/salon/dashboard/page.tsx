@@ -16,14 +16,13 @@ export default function Dashboard() {
           </h3>
           <p className="text-3xl font-bold text-blue-600">12</p>
         </div>
-        
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
             Revenus du mois
           </h3>
           <p className="text-3xl font-bold text-green-600">2 450€</p>
         </div>
-        
+
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
             Nouveaux clients

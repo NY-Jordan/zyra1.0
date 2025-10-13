@@ -52,9 +52,9 @@ export interface MobileMoneyChargeRequest extends ChargeRequest {
 }
 
 export interface AuthorizationRequest {
-  transaction_reference: string
-  authorization: {
+  reference: string
     pin?: string
+    token?: string
     otp?: string
     avs?: {
       state: string
@@ -63,8 +63,9 @@ export interface AuthorizationRequest {
       address: string
       zip_codes: string
     }
-  }
 }
+
+
 
 export interface KoraPayResponse<T = any> {
   status: boolean
@@ -75,19 +76,26 @@ export interface KoraPayResponse<T = any> {
 export interface ChargeResponse {
   amount: number
   amount_charged: number
-  auth_model?: string
+  auth_model?: 'PIN' | 'OTP' | '3DS' | 'STK' | 'NONE' | 'STK_PROMPT' | 'USSD' | 'BANK_TRANSFER' // Types d'autorisation spécifiques pour tous les paiements
   currency: string
   fee: number
   vat: number
   message: string
   payment_reference: string
   transaction_reference: string
-  status: 'success' | 'processing' | 'failed'
+  status: 'success' | 'processing' | 'failed' | 'pending'
+  response_message?: string // Message d'instruction pour l'utilisateur
+  payment_method?: 'card' | 'mobile_money' | 'bank_transfer' // Type de méthode de paiement utilisée
+  provider?: string // Fournisseur du service (MTN, Orange, Moov, etc.)
   card?: {
     card_type: string
     first_six: string
     last_four: string
     expiry: string
+  }
+  mobile_money?: {
+    provider: string
+    number: string
   }
   authorization?: {
     required_fields?: string[]
@@ -125,7 +133,6 @@ export class KoraPaymentService {
   ): Promise<KoraPayResponse<T>> {
 
     const url = `${this.baseUrl}${endpoint}`
-    console.log(url, data)
 
     const token = useSecretKey ? this.config.secretKey : this.config.publicKey
 
@@ -133,8 +140,6 @@ export class KoraPaymentService {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     }
-    console.log( method,
-      headers);
     const response = await fetch(url, {
       method,
       headers,
@@ -189,6 +194,132 @@ export class KoraPaymentService {
    */
   async authorizeCardCharge(request: AuthorizationRequest): Promise<KoraPayResponse<ChargeResponse>> {
     return this.makeRequest<ChargeResponse>('/charges/card/authorize', 'POST', request)
+  }
+
+  /**
+   * Autorise une charge mobile money - Étape 2
+   * Utilisé pour valider l'OTP des paiements STK et Mobile Money
+   */
+  async authorizeMobileMoneyCharge(request: AuthorizationRequest): Promise<KoraPayResponse<ChargeResponse>> {
+    console.log('Authorizing mobile money charge with OTP:', {
+      reference: request.reference,
+      pin: request.pin
+    })
+
+    return this.makeRequest<ChargeResponse>('/charges/mobile-money/authorize', 'POST', request)
+  }
+
+  async authorizeMobileMoneyChargeWithSTK(request: AuthorizationRequest): Promise<KoraPayResponse<ChargeResponse>> {
+    console.log('Authorizing mobile money charge with OTP:', {
+      reference: request.reference,
+      pin: request.pin
+    })
+
+    return this.makeRequest<ChargeResponse>('/charges/mobile-money/sandbox/authorize-stk', 'POST', request)
+  }
+
+  /**
+   * Valide spécifiquement un OTP pour un paiement mobile money (STK Push, Mobile Money)
+   * Cette méthode est optimisée pour les paiements mobiles nécessitant une validation OTP
+   */
+  async validateMobileMoneyOtp(transactionReference: string, otp: string): Promise<KoraPayResponse<ChargeResponse>> {
+    const authRequest : AuthorizationRequest = {
+      reference: transactionReference,
+      token: otp
+    }
+
+    try {
+      const result = await this.authorizeMobileMoneyCharge(authRequest)
+      console.log('Mobile Money OTP validation result:', {
+        status: result.data.status,
+        auth_model: result.data.auth_model,
+        message: result.data.message
+      })
+
+      return result
+    } catch (error: any) {
+      console.error('Mobile Money OTP validation error:', error)
+      throw error
+    }
+  }
+
+
+  /**
+   * Valide spécifiquement un OTP pour un paiement mobile money (STK Push, Mobile Money)
+   * Cette méthode est optimisée pour les paiements mobiles nécessitant une validation OTP
+   */
+  async validateMobileMoneyOtpWithSTK(transactionReference: string, otp: string): Promise<KoraPayResponse<ChargeResponse>> {
+    const authRequest = {
+      reference: transactionReference,
+      pin : otp
+    }
+    try {
+      const result = await this.authorizeMobileMoneyChargeWithSTK(authRequest)
+      return result
+    } catch (error: any) {
+      console.error('Mobile Money USSD validation error:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Demande un nouveau code OTP pour un paiement mobile money
+   * Note: Cette fonctionnalité dépend de l'API Korapay et du fournisseur mobile
+   */
+  async resendMobileMoneyOtp(transactionReference: string): Promise<KoraPayResponse<any>> {
+    try {
+      // Note: Vérifiez la documentation Korapay pour l'endpoint exact de renvoi d'OTP
+      // Certains fournisseurs peuvent ne pas supporter cette fonctionnalité
+      const result = await this.makeRequest<any>('/charges/mobile-money/resend-otp', 'POST', {
+        transaction_reference: transactionReference
+      })
+      return result
+    } catch (error: any) {
+      throw new Error('Impossible de renvoyer le code OTP. Veuillez contacter le service client.')
+    }
+  }
+
+  /**
+   * Vérifie le statut d'un paiement mobile money avec polling automatique
+   * Utile pour vérifier l'état d'un paiement STK ou Mobile Money en cours
+   */
+  async pollMobileMoneyPaymentStatus(
+    transactionReference: string, 
+    maxAttempts: number = 10,
+    intervalMs: number = 3000
+  ): Promise<KoraPayResponse<ChargeResponse>> {
+ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const statusResult = await this.getTransaction(transactionReference)
+        console.log(`Polling attempt ${attempt}/${maxAttempts}:`, {
+          status: statusResult.data.status,
+          auth_model: statusResult.data.auth_model
+        })
+
+        // Si le paiement est terminé (succès ou échec), retourner le résultat
+        if (statusResult.data.status === 'success' || statusResult.data.status === 'failed') {
+          return statusResult
+        }
+
+        // Si c'est le dernier essai et toujours en traitement
+        if (attempt === maxAttempts && statusResult.data.status === 'processing') {
+          throw new Error('Le paiement mobile est toujours en traitement. Veuillez réessayer plus tard.')
+        }
+
+        // Attendre avant la prochaine vérification
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, intervalMs))
+        }
+      } catch (error: any) {
+        if (attempt === maxAttempts) {
+          throw error
+        }
+        console.log(`Polling attempt ${attempt} failed, retrying...`, error)
+        await new Promise(resolve => setTimeout(resolve, intervalMs))
+      }
+    }
+
+    throw new Error('Timeout lors de la vérification du statut du paiement mobile')
   }
 
   /**

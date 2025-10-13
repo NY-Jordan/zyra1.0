@@ -167,7 +167,6 @@ export default function PaymentAlertModal({
   }
 
   if (!alertData || !isOpen) return null
-  console.log(alertData);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] bg-white">

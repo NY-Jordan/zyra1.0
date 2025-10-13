@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@api/flutterwavedoc": "link:/home/yvan/PROJECTS/zyra/apps/salon/.api/apis/flutterwavedoc",
     "@hookform/resolvers": "^3.9.1",
     "@paypal/react-paypal-js": "^8.9.1",
     "@react-google-maps/api": "^2.20.7",

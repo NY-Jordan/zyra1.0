@@ -17,17 +17,6 @@ import { useRouter } from "next/navigation"
 import MenuItem from "./MenuItem"
 import { ProfileMenu } from "./ProfileMenu"
 
-const menu = [
-  { icon: <LayoutGrid className="h-5 w-5" />, label: "Tableau de bord", to: "/" },
-  { icon: <Building2 className="h-5 w-5" />, label: "Salons", to: "/salons" },
-  { icon: <Scissors className="h-5 w-5" />, label: "Coiffeurs", to: "/hair-dressers" },
-  { icon: <User className="h-5 w-5" />, label: "Utilisateurs", to: "/utilisateurs", isComingSoon: true },
-  { icon: <Calendar className="h-5 w-5" />, label: "Réservations", to: "/reservations" },
-  { icon: <CreditCard className="h-5 w-5" />, label: "Transactions", to: "/transactions", isComingSoon: true },
-  { icon: <Wrench className="h-5 w-5" />, label: "Services", to: "/services" },
-  { icon: <Settings className="h-5 w-5" />, label: "Paramètres", to: "/settings" },
-]
-
 interface HorizontalNavbarProps {
   onMobileMenuToggle?: () => void
   isMobileMenuOpen?: boolean

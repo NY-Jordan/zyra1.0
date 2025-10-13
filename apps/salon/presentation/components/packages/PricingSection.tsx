@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react'
 import { PackageData } from '@zyra/conf/domain/entities/packages.entities'
 import PackageCard from './PackageCard'
+import { BillingPeriod } from '@zyra/conf/domain/entities/subscriptions.entities'
 
 interface PricingSectionProps {
   packages: PackageData[]
-  billingPeriod: 'monthly' | 'yearly'
+  billingPeriod: BillingPeriod
   yearlyDiscount: number
 }
 

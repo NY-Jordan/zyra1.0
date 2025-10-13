@@ -41,7 +41,7 @@ export default function FinishSignin() {
           window.localStorage.removeItem('emailForSignIn')
           toast.success("Connexion réussie !")
           editDocument("login_attempts", email, { attempts: 0, blockedUntil: null })
-          router.push('/')
+          router.push('/admin')
           return
         } else {
           toast.error("Lien de connexion invalide ou expiré.")

@@ -27,7 +27,7 @@ export  async function authSalonProcess(owner: IOwner,
     salons: ISalon[]) {
     if (salons.length === 1) {
       Cookies.set('salonId', salons[0].id, { expires: 1 });
-      if (salons[0].status.name === SalonStatusEnum.payment) {
+      if (owner.status.name === SalonStatusEnum.payment) {
         return redirect('/salon/payment/packages');
       }
       redirect('/salon/dashboard');

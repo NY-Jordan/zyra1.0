@@ -4,36 +4,27 @@ import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@zyra/ui/components/dialog'
 import { PackageData } from '@zyra/conf/domain/entities/packages.entities'
 import { auth } from '@zyra/conf/lib/firebase'
-import { toast } from 'sonner'
 import { Button } from '@zyra/ui/components/button'
-import { CreditCard, Smartphone } from 'lucide-react'
+import { CreditCard, Smartphone, Loader2, CheckCircle } from 'lucide-react'
 import { Badge } from '@zyra/ui/components/badge'
-import { ChargeResponse, KoraPaymentService } from '@zyra/conf/services/KoraPaymentService'
+import { KoraPaymentService } from '@zyra/conf/services/KoraPaymentService'
 import { getCurrentConfig } from '@zyra/conf/lib/korapay-config'
 import { formatPrice } from '@zyra/conf/lib/utils'
 import CardPaymentForm from './CardPaymentForm'
 import MobilePaymentForm from './MobilePaymentForm'
-import PaymentAlertModal, { createAlertData } from './PaymentAlertModal'
+import { SubscriptionService } from '@/services/SubscriptionService'
+import { useRouter } from 'next/navigation'
+import { BillingPeriod } from '@zyra/conf/domain/entities/subscriptions.entities'
 
 interface PaymentModalProps {
   isOpen: boolean
   onClose: () => void
   pkg: PackageData | null
-  billingPeriod: 'monthly' | 'yearly'
+  billingPeriod: BillingPeriod
   yearlyDiscount: number
 }
 
 type PaymentMethod = 'card' | 'mobile' | null
-
-interface PaymentAlertData {
-  type: 'success' | 'error' | 'processing' | 'otp_required' | 'pin_required' | '3ds_redirect' | 'mobile_instructions' | 'timeout' | 'retry_needed'
-  title: string
-  message: string
-  transactionReference?: string
-  countdown?: number
-  authData?: any
-  redirectUrl?: string
-}
 
 export default function PaymentModal({
   isOpen,
@@ -43,108 +34,38 @@ export default function PaymentModal({
   yearlyDiscount
 }: PaymentModalProps) {
   const user = auth.currentUser
+  const router = useRouter();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(null)
-  const [alertData, setAlertData] = useState<PaymentAlertData | null>(null)
-  const [isAlertOpen, setIsAlertOpen] = useState(false)
-
+  const [paymentIsSuccess, setPaymentIsSuccess] = useState(false)
   // Calculs des prix
   const basePrice = pkg?.price || 0
   const yearlyPrice = basePrice * 12 * (1 - yearlyDiscount / 100)
   const totalAmount = billingPeriod === 'yearly' ? yearlyPrice : basePrice
 
-  // Initialiser le service Korapay
-  const korapayService = new KoraPaymentService(getCurrentConfig())
-
-  // Gestionnaires d'événements pour les composants de paiement
+  // Gestionnaires d'événements simplifiés
   const handlePaymentSuccess = () => {
-    setAlertData(createAlertData.success('Paiement effectué avec succès ! 🎉'))
-    setIsAlertOpen(true)
-    // Fermer la modal de paiement après 2 secondes
+    setPaymentIsSuccess(true);
+    if(!pkg) return ;
+    SubscriptionService.createSubscription({
+      userId: String(user?.uid),
+      packageId: String(pkg?.id),
+      packageName: pkg?.name,
+      packageFeatures: pkg.features,
+      amount: totalAmount,
+      currency: pkg?.currency,
+      billingPeriod,
+      autoRenew: true,
+    });
     setTimeout(() => {
-      onClose()
-      setIsAlertOpen(false)
-      setAlertData(null)
-    }, 2000)
+      router.push('/salon/dashboard');
+    }, 5000);
   }
 
   const handlePaymentError = (error: string) => {
-    setAlertData(createAlertData.error(error))
-    setIsAlertOpen(true)
+    console.error('Payment error:', error)
+    // Vous pouvez ajouter une notification toast ici si nécessaire
   }
 
-  const handleMobileProcessing = (data: ChargeResponse) => {
-    setAlertData(createAlertData.mobileInstructions(data.message))
-    setIsAlertOpen(true)
-  }
-
-  const handleAuthRequired = async (authData: any) => {
-    const authType = authData.auth_model
-    if (authType === 'OTP') {
-      setAlertData(createAlertData.otpRequired(
-        authData.response_message || 'Entrez le code OTP reçu par SMS',
-        authData.transaction_reference,
-        300 // 5 minutes
-      ))
-      setIsAlertOpen(true)
-    } else if (authType === 'PIN') {
-      setAlertData(createAlertData.pinRequired(
-        authData.response_message || 'Entrez votre PIN de carte',
-        authData.transaction_reference
-      ))
-      setIsAlertOpen(true)
-    } else if (authType === '3DS') {
-      if (authData.authorization?.redirect_url) {
-        setAlertData(createAlertData.redirect3DS(
-          'Vous allez être redirigé pour la vérification 3D Secure',
-          authData.authorization.redirect_url,
-          authData.transaction_reference
-        ))
-        setIsAlertOpen(true)
-      }
-    }
-  }
-
-  // Gestion des soumissions d'autorisation
-  const handleOtpSubmit = async (otp: string) => {
-    try {
-      const authResult = await korapayService.authorizeCardCharge({
-        transaction_reference: alertData?.transactionReference!,
-        authorization: { otp }
-      })
-
-      if (authResult.data.status === 'success') {
-        handlePaymentSuccess()
-      } else {
-        throw new Error('Code OTP invalide ou expiré')
-      }
-    } catch (error: any) {
-      handlePaymentError(error.message || 'Erreur lors de la validation OTP')
-    }
-  }
-
-  const handlePinSubmit = async (pin: string) => {
-    try {
-      const authResult = await korapayService.authorizeCardCharge({
-        transaction_reference: alertData?.transactionReference!,
-        authorization: { pin }
-      })
-
-      if (authResult.data.status === 'success') {
-        handlePaymentSuccess()
-      } else {
-        throw new Error('PIN invalide')
-      }
-    } catch (error: any) {
-      handlePaymentError(error.message || 'Erreur lors de la validation PIN')
-    }
-  }
-
-  const handleResendOtp = async () => {
-    // Logic to resend OTP if needed
-    toast.info('Nouveau code OTP envoyé')
-  }
-
-  // Reset quand on change de méthode
   const handleMethodChange = (method: PaymentMethod) => {
     setSelectedMethod(method)
   }
@@ -153,15 +74,11 @@ export default function PaymentModal({
     setSelectedMethod(null)
   }
 
-  const handleCloseAlert = () => {
-    setIsAlertOpen(false)
-    setAlertData(null)
-  }
-
   if (!pkg) return null
 
   return (
     <>
+      {/* Loader full-page quand le paiement est réussi */}
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[500px] bg-white">
           <DialogHeader className="space-y-4">
@@ -220,7 +137,6 @@ export default function PaymentModal({
                       Choisissez votre méthode de paiement
                     </p>
                   </div>
-                  
                   {/* Bouton Carte */}
                   <Button
                     onClick={() => handleMethodChange('card')}
@@ -255,8 +171,6 @@ export default function PaymentModal({
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentError}
                   onBack={handleBack}
-                  onAuthRequired={handleAuthRequired}
-                  korapayService={korapayService}
                 />
               )}
 
@@ -265,17 +179,14 @@ export default function PaymentModal({
                 <MobilePaymentForm
                   amount={totalAmount}
                   currency={pkg.currency}
-                  packageName={pkg.name}
-                  packageId={pkg.id}
+                  packageData={pkg}
                   billingPeriod={billingPeriod}
-                  userId={user?.uid}
+                  userId={String(user?.uid)}
                   userEmail={user?.email || undefined}
                   userName={user?.displayName || undefined}
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentError}
                   onBack={handleBack}
-                  onProcessing={handleMobileProcessing}
-                  korapayService={korapayService}
                 />
               )}
 
@@ -297,16 +208,6 @@ export default function PaymentModal({
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Modal d'alerte pour les différents types de notifications */}
-      <PaymentAlertModal
-        isOpen={isAlertOpen}
-        onClose={handleCloseAlert}
-        alertData={alertData}
-        onOtpSubmit={handleOtpSubmit}
-        onPinSubmit={handlePinSubmit}
-        onResendOtp={handleResendOtp}
-      />
     </>
   )
 }

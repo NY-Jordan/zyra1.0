@@ -1,3 +1,5 @@
+import { SalonStatusEnum } from "../enums/statusEnum"
+
 export interface IOwner {
   name: string
   phone: string
@@ -5,6 +7,10 @@ export interface IOwner {
   password: string
   photo?: string
   id : string
+  status : {
+    name : SalonStatusEnum
+    createdAt : Date
+  }
 }
 
 
