@@ -1,15 +1,17 @@
 'use client'
 import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Scissors, 
-  Users, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Scissors,
+  Users,
   Settings,
   BarChart3,
   CreditCard,
-  Package
+  Package,
+  Store,
+  X
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -22,7 +24,7 @@ interface SidebarItem {
 const sidebarItems: SidebarItem[] = [
   {
     label: 'Tableau de bord',
-    href: '/dashboard',
+    href: '/salon/dashboard',
     icon: <LayoutDashboard className="h-5 w-5" />
   },
   {
@@ -78,7 +80,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
   const handleNavigation = (href: string) => {
     router.push(href)
-    onClose?.() // Fermer le sidebar sur mobile après navigation
+    onClose?.()
   }
 
   return (
@@ -90,7 +92,6 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           onClick={onClose}
         />
       )}
-      
       {/* Sidebar */}
       <aside className={`
         fixed top-16 left-0 z-30 w-64 h-[calc(100vh-4rem)] bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm 

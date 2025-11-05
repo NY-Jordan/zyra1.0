@@ -15,4 +15,8 @@ service cloud.firestore {
       allow read, write: if request.time < timestamp.date(2025, 9, 15);
     }
   }
+  match /salons/{salonId} {
+    allow read, write: if resource.data.ownerId == request.auth.uid;
+  }
+
 }

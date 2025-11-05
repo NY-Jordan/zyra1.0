@@ -21,7 +21,7 @@ export interface ISalonFormValues  {
   country : string
 }
 
-export type OpeningHour = { day: string; open: string; close: string }
+export type OpeningHour = { day: string; open: string; close: string, openDay : boolean}
 
 export interface ISalon {
   id : string
@@ -32,6 +32,7 @@ export interface ISalon {
   address: string
   city: string
   location_lat: number
+  progress : number,
   location_lng: number
   openingHours: OpeningHour[]
   photos?: FileList | File[] | string[]

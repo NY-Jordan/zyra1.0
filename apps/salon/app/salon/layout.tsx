@@ -9,6 +9,9 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@zyra/conf/lib/firebase"
 import { onAuthStateChanged } from "firebase/auth"
+import SalonChecker from "@/presentation/components/layout/SalonChecker"
+import { useOwner } from "@/hooks/useOwner"
+import { SalonStatusEnum } from "@zyra/conf/domain/enums/statusEnum"
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -27,8 +30,9 @@ export default function SalonLayout({
 }) {
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [statusChecked, setStatusChecked] = useState(false);
   const router = useRouter();
-
+  const { owner, isLoading: ownerLoading } = useOwner();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -41,14 +45,25 @@ export default function SalonLayout({
     return () => unsubscribe();
   }, [router]);
 
-  if (!authChecked) {
+  // Vérification du statut du propriétaire après l'authentification
+  useEffect(() => {
+    if (authChecked && isAuthenticated && !ownerLoading) {
+      if (owner && owner.status.name === SalonStatusEnum.payment) {
+        router.push('/payment/packages');
+        return;
+      }
+      setStatusChecked(true);
+    }
+  }, [authChecked, isAuthenticated, owner, ownerLoading, router]);
+
+  if (!authChecked || !statusChecked || ownerLoading) {
     return (
       <html lang="fr">
         <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
           <div className="min-h-screen flex items-center justify-center">
             <div className="flex flex-col items-center">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-100 border-t-emerald-600" />
-              <p className="mt-4 text-gray-500">Chargement...</p>
+              <p className="mt-4 text-gray-500">Vérification du compte...</p>
             </div>
           </div>
         </body>
@@ -61,7 +76,11 @@ export default function SalonLayout({
       <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
         <Providers>
           <QueryClientProvider client={queryClient}>
-            {isAuthenticated ? children : null}
+            {isAuthenticated ? (
+              <SalonChecker>
+                {children}
+              </SalonChecker>
+            ) : null}
             <Toaster position="top-right" />
           </QueryClientProvider>
         </Providers>

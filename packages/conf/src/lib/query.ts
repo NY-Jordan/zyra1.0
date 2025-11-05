@@ -5,6 +5,7 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  getDoc,
   query,
   serverTimestamp,
   updateDoc,
@@ -116,6 +117,23 @@ export const fetchCollectionPaginate = async (
   }));
 
   return { data, total };
+};
+
+export const getDocument = async (
+  collectionName: string,
+  docId: string
+): Promise<FirestoreData | null> => {
+  const docRef = doc(db, collectionName, docId);
+  const docSnap = await getDoc(docRef);
+  
+  if (docSnap.exists()) {
+    return {
+      id: docSnap.id,
+      ...docSnap.data(),
+    };
+  } else {
+    return null;
+  }
 };
 
 export const editDocument = async (

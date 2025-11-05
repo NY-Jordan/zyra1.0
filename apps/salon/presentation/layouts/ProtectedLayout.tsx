@@ -17,22 +17,12 @@ import { Menu, X } from 'lucide-react'
 import Navbar from '@/presentation/components/layout/Navbar'
 import Sidebar from '@/presentation/components/layout/Sidebar'
 
-type BreadcrumbType = {
-  label: string
-  href?: string
-  isCurrent?: boolean
-}
-
 interface ProtectedLayoutProps {
   children: ReactNode
-  pageTitle?: string
-  breadcrumbs?: BreadcrumbType[]
 }
 
 export default function ProtectedLayout({
   children,
-  pageTitle,
-  breadcrumbs,
 }: ProtectedLayoutProps) {
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -83,47 +73,9 @@ export default function ProtectedLayout({
       </button>
 
       {/* Main Content */}
-      <main className="lg:ml-64 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Breadcrumbs */}
-          {breadcrumbs && (
-            <div className="mb-6">
-              <Breadcrumb>
-                <BreadcrumbList>
-                  {breadcrumbs.map((item, idx) => (
-                    <React.Fragment key={item.label}>
-                      <BreadcrumbItem>
-                        {item.href && !item.isCurrent ? (
-                          <BreadcrumbLink href={item.href} className="text-sm text-gray-600 dark:text-gray-400">
-                            {item.label}
-                          </BreadcrumbLink>
-                        ) : (
-                          <BreadcrumbPage className="text-sm text-gray-900 dark:text-white font-medium">
-                            {item.label}
-                          </BreadcrumbPage>
-                        )}
-                      </BreadcrumbItem>
-                      {idx < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-                    </React.Fragment>
-                  ))}
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-          )}
-
-          {/* Page Title */}
-          {pageTitle && (
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {pageTitle}
-              </h1>
-            </div>
-          )}
-
-          {/* Page Content */}
-          <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/20 p-6">
-            {children}
-          </div>
+      <main className="lg:ml-64 pt-2">
+        <div className="max-w-7xl mx-auto  sm:px-6 lg:px-2 py-8">
+          {children}
         </div>
       </main>
 

@@ -6,20 +6,25 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@zyra/ui/components/popover"
-import { Settings, User, LogOut, Building2, ChevronDown, Bell } from 'lucide-react'
+import { Settings, User, LogOut, Building2, ChevronDown, Bell, Store } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
 import { toast } from 'sonner'
 import { useOwner } from '@/hooks/useOwner'
+import { useSalon } from '@/hooks/useSalon'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function Navbar() {
   const router = useRouter()
   const { owner } = useOwner()
+  const { salon, isConnected, switchSalon, disconnectSalon } = useSalon()
+      const queryClient = useQueryClient()
 
   const handleLogout = async () => {
     try {
-      await signOut(auth)
+      await signOut(auth);
+      queryClient.clear();
       toast.success('Déconnexion réussie')
       router.push('/auth/login')
     } catch (error) {
@@ -31,10 +36,10 @@ export default function Navbar() {
   const handleMenuAction = (action: string) => {
     switch (action) {
       case 'profile':
-        router.push('/profile')
+        router.push('/salon/profil')
         break
       case 'settings':
-        router.push('/settings')
+        router.push('/salon/salon-info')
         break
       case 'switch-salon':
         router.push('/salon/switch')
@@ -52,11 +57,23 @@ export default function Navbar() {
           {/* Logo Salon */}
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">S</span>
+              <Store className="h-6 w-6 text-white" />
             </div>
-            <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
-              Salon Admin
-            </span>
+            <div className="ml-3">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                {salon?.name || 'Salon Admin'}
+              </h1>
+              {salon && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {salon.address || 'Aucune adresse'}
+                </p>
+              )}
+            </div>
+            {!isConnected && (
+              <div className="ml-3 px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">
+                Non connecté
+              </div>
+            )}
           </div>
 
           {/* Actions Menu */}
@@ -120,6 +137,25 @@ export default function Navbar() {
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {owner.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Salon Info */}
+                  {salon && (
+                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center">
+                          <Store className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {salon.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {salon.address || 'Aucune adresse'}
                           </p>
                         </div>
                       </div>

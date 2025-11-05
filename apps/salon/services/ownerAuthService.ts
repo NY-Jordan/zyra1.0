@@ -2,7 +2,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { where } from "firebase/firestore";
 import { auth } from "@zyra/conf/lib/firebase";
 import { fetchCollection } from "@zyra/conf/lib/query";
-import { Subscription } from "@zyra/conf/domain/entities/subscriptions.entities";
+import { ISubscription } from "@zyra/conf/domain/entities/subscriptions.entities";
 
 /**
  * Service d'authentification qui gère la connexion et la vérification des abonnements
@@ -83,15 +83,23 @@ export const ownerAuthService = {
         where("userId", "==", userId),
         where("status", "==", "active"),
         where("endDate", ">=", new Date())
-      ]) as Subscription[] | undefined;
+      ]) as ISubscription[] | undefined;
       if (!subscriptions || subscriptions.length === 0) {
         // Aucun abonnement actif trouvé
         return {
           hasSubscription: false,
-          redirectTo: '/salon/payment/packages',
+          redirectTo: '/payment/packages',
           message: "Votre forfait a expiré. Veuillez en sélectionner un nouveau."
         };
       } else {
+        if (salons && salons.length > 1) {
+          return {
+            hasSubscription: true,
+            redirectTo: '/salon',
+            message: "Connexion réussie"
+          };
+        }
+        authSalon(salons[0].id);
         return {
           hasSubscription: true,
           redirectTo: '/salon/dashboard',
@@ -108,3 +116,10 @@ export const ownerAuthService = {
     }
   }
 };
+
+
+const authSalon = (newSalonId: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('salonId', newSalonId)
+    }
+  }

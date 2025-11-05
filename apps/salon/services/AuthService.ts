@@ -24,14 +24,14 @@ export const recordAttempt = async (email: string) => {
 
 
 export  async function authSalonProcess(owner: IOwner,
-    salons: ISalon[]) {
-    if (salons.length === 1) {
-      Cookies.set('salonId', salons[0].id, { expires: 1 });
-      if (owner.status.name === SalonStatusEnum.payment) {
-        return redirect('/salon/payment/packages');
-      }
-      redirect('/salon/dashboard');
-      return;
+  salons: ISalon[]) {
+  if (salons.length === 1) {
+    Cookies.set('salonId', salons[0].id, { expires: 1 });
+    if (owner.status.name == SalonStatusEnum.payment) {
+      return redirect('/payment/packages');
     }
+    redirect('/salon/dashboard');
     return;
+  }
+  return;
 }

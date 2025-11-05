@@ -23,7 +23,7 @@ export enum CancellationReason {
   OTHER = 'other'
 }
 
-export interface Subscription {
+export interface ISubscription {
   id?: string
   userId: string
   userEmail?: string

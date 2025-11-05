@@ -82,6 +82,7 @@ export async function registerSalon({
     city: '',
     location_lat: 0,
     location_lng: 0,
+    progress : 40,
     openingHours: [],
     status : {
       name : SalonStatusEnum.active,

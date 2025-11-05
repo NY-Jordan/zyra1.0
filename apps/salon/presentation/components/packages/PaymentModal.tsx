@@ -15,6 +15,10 @@ import MobilePaymentForm from './MobilePaymentForm'
 import { SubscriptionService } from '@/services/SubscriptionService'
 import { useRouter } from 'next/navigation'
 import { BillingPeriod } from '@zyra/conf/domain/entities/subscriptions.entities'
+import { editDocument } from '@zyra/conf/lib/query'
+import { useOwner } from '@/hooks/useOwner'
+import { ownerAuthService } from '../../../services/ownerAuthService';
+import { SalonStatusEnum } from '@zyra/conf/domain/enums/statusEnum'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -37,13 +41,13 @@ export default function PaymentModal({
   const router = useRouter();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(null)
   const [paymentIsSuccess, setPaymentIsSuccess] = useState(false)
-  // Calculs des prix
+  const {owner, refetch}  = useOwner();
   const basePrice = pkg?.price || 0
   const yearlyPrice = basePrice * 12 * (1 - yearlyDiscount / 100)
   const totalAmount = billingPeriod === 'yearly' ? yearlyPrice : basePrice
 
   // Gestionnaires d'événements simplifiés
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess =  async () => {
     setPaymentIsSuccess(true);
     if(!pkg) return ;
     SubscriptionService.createSubscription({
@@ -56,14 +60,17 @@ export default function PaymentModal({
       billingPeriod,
       autoRenew: true,
     });
+    if (owner) {
+      await editDocument('owners', owner.id, { status: { name: SalonStatusEnum.active } });
+      refetch();
+    }
     setTimeout(() => {
-      router.push('/salon/dashboard');
+      router.push('/salon/setup');
     }, 5000);
   }
 
   const handlePaymentError = (error: string) => {
     console.error('Payment error:', error)
-    // Vous pouvez ajouter une notification toast ici si nécessaire
   }
 
   const handleMethodChange = (method: PaymentMethod) => {
