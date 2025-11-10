@@ -29,29 +29,24 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     label: 'Rendez-vous',
-    href: '/appointments',
+    href: '/salon/reservations',
     icon: <Calendar className="h-5 w-5" />,
     badge: '12'
   },
   {
     label: 'Services',
-    href: '/services',
+    href: '/salon/services',
     icon: <Scissors className="h-5 w-5" />
   },
   {
-    label: 'Personnel',
-    href: '/staff',
+    label: 'Coiffeur',
+    href: '/salon/staff',
     icon: <Users className="h-5 w-5" />
   },
   {
-    label: 'Forfaits',
-    href: '/packages',
-    icon: <Package className="h-5 w-5" />
-  },
-  {
-    label: 'Paiements',
-    href: '/payments',
-    icon: <CreditCard className="h-5 w-5" />
+    label: 'Clients',
+    href: '/salon/clients',
+    icon: <Users className="h-5 w-5" />
   },
   {
     label: 'Statistiques',

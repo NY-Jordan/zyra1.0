@@ -39,7 +39,7 @@ export interface ISalon {
   ownerId: string
   services : ISalonService[]
   reservationsCount: number,
-  serviceCategories : any[]
+  serviceCategories : IServiceCategory[]
   status: {
     name: SalonStatusEnum,
     createdAt?: Date
@@ -48,6 +48,16 @@ export interface ISalon {
   category : string
   country : string
 }
+
+
+export interface IServiceCategory {
+  id : string
+  name: string
+  description?: string
+  isActive: boolean
+  createdAt?: string
+  updatedAt?: string
+ }
 
 
 export type ICreateSalon = {
@@ -95,6 +105,7 @@ export interface ISalonService {
   price: number
   duration: number
   categoryId : string
+  isActive?: boolean
   supplements: ISalonServiceSupplement[]
   imageUrl?: string | null
 }

@@ -72,6 +72,7 @@ export async function createSalon({
     ownerId,
     reservationsCount: 0,
     services : [],
+    serviceCategories : [],
     status : {
       name : SalonStatusEnum.active,
       createdAt : new Date(),

@@ -1,0 +1,19 @@
+{
+  "name": "salons/1762286089539_image3.jpg",
+  "bucket": "hairquick-8f72b.appspot.com",
+  "metageneration": 1,
+  "generation": 1762286089554,
+  "contentType": "image/jpeg",
+  "storageClass": "STANDARD",
+  "contentDisposition": "inline",
+  "downloadTokens": [
+    "5c2c736d-8b93-4bfd-ae98-922138b0818b"
+  ],
+  "etag": "MbOwbOO03AMolU15YWYhJEvoKHY",
+  "customMetadata": {},
+  "timeCreated": "2025-11-04T19:54:49.554Z",
+  "updated": "2025-11-04T19:54:49.554Z",
+  "size": 207843,
+  "md5Hash": "iRbwJkXQw5JhWwwfw2qRNQ==",
+  "crc32c": "672250380"
+}

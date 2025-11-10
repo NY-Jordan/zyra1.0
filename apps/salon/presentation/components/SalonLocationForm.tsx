@@ -129,15 +129,12 @@ export default function SalonLocationForm({
       setError('Veuillez sélectionner un emplacement pour votre salon avant de continuer.');
       return;
     }
-
     if (!salon?.id) {
       setError('Erreur: Salon non trouvé.');
       return;
     }
-
     setIsUpdating(true);
     setError(''); // Clear any existing error
-
     try {
       const locationData = extractLocationInfo(selectedAddress, selectedLocation);
       // Mettre à jour le salon avec les informations de localisation et passer à 80%
@@ -148,7 +145,6 @@ export default function SalonLocationForm({
         location_lng: locationData.longitude,
         progress: 80 // Passer le pourcentage à 80%
       });
-
       // Rafraîchir les données du salon
       await refetch();
       toast.success('Emplacement du salon mis à jour avec succès !');
