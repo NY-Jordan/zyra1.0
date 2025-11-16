@@ -13,7 +13,7 @@ import {Form,FormControl,FormDescription,FormField,FormItem,FormLabel,FormMessag
 import { Separator } from '@zyra/ui/components/separator'
 import { toast } from 'sonner'
 import { Edit, Loader2, Check, AlertTriangle, ShieldAlert, Upload, X } from 'lucide-react'
-import { ISalonService, IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
+import { ISalonService, ISalonServiceSupplement, IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
 import { IService } from '@zyra/conf/domain/entities/services.entities'
 import { useServices } from '@/usecases/useServices'
 import { serviceSchema } from '@/schema/services.schema'
@@ -22,6 +22,7 @@ import { useQuery } from '@tanstack/react-query'
 import ServiceValidationZone from './ServiceValidationZone'
 import useSalon from '@/hooks/useSalon'
 import { uploadLogoFile } from '@zyra/conf/lib/utils'
+import ServiceSupplementsManager from './ServiceSupplementsManager'
 
 const updateServiceSchemaWithFile = serviceSchema.extend({
   image: z.instanceof(File).optional()
@@ -61,9 +62,9 @@ export default function UpdateServiceModal({
       categoryId: '',
       isActive: true,
       image: undefined,
+      supplements : service?.supplements
     },
   })
-
   const watchedName = form.watch('name')
 
   // Pré-remplir le formulaire quand le service change
@@ -76,6 +77,8 @@ export default function UpdateServiceModal({
         categoryId: service.categoryId || '',
         isActive: service.isActive !== false,
         image: undefined,
+        supplements : service.supplements
+
       })
       // Définir l'aperçu de l'image existante
       if (service.imageUrl) {
@@ -210,14 +213,14 @@ export default function UpdateServiceModal({
         return
       }
     }
-
     // Vérifier s'il y a des changements
-    const hasChanges = 
+    const hasChanges =
       data.name.trim() !== service.name ||
       data.price !== service.price ||
       data.duration !== service.duration ||
       data.categoryId !== service.categoryId ||
       data.isActive !== (service.isActive !== false) ||
+      data.supplements.length !== (service.supplements.length) ||
       hasImageChanged
 
     if (!hasChanges) {
@@ -232,7 +235,8 @@ export default function UpdateServiceModal({
       price: data.price,
       duration: data.duration,
       categoryId: data.categoryId,
-      isActive: data.isActive
+      isActive: data.isActive,
+      supplements : data.supplements
     }
     const validation = await serviceValidationService.validateServiceData(validationData)
     if (!validation.valid) {
@@ -246,7 +250,6 @@ export default function UpdateServiceModal({
 
     try {
       let imageUrl: string | null = service.imageUrl || null
-
       // Gérer l'upload/suppression d'image
       if (hasImageChanged) {
         if (data.image) {
@@ -267,7 +270,6 @@ export default function UpdateServiceModal({
           imageUrl = null
         }
       }
-
       await updateService(service.id, {
         name: data.name.trim(),
         price: data.price,
@@ -275,8 +277,8 @@ export default function UpdateServiceModal({
         categoryId: data.categoryId,
         isActive: data.isActive,
         imageUrl: imageUrl,
+        supplements: data.supplements as ISalonServiceSupplement[]
       })
-
       toast.success('Service mis à jour avec succès!')
       handleClose()
     } catch (error) {
@@ -330,10 +332,9 @@ export default function UpdateServiceModal({
   if (!service) {
     return null
   }
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
@@ -561,6 +562,18 @@ export default function UpdateServiceModal({
                   )}
                 />
               </div>
+
+               <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold">Suppléments</h3>
+                    <span className="text-sm text-muted-foreground">(optionnel)</span>
+                  </div>
+                  <ServiceSupplementsManager
+                    control={form.control as any}
+                    disabled={isFormDisabled}
+                    supplements={service.supplements}
+                  />
+                </div>
 
               <FormField
                 control={form.control as any}

@@ -307,10 +307,8 @@ export class ServiceValidationService {
     try {
       // Validation avec le schema Zod
       const validatedData = serviceSchema.parse(serviceData)
-      
       // Vérifications métier supplémentaires
       const businessValidation = await this.validateBusinessRules(validatedData)
-      
       if (!businessValidation.valid) {
         return {
           valid: false,
@@ -329,13 +327,12 @@ export class ServiceValidationService {
           const path = err.path.join('.')
           return `${path}: ${err.message}`
         })
-        
         return {
           valid: false,
           errors
         }
       }
-      
+
       return {
         valid: false,
         errors: ['Erreur de validation inconnue']

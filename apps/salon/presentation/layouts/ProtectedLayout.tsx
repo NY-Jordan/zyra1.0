@@ -51,13 +51,13 @@ export default function ProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Navbar */}
       <Navbar />
       {/* Sidebar */}
       <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       {/* Mobile menu button */}
@@ -73,8 +73,8 @@ export default function ProtectedLayout({
       </button>
 
       {/* Main Content */}
-      <main className="lg:ml-64 pt-2">
-        <div className="max-w-7xl mx-auto  sm:px-6 lg:px-2 py-8">
+      <main className="lg:ml-64 pt-2  h-full">
+        <div className="max-w-7xl mx-auto h-screen overflow-y-auto mb-10 sm:px-6 lg:px-2 py-8">
           {children}
         </div>
       </main>

@@ -30,6 +30,7 @@ import { useServices } from '@/usecases/useServices'
 import CreateServiceModal from './CreateServiceModal'
 import ConfirmModal from '../../../../admin/presentation/components/CofirmModal'
 import UpdateServiceModal from './UpdateServiceModal'
+import ServiceDetailsModal from './ServiceDetailsModal'
 import { IServiceCategory, ISalonService } from '@zyra/conf/domain/entities/salons.entities'
 import Pagination from '../common/Pagination'
 
@@ -43,9 +44,18 @@ export default function ServicesManagement({ services, categories }: ServicesMan
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
-  
+
   // Nouvel état pour le modal de mise à jour
   const [updateModal, setUpdateModal] = useState<{
+    open: boolean
+    service: ISalonService | null
+  }>({
+    open: false,
+    service: null
+  })
+
+  // État pour le modal de détails du service
+  const [detailsModal, setDetailsModal] = useState<{
     open: boolean
     service: ISalonService | null
   }>({
@@ -149,6 +159,22 @@ export default function ServicesManagement({ services, categories }: ServicesMan
     })
   }
 
+  // Fonction pour ouvrir le modal de détails
+  const handleViewDetails = (service: ISalonService) => {
+    setDetailsModal({
+      open: true,
+      service: service
+    })
+  }
+
+  // Fonction pour fermer le modal de détails
+  const handleDetailsModalClose = () => {
+    setDetailsModal({
+      open: false,
+      service: null
+    })
+  }
+
   return (
     <>
       <Card>
@@ -197,7 +223,12 @@ export default function ServicesManagement({ services, categories }: ServicesMan
                         {service.imageUrl && (
                           <img src={service.imageUrl} alt="" className="w-8 h-8 object-cover rounded" />
                         )}
-                        {service.name}
+                        <button 
+                          onClick={() => handleViewDetails(service)}
+                          className="font-medium hover:text-blue-600 hover:underline hover:cursor-pointer text-left"
+                        >
+                          {service.name}
+                        </button>
                       </td>
                       <td className="py-3 px-4">
                         <Badge variant="outline">
@@ -296,6 +327,14 @@ export default function ServicesManagement({ services, categories }: ServicesMan
         service={updateModal.service}
         categories={categories}
         salonServices={services}
+      />
+
+      {/* Modal de détails du service */}
+      <ServiceDetailsModal 
+        open={detailsModal.open}
+        onOpenChange={handleDetailsModalClose}
+        service={detailsModal.service}
+        categories={categories}
       />
 
       <ConfirmModal

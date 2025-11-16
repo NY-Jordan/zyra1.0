@@ -8,10 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@zyra/ui/components/avatar'
 import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
 import { useSalon } from '@/hooks/useSalon'
-import { 
-  Store, 
-  MapPin, 
-  Phone, 
+import {
+  Store,
+  MapPin,
+  Phone,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -69,117 +69,6 @@ export default function SalonInfoPage() {
       setOpeningHours(salon.openingHours || [])
     }
   }, [salon, reset])
-
-  const onSubmitGeneralInfo = async (data: SalonFormData) => {
-    if (!salon?.id) return
-
-    try {
-      await editDocument('salons', salon.id, {
-        name: data.name,
-        description: data.description,
-        phone: data.phone,
-        email: data.email,
-        category: data.category
-      })
-
-      toast.success('Informations mises à jour avec succès')
-      setIsEditing(false)
-      refetch()
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error)
-      toast.error('Erreur lors de la mise à jour')
-    }
-  }
-
-  const handleSaveHours = async () => {
-    if (!salon?.id) return
-
-    try {
-      await editDocument('salons', salon.id, {
-        openingHours: openingHours
-      })
-
-      toast.success('Horaires mis à jour avec succès')
-      setIsEditingHours(false)
-      refetch()
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error)
-      toast.error('Erreur lors de la mise à jour des horaires')
-    }
-  }
-
-  const updateHour = (index: number, field: keyof OpeningHour, value: string | boolean) => {
-    const newHours = [...openingHours]
-    if (index >= newHours.length) {
-      // Ajouter une nouvelle entrée si elle n'existe pas
-      newHours.push({ day: DAYS[index].key, open: '09:00', close: '18:00', openDay: true })
-    }
-    newHours[index] = { ...newHours[index], [field]: value }
-    setOpeningHours(newHours)
-  }
-
-  const getHourForDay = (dayKey: string) => {
-    return openingHours.find(hour => hour.day === dayKey) || 
-           { day: dayKey, open: '09:00', close: '18:00', openDay: false }
-  }
-
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files || files.length === 0 || !salon?.id) return
-
-    setIsUploading(true)
-    try {
-      const uploadedPhotos = []
-      
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        if (!file.type.startsWith('image/')) continue
-        if (file.size > 5 * 1024 * 1024) continue
-
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          uploadedPhotos.push(reader.result as string)
-        }
-        reader.readAsDataURL(file)
-      }
-
-      // Attendre que toutes les images soient converties
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      const currentPhotos = Array.isArray(salon.photos) ? salon.photos : []
-      const newPhotos = [...currentPhotos, ...uploadedPhotos]
-
-      await editDocument('salons', salon.id, {
-        photos: newPhotos
-      })
-
-      toast.success('Photos ajoutées avec succès')
-      refetch()
-    } catch (error) {
-      console.error('Erreur upload photos:', error)
-      toast.error('Erreur lors de l\'ajout des photos')
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
-  const removePhoto = async (photoIndex: number) => {
-    if (!salon?.id || !Array.isArray(salon.photos)) return
-
-    try {
-      const newPhotos = salon.photos.filter((_, index) => index !== photoIndex)
-      
-      await editDocument('salons', salon.id, {
-        photos: newPhotos
-      })
-
-      toast.success('Photo supprimée avec succès')
-      refetch()
-    } catch (error) {
-      console.error('Erreur suppression photo:', error)
-      toast.error('Erreur lors de la suppression')
-    }
-  }
 
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return 'bg-green-600'
@@ -247,7 +136,6 @@ export default function SalonInfoPage() {
                       {salon.category || 'Non définie'}
                     </Badge>
                   </div>
-                  
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />

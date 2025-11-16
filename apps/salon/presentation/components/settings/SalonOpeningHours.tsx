@@ -63,7 +63,6 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
 
   const handleSaveEdit = async () => {
     if (!editingSlot) return
-    
     setLoading(true)
     try {
       const updatedSlots = timeSlots.map((slot) =>
@@ -71,9 +70,7 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
           ? { ...slot, open: editOpen, close: editClose, openDay: true }
           : slot
       )
-      
       await editDocument("salons", salon.id, { openingHours: updatedSlots })
-      
       toast.success("Horaires mis à jour avec succès")
       setIsEditing(false)
       setEditingSlot(null)

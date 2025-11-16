@@ -16,10 +16,11 @@ import { Scissors, Loader2, Check, AlertTriangle, ShieldAlert, Upload, X } from 
 import { ISalonService, IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
 import { IService } from '@zyra/conf/domain/entities/services.entities'
 import { useServices } from '@/usecases/useServices'
-import { serviceSchema } from '@/schema/services.schema'
+import { serviceSchema, Supplement, supplementSchema } from '@/schema/services.schema'
 import { serviceValidationService, ServiceAnalysisResult } from '@/services/ServiceValidationService'
 import { useQuery } from '@tanstack/react-query'
 import ServiceValidationZone from './ServiceValidationZone'
+import ServiceSupplementsManager from './ServiceSupplementsManager'
 import useSalon from '@/hooks/useSalon'
 import { uploadLogoFile } from '@zyra/conf/lib/utils'
 
@@ -59,11 +60,11 @@ export default function CreateServiceModal({
       categoryId: '',
       isActive: true,
       image: undefined,
+      supplements: [],
     },
   })
 
   const watchedName = form.watch('name')
-  const watchedImage = form.watch('image')
 
   // Query pour l'analyse du service en temps réel
   const { data: serviceAnalysis, isLoading: isAnalyzing } = useQuery({
@@ -168,14 +169,14 @@ export default function CreateServiceModal({
       price: data.price,
       duration: data.duration,
       categoryId: data.categoryId,
-      isActive: data.isActive
+      isActive: data.isActive,
+      supplements : data.supplements
     }
     const validation = await serviceValidationService.validateServiceData(validationData)
     if (!validation.valid) {
       toast.error(`Données invalides: ${validation.errors.join(', ')}`)
       return
     }
-
     if (!salon?.id) {
       toast.error('Salon non trouvé')
       return
@@ -183,7 +184,6 @@ export default function CreateServiceModal({
 
     try {
       let imageUrl: string | null = null
-
       // Upload de l'image si présente
       if (data.image) {
         setIsUploadingImage(true)
@@ -198,17 +198,15 @@ export default function CreateServiceModal({
           setIsUploadingImage(false)
         }
       }
-
       await createService({
         name: data.name.trim(),
         price: data.price,
         duration: data.duration,
         categoryId: data.categoryId,
         isActive: data.isActive,
-        supplements: [],
+        supplements: data.supplements || [],
         imageUrl: imageUrl,
       })
-
       toast.success('Service créé avec succès!')
       handleClose()
     } catch (error) {
@@ -237,7 +235,7 @@ export default function CreateServiceModal({
     }
   }, [form, selectedGlobalService])
 
-  const activeCategories = useMemo(() => 
+  const activeCategories = useMemo(() =>
     categories.filter(cat => cat.isActive !== false), 
     [categories]
   )
@@ -256,7 +254,7 @@ export default function CreateServiceModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
@@ -322,12 +320,13 @@ export default function CreateServiceModal({
             />
 
             {/* Zone de validation externalisée */}
-            <ServiceValidationZone 
+            <ServiceValidationZone
               analysisResult={analysisResult}
               serviceName={watchedName}
               selectedGlobalService={selectedGlobalService}
               isCreatingGlobal={isCreatingGlobal}
               onSelectGlobalService={(service) => {
+                form.setValue('name', service.name)
                 setSelectedGlobalService(service)
                 toast.success(`Service "${service.name}" sélectionné`)
               }}
@@ -432,7 +431,6 @@ export default function CreateServiceModal({
                             disabled={isFormDisabled}
                             className="hidden"
                           />
-                          
                           {/* Bouton de sélection ou aperçu */}
                           {!imagePreview ? (
                             <label
@@ -477,6 +475,21 @@ export default function CreateServiceModal({
                   )}
                 />
               </div>
+
+              {/* Section Suppléments */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">Suppléments</h3>
+                  <span className="text-sm text-muted-foreground">(optionnel)</span>
+                </div>
+                <ServiceSupplementsManager 
+                  control={form.control as any}
+                  disabled={isFormDisabled}
+                  supplements={[]}
+                />
+              </div>
+
+              <Separator />
 
               <FormField
                 control={form.control as any}
