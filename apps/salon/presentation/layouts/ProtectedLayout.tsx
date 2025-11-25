@@ -73,8 +73,8 @@ export default function ProtectedLayout({
       </button>
 
       {/* Main Content */}
-      <main className="lg:ml-64 pt-2  h-full">
-        <div className="max-w-7xl mx-auto h-screen overflow-y-auto mb-10 sm:px-6 lg:px-2 py-8">
+      <main className="lg:ml-64 pt-2 overflow-y-auto h-[calc(100vh-64px)] ">
+        <div className="max-w-7xl mx-auto mb-10 sm:px-6 lg:px-2 py-8">
           {children}
         </div>
       </main>

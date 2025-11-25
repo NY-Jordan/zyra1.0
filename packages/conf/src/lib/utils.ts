@@ -146,3 +146,26 @@ export const validatePhoneNumber = (phoneNumber: string): boolean => {
       cvv.length >= 3
     )
   }
+
+
+  export const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'Date inconnue'
+    const date = new Date(timestamp.seconds * 1000)
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  export const formatDateTime = (timestamp: any) => {
+    if (!timestamp) return 'Date inconnue'
+    const date = new Date(timestamp.seconds * 1000)
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }

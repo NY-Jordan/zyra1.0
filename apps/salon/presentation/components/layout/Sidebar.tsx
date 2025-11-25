@@ -11,7 +11,9 @@ import {
   CreditCard,
   Package,
   Store,
-  X
+  X,
+  ShoppingBag,
+  User2
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -31,7 +33,11 @@ const sidebarItems: SidebarItem[] = [
     label: 'Rendez-vous',
     href: '/salon/reservations',
     icon: <Calendar className="h-5 w-5" />,
-    badge: '12'
+  },
+   {
+    label: 'Commandes',
+    href: '/salon/orders',
+    icon: <ShoppingBag className="h-5 w-5" />
   },
   {
     label: 'Services',
@@ -39,14 +45,14 @@ const sidebarItems: SidebarItem[] = [
     icon: <Scissors className="h-5 w-5" />
   },
   {
-    label: 'Coiffeur',
-    href: '/salon/staff',
+    label: 'Coiffeurs',
+    href: '/salon/hair-dressers',
     icon: <Users className="h-5 w-5" />
   },
   {
     label: 'Clients',
     href: '/salon/clients',
-    icon: <Users className="h-5 w-5" />
+    icon: <User2 className="h-5 w-5" />
   },
   {
     label: 'Statistiques',
@@ -96,7 +102,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         <div className="h-full px-3 py-4 overflow-y-auto">
           <nav className="space-y-2">
             {sidebarItems.map((item) => (
-              <button
+              <a
                 key={item.href}
                 onClick={() => handleNavigation(item.href)}
                 className={`
@@ -116,7 +122,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                     {item.badge}
                   </span>
                 )}
-              </button>
+              </a>
             ))}
           </nav>
         </div>

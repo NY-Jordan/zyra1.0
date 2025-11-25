@@ -1,3 +1,4 @@
+export type ContractType = 'commission' | 'salary'
 export interface IHairDresser {
   id: string
   name: string
@@ -20,4 +21,29 @@ export interface IHairDresser {
 export type HairDresserSalonAssociation = {
     salonId : string
     active : boolean
+}
+
+export interface WorkingHours {
+  [key: string]: { 
+    start: string
+    end: string
+    active: boolean 
+  }
+}
+
+export interface IHairDresserInvitation {
+  id : string
+  salonId: string
+  salonName: string
+  hairDresserId: string
+  hairDresserName: string
+  hairDresserEmail: string
+  workingDays: string[]
+  workingHours: WorkingHours
+  contractType: ContractType
+  commissionRate: number | null
+  salary: number | null
+  status: 'pending' | 'accepted' | 'rejected' | 'expired'
+  createdAt: string
+  expiresAt: string
 }
