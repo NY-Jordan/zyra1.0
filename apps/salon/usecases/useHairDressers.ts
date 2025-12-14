@@ -1,14 +1,15 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchCollection, fetchCollectionPaginate, createDocument, editDocument, deleteDocument } from '@zyra/conf/lib/query'
+import { fetchCollection, fetchCollectionPaginate, createDocument, editDocument, deleteDocument, fetchSubCollection, fetchAllSubCollections, updateSubCollectionDocument } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
-import { IHairDresser, HairDresserSalonAssociation } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { IHairDresser, HairDresserSalonAssociation, hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { toast } from 'sonner'
 import useSalon from '@/hooks/useSalon'
 
-export interface IHairDresserWithSalonStatus extends IHairDresser {
-  active: boolean
+
+export interface HairDresserWithSalonAssociation extends IHairDresser {
+  associationHairdresser: HairDresserSalonAssociation
 }
 
 export function useHairDressers() {
@@ -20,49 +21,23 @@ export function useHairDressers() {
     queryKey: ['salon-hairdressers', salon?.id],
     queryFn: async () => {
       if (!salon?.id) return []
-      const hairDressersList = await fetchCollection('hair_dressers', [
-        where('salonIds', 'array-contains-any', [
-          { salonId: salon.id, active: true },
-          { salonId: salon.id, active: false },
-        ])
-      ])
-      const updatedList = hairDressersList.map(h => {
-        const salonLink = h.salonIds.find(s => s.salonId === salon.id)
+      const hairDressersAssociationsList = await fetchAllSubCollections(hairDresserAssociationNameEnum.SALON_HAIR_DRESSER, [where('salonId', '==', salon.id)]) as HairDresserSalonAssociation[];
+      const updatedListPromises  = await  hairDressersAssociationsList.map(async sh => {
+        const hair_dresser  = await fetchCollection('hair_dressers', [where('id', '==', sh.parentId)]) as unknown as IHairDresser[];
         return {
-          ...h,
-          active: salonLink?.active ?? false,
+          ...hair_dresser[0],
+          associationHairdresser : sh,
         }
-      })
-      console.log(updatedList)
-    return updatedList as IHairDresserWithSalonStatus[]
+      }) 
+    const updatedList = await Promise.all(updatedListPromises) as HairDresserWithSalonAssociation[];
+    return updatedList 
     },
     refetchOnWindowFocus: true,
     enabled: !!salon?.id,
   })
 
-  // Créer un coiffeur
-  const createHairDresserMutation = useMutation({
-    mutationFn: async (data: Omit<IHairDresser, 'id'>) => {
-      if (!salon?.id) throw new Error('Salon non trouvé')
-      const payload = {
-        ...data,
-        salonIds: [salon.id],
-        reservationsTaken: 0,
-        reservationsConfirmed: 0,
-        reservationsDone: 0,
-        createdAt: new Date().toISOString(),
-        status: 'active',
-      }
-      return await createDocument('hair_dressers', payload)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['salon-hairdressers'] })
-      toast.success('Coiffeur ajouté avec succès!')
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de l\'ajout du coiffeur')
-    },
-  })
+
+  
 
   // Mettre à jour un coiffeur
   const updateHairDresserMutation = useMutation({
@@ -82,15 +57,14 @@ export function useHairDressers() {
   const toggleStatusMutation = useMutation({
     mutationFn: async (hairDresser: IHairDresser) => {
       if (!salon?.id) throw new Error('Salon non trouvé')
-      const doc = await fetchCollection('hair_dressers', [where('id', '==', hairDresser.id)])
-      if (!doc || !doc[0]) return
-      const currentSalonIds = doc[0].salonIds || []
-      const updatedSalonIds = currentSalonIds.map((item: HairDresserSalonAssociation) =>
+      const subCollectionAssociate = await fetchSubCollection('hair_dressers',hairDresser.id, hairDresserAssociationNameEnum.SALON_HAIR_DRESSER, [where('salonId', '==', salon.id)]) as HairDresserSalonAssociation[];
+      if (!subCollectionAssociate || !subCollectionAssociate[0]) return
+      const updatedAssociation = subCollectionAssociate.map((item: HairDresserSalonAssociation) =>
         item.salonId === salon.id
           ? { ...item, active: !item.active }
           : item
       )
-      return await editDocument('hair_dressers', hairDresser.id, { salonIds: updatedSalonIds })
+      return await updateSubCollectionDocument('hair_dressers', hairDresser.id, hairDresserAssociationNameEnum.SALON_HAIR_DRESSER,updatedAssociation[0].salonId, updatedAssociation[0])
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salon-hairdressers'] })
@@ -105,13 +79,9 @@ export function useHairDressers() {
   const deleteHairDresserMutation = useMutation({
     mutationFn: async (hairDresserId: string) => {
       if (!salon?.id) throw new Error('Salon non trouvé')
-      const doc = await fetchCollection('hair_dressers', [where('id', '==', hairDresserId)])
-      if (!doc || !doc[0]) return
-      const currentSalonIds = doc[0].salonIds || []
-      const updatedSalonIds = currentSalonIds.filter((item: HairDresserSalonAssociation) => 
-        item.salonId !== salon.id
-      )
-      return await editDocument('hair_dressers', hairDresserId, { salonIds: updatedSalonIds })
+      const subCollectionAssociate = await fetchSubCollection('hair_dressers', hairDresserId, hairDresserAssociationNameEnum.SALON_HAIR_DRESSER, [where('salonId', '==', salon.id)]) as HairDresserSalonAssociation[];
+      if (!subCollectionAssociate || !subCollectionAssociate[0]) return
+      return await deleteDocument('hair_dressers/' + hairDresserId + '/' + hairDresserAssociationNameEnum.SALON_HAIR_DRESSER, subCollectionAssociate[0].salonId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salon-hairdressers'] })
@@ -127,15 +97,11 @@ export function useHairDressers() {
     hairDressers,
     isLoading,
     error,
-    
     // Mutations
-    createHairDresser: createHairDresserMutation.mutate,
     updateHairDresser: updateHairDresserMutation.mutate,
     toggleStatus: toggleStatusMutation.mutate,
     deleteHairDresser: deleteHairDresserMutation.mutate,
-    
     // Loading states
-    isCreating: createHairDresserMutation.isPending,
     isUpdating: updateHairDresserMutation.isPending,
     isToggling: toggleStatusMutation.isPending,
     isDeleting: deleteHairDresserMutation.isPending,

@@ -1,4 +1,9 @@
+import { OpeningHour } from "./salons.entities"
+
 export type ContractType = 'commission' | 'salary'
+export enum hairDresserAssociationNameEnum {
+ SALON_HAIR_DRESSER  = 'hair_dressers_salons_associations'
+}
 export interface IHairDresser {
   id: string
   name: string
@@ -8,7 +13,6 @@ export interface IHairDresser {
   photo: string
   country: string
   city: string
-  salonIds?: HairDresserSalonAssociation[]
   reservationsTaken: number
   reservationsConfirmed: number
   reservationsDone: number
@@ -19,17 +23,17 @@ export interface IHairDresser {
 
 
 export type HairDresserSalonAssociation = {
-    salonId : string
-    active : boolean
+  salonId : string
+  parentId: string,
+  active : boolean,
+  salary : null|number,
+  contractType : ContractType,
+  commissionRate : number|null,
+  salonServiceIds : string[]
+  workingHours : OpeningHour[]
 }
 
-export interface WorkingHours {
-  [key: string]: { 
-    start: string
-    end: string
-    active: boolean 
-  }
-}
+
 
 export interface IHairDresserInvitation {
   id : string
@@ -38,12 +42,20 @@ export interface IHairDresserInvitation {
   hairDresserId: string
   hairDresserName: string
   hairDresserEmail: string
-  workingDays: string[]
-  workingHours: WorkingHours
+  workingHours: OpeningHour[]
   contractType: ContractType
   commissionRate: number | null
+  selectedServiceIds : string[]
   salary: number | null
   status: 'pending' | 'accepted' | 'rejected' | 'expired'
   createdAt: string
   expiresAt: string
+}
+
+
+export enum hairDresserInvitationStatusEnum {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+  EXPIRED = 'expired'
 }

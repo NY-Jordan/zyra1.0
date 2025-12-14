@@ -1,4 +1,5 @@
 export { default as SearchHairDresserForm } from './SearchHairDresserForm'
+export { default as ServiceSelectionForm } from './ServiceSelectionForm'
 export { default as WorkingHoursForm } from './WorkingHoursForm'
 export { default as ContractTypeForm } from './ContractTypeForm'
 export { default as InvitationConfirmation } from './InvitationConfirmation'

@@ -14,9 +14,9 @@ import {
   Loader2,
   CheckCircle
 } from 'lucide-react'
-import { fetchCollection } from '@zyra/conf/lib/query'
-import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { where } from 'firebase/firestore'
+import { fetchCollection, fetchSubCollection } from '@zyra/conf/lib/query'
+import { IHairDresser, hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { where, or, and } from 'firebase/firestore'
 import useSalon from '@/hooks/useSalon'
 
 interface SearchHairDresserFormProps {
@@ -33,7 +33,7 @@ export default function SearchHairDresserForm({
   onSelectHairDresser
 }: SearchHairDresserFormProps) {
   const { salon } = useSalon();
-  
+
   // Récupérer les invitations en attente pour ce salon
   const { data: pendingInvitations = [] } = useQuery({
     queryKey: ['pending-invitations', salon?.id],
@@ -51,8 +51,10 @@ export default function SearchHairDresserForm({
 
   // Recherche des coiffeurs dans toute la plateforme
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
-    queryKey: ['search-hairdressers', searchTerm, pendingInvitations],
+    queryKey: ['search-hairdressers', searchTerm, salon?.id],
     queryFn: async (): Promise<IHairDresser[]> => {
+      if (!salon?.id) return []
+      
       // Recherche par nom (utilise where pour filtrer côté serveur)
       const nameResults = await fetchCollection('hair_dressers', [
         where('name', '>=', searchTerm),
@@ -73,13 +75,21 @@ export default function SearchHairDresserForm({
       const uniqueResults = allResults.filter((hd, index, self) =>
         self.findIndex(h => h.id === hd.id) === index
       )
-      console.log(uniqueResults);
-      // Retourner tous les coiffeurs (filtrage uniquement pour ceux déjà associés)
-      return uniqueResults.filter(hd => {
-        return hd.salonIds ? !hd.salonIds.some(salonAssociation => salonAssociation.salonId === salon?.id) : true;
-      })
+      // Filtrer ceux qui n'ont pas de sous-collection d'association avec ce salon
+      const filteredResults = await Promise.all(
+        uniqueResults.map(async (hd) => {
+          const associations = await fetchSubCollection(
+            'hair_dressers',
+            hd.id,
+            hairDresserAssociationNameEnum.SALON_HAIR_DRESSER,
+            [where('salonId', '==', salon.id)]
+          )
+          return associations.length === 0 ? hd : null
+        })
+      )
+      return filteredResults.filter((hd): hd is IHairDresser => hd !== null)
     },
-    enabled: !!searchTerm && searchTerm.length >= 2
+    enabled: !!searchTerm && searchTerm.length >= 2 && !!salon?.id
   })
 
   return (

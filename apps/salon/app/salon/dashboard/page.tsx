@@ -5,6 +5,7 @@ import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
+import QRCodeDialog from '@/presentation/components/dashboard/QRCodeDialog'
 import { useSalon } from '@/hooks/useSalon'
 import {
   Store,
@@ -19,7 +20,8 @@ import {
   Copy,
   Eye,
   ExternalLink,
-  MessageCircle
+  MessageCircle,
+  QrCode
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -30,7 +32,7 @@ export default function Dashboard() {
   // Générer le lien de réservation
   const getBookingLink = () => {
     if (!salon?.id) return ''
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const baseUrl = process.env.NEXT_PUBLIC_MARKETPLACE_URL
     return `${baseUrl}/booking/${salon.id}`
   }
 
@@ -258,6 +260,15 @@ export default function Dashboard() {
                         <Eye className="h-4 w-4 mr-2" />
                         Prévisualiser
                       </Button>
+
+                      {salon && bookingLink && (
+                        <div className="w-full">
+                          <QRCodeDialog 
+                            bookingUrl={bookingLink} 
+                            salonName={salon.name}
+                          />
+                        </div>
+                      )}
 
                       <Button
                         variant="outline"

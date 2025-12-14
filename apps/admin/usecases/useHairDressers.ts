@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchCollectionPaginate, fetchCollection, createDocument, editDocument, deleteDocument } from '@zyra/conf/lib/query'
-import { HairDresserSalonAssociation, IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { fetchCollectionPaginate, fetchCollection, createDocument, editDocument, deleteDocument, createSubCollectionDocument } from '@zyra/conf/lib/query'
+import { ContractType, HairDresserSalonAssociation, IHairDresser, hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { where } from 'firebase/firestore'
+import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
 
 export function useHairDressers(page: number = 1, pageSize: number = 25) {
   const queryClient = useQueryClient()
@@ -67,16 +68,61 @@ export function useHairDressers(page: number = 1, pageSize: number = 25) {
     },
   })
 
+  // Create salon-hairdresser association (subcollection)
+  const createAssociationMutation = useMutation({
+    mutationFn: async ({
+      hairDresserId,
+      salonId,
+      salonServiceIds = [],
+      salary = null,
+      contractType = 'commission',
+      commissionRate = 0,
+      workingHours = [],
+    }: {
+      hairDresserId: string
+      salonId: string
+      salonServiceIds: string[]
+      salary: number | null
+      contractType?: ContractType
+      commissionRate?: number | null
+      workingHours?: OpeningHour[]
+    }) => {
+      const associationData: HairDresserSalonAssociation = {
+        salonId,
+        parentId: hairDresserId,
+        active: true,
+        salonServiceIds,
+        salary,
+        contractType,
+        commissionRate,
+        workingHours,
+      }
+      await createSubCollectionDocument(
+          'hair_dressers',
+          hairDresserId,
+          hairDresserAssociationNameEnum.SALON_HAIR_DRESSER,
+          associationData,
+          salonId
+        )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hair-dresser-associations'] })
+      queryClient.invalidateQueries({ queryKey: ['hairdressers-by-salon'] })
+    },
+  })
+
   return {
     updateHairDresser: updateMutation.mutate,
     deleteHairDresser: deleteMutation.mutate,
     toggleStatus: toggleStatusMutation.mutate,
     dissociateHairDresserFromSalon: dissociateMutation.mutate,
     toggleAssociationStatus: toggleAssociationStatusMutation.mutate,
+    createAssociation: createAssociationMutation.mutate,
     updatePending: updateMutation.isPending,
     deletePending: deleteMutation.isPending,
     togglePending: toggleStatusMutation.isPending,
     dissociatePending: dissociateMutation.isPending,
     toggleAssociationPending: toggleAssociationStatusMutation.isPending,
+    createAssociationPending: createAssociationMutation.isPending,
   }
 }

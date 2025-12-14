@@ -12,22 +12,35 @@ import {
   CheckCircle,
   XCircle,
   Send,
-  Mail
+  Mail,
+  X,
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@zyra/ui/components/dialog'
+import { Badge } from '@zyra/ui/components/badge'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { IHairDresserWithSalonStatus, useHairDressers } from '@/usecases/useHairDressers'
+import {  HairDresserWithSalonAssociation, useHairDressers } from '@/usecases/useHairDressers'
 import ConfirmModal from '../../../../admin/presentation/components/CofirmModal'
 import HairDresserCard from './HairDresserCard'
+import HairDresserDetailsModal from './HairDresserDetailsModal'
 import InviteHairDresserModal from './InviteHairDresserModal'
 import InvitationsSheet from './InvitationsSheet'
+import { useSalon } from '@/hooks/useSalon'
 
 
 
 export default function HairDressersManagement() {
+  const { salon } = useSalon()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all')
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const [invitationsSheetOpen, setInvitationsSheetOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [selectedHairdresser, setSelectedHairdresser] = useState<HairDresserWithSalonAssociation | null>(null)
   
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean
@@ -74,9 +87,9 @@ export default function HairDressersManagement() {
     }
 
     return filtered
-  }, [hairDressers, searchTerm, statusFilter]) as IHairDresserWithSalonStatus[]
+  }, [hairDressers, searchTerm, statusFilter]) as HairDresserWithSalonAssociation[]
 
-  const handleDeleteClick = (hairDresser: IHairDresserWithSalonStatus) => {
+  const handleDeleteClick = (hairDresser: HairDresserWithSalonAssociation) => {
     setDeleteModal({
       open: true,
       hairDresserId: hairDresser.id,
@@ -103,11 +116,16 @@ export default function HairDressersManagement() {
     })
   }
 
-  const handleStatusClick = (hairDresser: IHairDresserWithSalonStatus) => {
+  const handleStatusClick = (hairDresser: HairDresserWithSalonAssociation) => {
     setStatusModal({
       open: true,
       hairDresser: hairDresser
     })
+  }
+
+  const handleViewClick = (hairDresser: HairDresserWithSalonAssociation) => {
+    setSelectedHairdresser(hairDresser)
+    setDetailsOpen(true)
   }
 
   const handleConfirmStatus = () => {
@@ -168,7 +186,7 @@ export default function HairDressersManagement() {
                 <div>
                   <p className="text-sm text-muted-foreground">Actifs</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {hairDressers.filter(h => h.active === true).length}
+                    {hairDressers.filter(h => h.associationHairdresser.active === true).length}
                   </p>
                 </div>
               </div>
@@ -184,7 +202,7 @@ export default function HairDressersManagement() {
                 <div>
                   <p className="text-sm text-muted-foreground">Suspendus</p>
                   <p className="text-2xl font-bold text-red-600">
-                    {hairDressers.filter(h => h.active === false).length}
+                    {hairDressers.filter(h => h.associationHairdresser.active  === false).length}
                   </p>
                 </div>
               </div>
@@ -249,12 +267,13 @@ export default function HairDressersManagement() {
           <CardContent>
             {filteredHairDressers.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredHairDressers.map((hairDresser: IHairDresserWithSalonStatus) => (
+                {filteredHairDressers.map((hairDresser: HairDresserWithSalonAssociation) => (
                   <HairDresserCard
                     key={hairDresser.id}
                     hairDresser={hairDresser}
                     onDeleteClick={handleDeleteClick}
                     onStatusClick={handleStatusClick}
+                    onViewClick={handleViewClick}
                     isToggling={isToggling}
                     isDeleting={isDeleting}
                   />
@@ -315,7 +334,14 @@ export default function HairDressersManagement() {
         onConfirm={handleConfirmStatus}
         confirmLabel={statusModal.hairDresser?.status === 'active' ? 'Suspendre' : 'Activer'}
         confirmVariant={statusModal.hairDresser?.status === 'active' ? 'destructive' : 'default'}
-        loading={isToggling}
+      />
+
+      {/* Details Modal */}
+      <HairDresserDetailsModal
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        hairdresser={selectedHairdresser}
+        categories={salon?.serviceCategories || []}
       />
 
       {/* Modal d'invitation de coiffeur */}

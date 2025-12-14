@@ -61,7 +61,7 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     label: 'Paramètres',
-    href: '/settings',
+    href: '/salon/salon-info',
     icon: <Settings className="h-5 w-5" />
   }
 ]

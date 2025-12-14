@@ -8,6 +8,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 
+export const DAYS_OF_WEEK = [
+  { key: 'monday', label: 'Lundi' },
+  { key: 'tuesday', label: 'Mardi' },
+  { key: 'wednesday', label: 'Mercredi' },
+  { key: 'thursday', label: 'Jeudi' },
+  { key: 'friday', label: 'Vendredi' },
+  { key: 'saturday', label: 'Samedi' },
+  { key: 'sunday', label: 'Dimanche' }
+]
+
 export const formatCountdown = (ms: number) => {
     const min = Math.floor(ms / 60000)
     const sec = Math.floor((ms % 60000) / 1000)

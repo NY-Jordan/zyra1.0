@@ -31,10 +31,12 @@ import { toast } from 'sonner'
 import useSalon from '@/hooks/useSalon'
 import {
   SearchHairDresserForm,
+  ServiceSelectionForm,
   WorkingHoursForm,
   ContractTypeForm,
   InvitationConfirmation
 } from './invite-forms'
+import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
 
 interface InviteHairDresserModalProps {
   open: boolean
@@ -43,14 +45,11 @@ interface InviteHairDresserModalProps {
 
 type ContractType = 'commission' | 'salary'
 
-interface WorkingHours {
-  [key: string]: { start: string; end: string; active: boolean }
-}
 
 interface InvitationData {
   hairDresser: IHairDresser | null
-  workingDays: string[]
-  workingHours: WorkingHours
+  selectedServiceIds: string[]
+  workingHours: OpeningHour[]
   contractType: ContractType
   commissionRate?: number
   salary?: number
@@ -61,21 +60,12 @@ interface InvitationData {
 export default function InviteHairDresserModal({ open, onOpenChange }: InviteHairDresserModalProps) {
   const { salon } = useSalon()
   const queryClient = useQueryClient()
-  
   const [currentStep, setCurrentStep] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [invitationData, setInvitationData] = useState<InvitationData>({
     hairDresser: null,
-    workingDays: [],
-    workingHours: {
-      monday: { start: '09:00', end: '18:00', active: false },
-      tuesday: { start: '09:00', end: '18:00', active: false },
-      wednesday: { start: '09:00', end: '18:00', active: false },
-      thursday: { start: '09:00', end: '18:00', active: false },
-      friday: { start: '09:00', end: '18:00', active: false },
-      saturday: { start: '09:00', end: '18:00', active: false },
-      sunday: { start: '09:00', end: '18:00', active: false }
-    },
+    selectedServiceIds: [],
+    workingHours: salon?.openingHours ?? [],
     contractType: 'commission',
     commissionRate: 30,
     salary: 0
@@ -89,14 +79,13 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
       if (!salon?.id || !data.hairDresser) {
         throw new Error('Données manquantes pour l\'invitation')
       }
-
       const invitation = {
         salonId: salon.id,
         salonName: salon.name,
         hairDresserId: data.hairDresser.id,
         hairDresserName: data.hairDresser.name,
         hairDresserEmail: data.hairDresser.email,
-        workingDays: data.workingDays,
+        selectedServiceIds: data.selectedServiceIds,
         workingHours: data.workingHours,
         contractType: data.contractType,
         commissionRate: data.contractType === 'commission' ? data.commissionRate : null,
@@ -105,7 +94,6 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 jours
       }
-
       return await createDocument('hair_dresser_invitations', invitation)
     },
     onSuccess: () => {
@@ -123,16 +111,8 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
     setSearchTerm('')
     setInvitationData({
       hairDresser: null,
-      workingDays: [],
-      workingHours: {
-        monday: { start: '09:00', end: '18:00', active: false },
-        tuesday: { start: '09:00', end: '18:00', active: false },
-        wednesday: { start: '09:00', end: '18:00', active: false },
-        thursday: { start: '09:00', end: '18:00', active: false },
-        friday: { start: '09:00', end: '18:00', active: false },
-        saturday: { start: '09:00', end: '18:00', active: false },
-        sunday: { start: '09:00', end: '18:00', active: false }
-      },
+      selectedServiceIds: [],
+      workingHours: salon?.openingHours ?? [],
       contractType: 'commission',
       commissionRate: 30,
       salary: 0
@@ -145,40 +125,69 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
     setCurrentStep(2)
   }
 
+  const handleServiceToggle = (serviceId: string) => {
+    setInvitationData(prev => {
+      const isSelected = prev.selectedServiceIds.includes(serviceId)
+      return {
+        ...prev,
+        selectedServiceIds: isSelected
+          ? prev.selectedServiceIds.filter(id => id !== serviceId)
+          : [...prev.selectedServiceIds, serviceId]
+      }
+    })
+  }
+
   const handleWorkingDayToggle = (dayKey: string) => {
     setInvitationData(prev => {
-      const isCurrentlyActive = prev.workingDays.includes(dayKey)
-      const newWorkingDays = isCurrentlyActive 
-        ? prev.workingDays.filter(day => day !== dayKey)
-        : [...prev.workingDays, dayKey]
-
-      const newWorkingHours = {
-        ...prev.workingHours,
-        [dayKey]: {
-          ...prev.workingHours[dayKey],
-          active: !isCurrentlyActive
-        }
+      const existingHour = prev.workingHours.find(hour => hour.day === dayKey)
+      
+      let newWorkingHours: OpeningHour[]
+      if (existingHour) {
+        // Si le jour existe, on toggle openDay
+        newWorkingHours = prev.workingHours.map(hour => 
+          hour.day === dayKey 
+            ? { ...hour, openDay: !hour.openDay }
+            : hour
+        )
+      } else {
+        // Si le jour n'existe pas, on le crée avec openDay: true
+        newWorkingHours = [
+          ...prev.workingHours,
+          { day: dayKey, open: '09:00', close: '18:00', openDay: true }
+        ]
       }
 
       return {
         ...prev,
-        workingDays: newWorkingDays,
         workingHours: newWorkingHours
       }
     })
   }
 
-  const handleHourChange = (dayKey: string, type: 'start' | 'end', value: string) => {
-    setInvitationData(prev => ({
-      ...prev,
-      workingHours: {
-        ...prev.workingHours,
-        [dayKey]: {
-          ...prev.workingHours[dayKey],
-          [type]: value
+  const handleHourChange = (dayKey: string, type: 'open' | 'close', value: string) => {
+    setInvitationData(prev => {
+      const existingHour = prev.workingHours.find(hour => hour.day === dayKey)
+      
+      if (!existingHour) {
+        // Si le jour n'existe pas, on le crée
+        return {
+          ...prev,
+          workingHours: [
+            ...prev.workingHours,
+            { day: dayKey, open: type === 'open' ? value : '09:00', close: type === 'close' ? value : '18:00', openDay: true }
+          ]
         }
       }
-    }))
+      
+      return {
+        ...prev,
+        workingHours: prev.workingHours.map(hour =>
+          hour.day === dayKey
+            ? { ...hour, [type]: value }
+            : hour
+        )
+      }
+    })
   }
 
   const handleSendInvitation = () => {
@@ -188,9 +197,10 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
   const getStepTitle = () => {
     switch (currentStep) {
       case 1: return 'Rechercher un coiffeur'
-      case 2: return 'Horaires de travail'
-      case 3: return 'Type de contrat'
-      case 4: return 'Confirmer l\'invitation'
+      case 2: return 'Services du coiffeur'
+      case 3: return 'Horaires de travail'
+      case 4: return 'Type de contrat'
+      case 5: return 'Confirmer l\'invitation'
       default: return 'Inviter un coiffeur'
     }
   }
@@ -198,13 +208,14 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1: return !!invitationData.hairDresser
-      case 2: return invitationData.workingDays.length > 0
-      case 3: return (
+      case 2: return invitationData.selectedServiceIds.length > 0
+      case 3: return invitationData.workingHours.some(hour => hour.openDay)
+      case 4: return (
         invitationData.contractType === 'commission' 
           ?( invitationData?.commissionRate ? invitationData?.commissionRate  > 0 : false)
           : (invitationData?.salary ? invitationData?.salary > 0 : false)
       )
-      case 4 : return true;
+      case 5 : return true;
       default: return false
     }
   }
@@ -219,7 +230,7 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
             {getStepTitle()}
           </DialogTitle>
           <div className="flex items-center gap-2 mt-2">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3, 4, 5].map((step) => (
               <div
                 key={step}
                 className={`h-2 flex-1 rounded-full ${
@@ -241,19 +252,27 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
             />
           )}
 
-          {/* Étape 2: Horaires de travail */}
-          {currentStep === 2 && invitationData.hairDresser && (
-            <WorkingHoursForm
-              hairDresser={invitationData.hairDresser}
-              workingDays={invitationData.workingDays}
-              workingHours={invitationData.workingHours}
-              onWorkingDayToggle={handleWorkingDayToggle}
-              onHourChange={handleHourChange}
+          {/* Étape 2: Sélection des services */}
+          {currentStep === 2 && (
+            <ServiceSelectionForm
+              selectedCategoryIds={invitationData.selectedServiceIds}
+              onCategoryToggle={handleServiceToggle}
             />
           )}
 
-          {/* Étape 3: Type de contrat */}
-          {currentStep === 3 && (
+          {/* Étape 3: Horaires de travail */}
+          {currentStep === 3 && invitationData.hairDresser && (
+            <WorkingHoursForm
+              hairDresser={invitationData.hairDresser}
+              workingHours={invitationData.workingHours}
+              onWorkingDayToggle={handleWorkingDayToggle}
+              onHourChange={handleHourChange}
+              salonOpeningHours={salon?.openingHours}
+            />
+          )}
+
+          {/* Étape 4: Type de contrat */}
+          {currentStep === 4 && (
             <ContractTypeForm
               contractType={invitationData.contractType}
               commissionRate={invitationData.commissionRate}
@@ -264,11 +283,10 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
             />
           )}
 
-          {/* Étape 4: Confirmation */}
-          {currentStep === 4 && invitationData.hairDresser && (
+          {/* Étape 5: Confirmation */}
+          {currentStep === 5 && invitationData.hairDresser && (
             <InvitationConfirmation
               hairDresser={invitationData.hairDresser}
-              workingDays={invitationData.workingDays}
               workingHours={invitationData.workingHours}
               contractType={invitationData.contractType}
               commissionRate={invitationData.commissionRate}
@@ -290,7 +308,7 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
 
             <Button
               onClick={() => {
-                if (currentStep === 4) {
+                if (currentStep === 5) {
                   handleSendInvitation()
                 } else {
                   setCurrentStep(prev => prev + 1)
@@ -303,7 +321,7 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Envoi...
                 </>
-              ) : currentStep === 4 ? (
+              ) : currentStep === 5 ? (
                 <>
                   <Send className="h-4 w-4 mr-2" />
                   Envoyer l'invitation

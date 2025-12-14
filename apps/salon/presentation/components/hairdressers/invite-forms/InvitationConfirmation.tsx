@@ -7,17 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@zyra/ui/components/avatar'
 import { Separator } from '@zyra/ui/components/separator'
 import { User } from 'lucide-react'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
 
 type ContractType = 'commission' | 'salary'
 
-interface WorkingHours {
-  [key: string]: { start: string; end: string; active: boolean }
-}
 
 interface InvitationConfirmationProps {
   hairDresser: IHairDresser
-  workingDays: string[]
-  workingHours: WorkingHours
+  workingHours: OpeningHour[]
   contractType: ContractType
   commissionRate?: number
   salary?: number
@@ -35,12 +32,17 @@ const DAYS_OF_WEEK = [
 
 export default function InvitationConfirmation({
   hairDresser,
-  workingDays,
   workingHours,
   contractType,
   commissionRate,
   salary
 }: InvitationConfirmationProps) {
+  // Convertir format HH:MM en format français HH:MM (24h)
+  const formatTimeToFrench = (time: string): string => {
+    if (!time) return ''
+    const [hours, minutes] = time.split(':')
+    return `${hours}h${minutes}`
+  }
   
   return (
     <div className="space-y-4">
@@ -69,12 +71,11 @@ export default function InvitationConfirmation({
             <div>
               <h4 className="font-medium mb-2">Jours de travail</h4>
               <div className="flex flex-wrap gap-2">
-                {workingDays.map(dayKey => {
-                  const day = DAYS_OF_WEEK.find(d => d.key === dayKey)
-                  const hours = workingHours[dayKey]
+                {workingHours.filter(wh => wh.openDay).map(workingHour => {
+                  const day = DAYS_OF_WEEK.find(d => d.key === workingHour.day)
                   return (
-                    <Badge key={dayKey} variant="outline">
-                      {day?.label} ({hours.start} - {hours.end})
+                    <Badge key={workingHour.day} variant="outline">
+                      {day?.label} ({formatTimeToFrench(workingHour.open)} - {formatTimeToFrench(workingHour.close)})
                     </Badge>
                   )
                 })}

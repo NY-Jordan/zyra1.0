@@ -1,16 +1,22 @@
 'use client'
 import { useState } from 'react'
 import { Button } from '@zyra/ui/components/button'
-import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { hairDresserAssociationNameEnum, IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { useQuery } from '@tanstack/react-query'
-import { fetchCollection } from '@zyra/conf/lib/query'
+import { fetchCollection, fetchSubCollection } from '@zyra/conf/lib/query'
 import ConfirmModal from '@/presentation/components/CofirmModal'
 import { useHairDressers } from '@/usecases/useHairDressers'
 import EditHairDresserModal from './EditHairDresserModal'
 import ViewHairDresserModal from './ViewHairDresserModal'
 import SalonAssociationsModal from './SalonAssociationsModal'
+import { Router } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
-export default function HairDressersList({ hairDressers }: { hairDressers: IHairDresser[] }) {
+interface HairDresserWithSalonCount extends IHairDresser {
+  salonsCount: number
+}
+
+export default function HairDressersList({ hairDressers }: { hairDressers: HairDresserWithSalonCount[] }) {
   // Fetch salons and countries from DB
   const { data: salons = [] } = useQuery({
     queryKey: ['salons'],
@@ -21,6 +27,7 @@ export default function HairDressersList({ hairDressers }: { hairDressers: IHair
     queryFn: async () => await fetchCollection('countries'),
   })
 
+  const router = useRouter();
   // Usecases actions
   const { deleteHairDresser, toggleStatus, deletePending, togglePending } = useHairDressers()
 
@@ -32,12 +39,7 @@ export default function HairDressersList({ hairDressers }: { hairDressers: IHair
   const [salonModalOpen, setSalonModalOpen] = useState(false)
   const [selected, setSelected] = useState<IHairDresser | null>(null)
 
-  // Helpers
-  const getSalonName = (id?: string | null) => {
-    if (!id || !salons.length) return "-"
-    const salon = salons.find((s: any) => s.id === id)
-    return salon ? salon.name : "-"
-  }
+  
   const getCountryName = (id?: string) => {
     if (!id || !countries.length) return "-"
     const country = countries.find((c: any) => c.id === id)
@@ -93,7 +95,8 @@ export default function HairDressersList({ hairDressers }: { hairDressers: IHair
           </tr>
         </thead>
         <tbody>
-          {hairDressers.map((h) => (
+          {hairDressers.map((h) => {
+            return (
             <tr key={h.id} className="border-t">
               <td className="px-2 py-2">
                 <img
@@ -102,7 +105,7 @@ export default function HairDressersList({ hairDressers }: { hairDressers: IHair
                   className="w-10 h-10 object-cover rounded-full border"
                 />
               </td>
-              <td className="px-2 py-2 font-medium">{h.name}</td>
+              <td className="px-2 py-2 font-medium"><a href='#' onClick={() => router.replace(`/admin/hair-dressers/details/${h.id}`)}>{h.name}</a></td>
               <td className="px-2 py-2">{h.speciality}</td>
               <td className="px-2 py-2">{getCountryName(h.country)}</td>
               <td className="px-2 py-2">{h.city}</td>
@@ -112,7 +115,7 @@ export default function HairDressersList({ hairDressers }: { hairDressers: IHair
                     className='underline text-center text-blue-500 hover:cursor-pointer link'
                     onClick={() => { setSelected(h); setSalonModalOpen(true) }}
                   >
-                    {h.salonIds?.length}
+                    {h.salonsCount}
                   </a>
                 </span>
               </td>
@@ -125,7 +128,8 @@ export default function HairDressersList({ hairDressers }: { hairDressers: IHair
                 </span>
               </td>
               <td className="px-2 py-2 flex gap-1">
-                <Button size="sm" variant="outline" onClick={() => { setSelected(h); setViewModalOpen(true) }}>Voir</Button>
+                <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/hair-dressers/details/${h.id}`}>Détails</Button>
+                <Button size="sm" variant="outline" className="ml-1" onClick={() => { setSelected(h); setViewModalOpen(true) }}>Voir</Button>
                 <Button size="sm" variant="outline" className="ml-1" onClick={() => { setSelected(h); setEditModalOpen(true) }}>Modifier</Button>
                 <Button
                   size="sm"
@@ -145,7 +149,8 @@ export default function HairDressersList({ hairDressers }: { hairDressers: IHair
                 </Button>
               </td>
             </tr>
-          ))}
+          )
+          })}
           {hairDressers.length === 0 && (
             <tr>
               <td colSpan={11} className="text-center py-6 text-gray-500">Aucun coiffeur trouvé.</td>

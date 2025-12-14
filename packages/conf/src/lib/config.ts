@@ -38,13 +38,13 @@ export const SALON_CONFIG_DEFAULTS: SalonConfigForm = {
 
 
 export const defaultOpeningHours: OpeningHour[] = [
-  { day: "Lundi", open: "09:00", close: "21:00", openDay : true },
-  { day: "Mardi", open: "09:00", close: "21:00", openDay : true },
-  { day: "Mercredi", open: "09:00", close: "21:00", openDay : true },
-  { day: "Jeudi", open: "09:00", close: "21:00", openDay : true },
-  { day: "Vendredi", open: "09:00", close: "21:00", openDay : true },
-  { day: "Samedi", open: "09:00", close: "21:00", openDay : true },
-  { day: "Dimanche", open: "09:00", close: "21:00", openDay : true },
+  { day: "monday", open: "09:00", close: "21:00", openDay : true },
+  { day: "tuesday", open: "09:00", close: "21:00", openDay : true },
+  { day: "wednesday", open: "09:00", close: "21:00", openDay : true },
+  { day: "thursday", open: "09:00", close: "21:00", openDay : true },
+  { day: "friday", open: "09:00", close: "21:00", openDay : true },
+  { day: "saturday", open: "09:00", close: "21:00", openDay : true },
+  { day: "sunday", open: "09:00", close: "21:00", openDay : true },
 ]
 
 

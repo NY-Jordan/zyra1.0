@@ -26,14 +26,14 @@ import {
   DropdownMenuTrigger,
 } from '@zyra/ui/components/dropdown-menu'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { IHairDresserWithSalonStatus } from '@/usecases/useHairDressers'
+import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
 
 interface HairDresserCardProps {
-  hairDresser: IHairDresserWithSalonStatus
-  onDeleteClick: (hairDresser: IHairDresserWithSalonStatus) => void
-  onStatusClick: (hairDresser: IHairDresserWithSalonStatus) => void
-  onEditClick?: (hairDresser: IHairDresserWithSalonStatus) => void
-  onViewClick?: (hairDresser: IHairDresserWithSalonStatus) => void
+  hairDresser: HairDresserWithSalonAssociation
+  onDeleteClick: (hairDresser: HairDresserWithSalonAssociation) => void
+  onStatusClick: (hairDresser: HairDresserWithSalonAssociation) => void
+  onEditClick?: (hairDresser: HairDresserWithSalonAssociation) => void
+  onViewClick?: (hairDresser: HairDresserWithSalonAssociation) => void
   isToggling?: boolean
   isDeleting?: boolean
 }
@@ -139,11 +139,11 @@ export default function HairDresserCard({
               <StarRating rating={2.5} />
             </div>
             <Badge
-              className={`text-xs ${getStatusColor(hairDresser.active)}`}
+              className={`text-xs ${getStatusColor(hairDresser.associationHairdresser.active)}`}
             >
               {getStatusIcon(hairDresser.status)}
               <span className="ml-1">
-                {hairDresser.active === true ? 'Actif' : 'Suspendu'}
+                {hairDresser.associationHairdresser.active   === true ? 'Actif' : 'Suspendu'}
               </span>
             </Badge>
           </div>
@@ -167,7 +167,7 @@ export default function HairDresserCard({
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={handleStatusClick}>
-                {hairDresser.active === true ? (
+                {hairDresser.associationHairdresser.active === true ? (
                   <>
                     <Ban className="h-4 w-4 mr-2" />
                     Suspendre

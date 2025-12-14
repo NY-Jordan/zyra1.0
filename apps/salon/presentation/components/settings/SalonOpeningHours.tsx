@@ -8,21 +8,13 @@ import { Clock, Edit, Save, X, Pencil, Trash2, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon, OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
+import { DAYS_OF_WEEK } from '@zyra/conf/lib/utils'
 
 interface SalonOpeningHoursProps {
   salon: ISalon
   onUpdate: () => void
 }
 
-const DAY_LABELS: { [key: string]: string } = {
-  monday: 'Lundi',
-  tuesday: 'Mardi',
-  wednesday: 'Mercredi',
-  thursday: 'Jeudi',
-  friday: 'Vendredi',
-  saturday: 'Samedi',
-  sunday: 'Dimanche'
-}
 
 export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHoursProps) {
   const [isEditing, setIsEditing] = useState(false)
@@ -67,7 +59,7 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
     try {
       const updatedSlots = timeSlots.map((slot) =>
         slot.day === editingSlot.day 
-          ? { ...slot, open: editOpen, close: editClose, openDay: true }
+          ? { ...slot, day: editingSlot.day, open: editOpen, close: editClose, openDay: true }
           : slot
       )
       await editDocument("salons", salon.id, { openingHours: updatedSlots })
@@ -129,7 +121,7 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
                     className={`border-t ${isDisabled ? "bg-red-50 text-red-600" : ""}`}
                   >
                     <td className="px-4 py-2 font-medium">
-                      {DAY_LABELS[slot.day] || slot.day}
+                      {slot.day}
                     </td>
                     <td className="px-4 py-2">
                       {isCurrentlyEditing ? (

@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Sheet,
@@ -24,13 +24,16 @@ import {
   CheckCircle,
   XCircle,
   Eye,
-  Loader2
+  Loader2,
+  Edit
 } from 'lucide-react'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import useSalon from '@/hooks/useSalon'
 import { toast } from 'sonner'
-import { IHairDresserInvitation } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { hairDresserInvitationStatusEnum, IHairDresserInvitation } from '@zyra/conf/domain/entities/hairdressers.entities'
+import EditInvitationModal from './EditInvitationModal'
+import { formatDate } from '@zyra/conf/lib/utils'
 
 interface InvitationsSheetProps {
   open: boolean
@@ -51,6 +54,8 @@ const DAYS_OF_WEEK = [
 
 export default function InvitationsSheet({ open, onOpenChange }: InvitationsSheetProps) {
   const { salon } = useSalon()
+  const [selectedInvitation, setSelectedInvitation] = useState<IHairDresserInvitation | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
 
   const { data: invitations = [], isLoading } = useQuery({
     queryKey: ['salon-invitations', salon?.id],
@@ -97,7 +102,7 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[700px] sm:w-[600px] overflow-y-auto">
+      <SheetContent className="w-[700px] sm:w-[600px] overfloselectedCategoryIdsw-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
@@ -138,7 +143,14 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
                   </h3>
                   <div className="space-y-3">
                     {groupedInvitations.pending.map((invitation) => (
-                      <InvitationCard key={invitation.id} invitation={invitation} />
+                      <InvitationCard 
+                        key={invitation.id} 
+                        invitation={invitation} 
+                        onEdit={() => {
+                          setSelectedInvitation(invitation)
+                          setEditModalOpen(true)
+                        }}
+                      />
                     ))}
                   </div>
                 </div>
@@ -192,38 +204,40 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
           )}
         </div>
       </SheetContent>
+      {/* Modal d'édition */}
+      <EditInvitationModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        invitation={selectedInvitation}
+      />
     </Sheet>
   )
 }
 
-function InvitationCard({ invitation }: { invitation: IHairDresserInvitation }) {
+function InvitationCard({
+  invitation,
+  onEdit
+}: {
+  invitation: IHairDresserInvitation
+  onEdit?: () => void
+}) {
   const getStatusBadge = (status: string, expiresAt: string) => {
     const expired = new Date(expiresAt) < new Date()
     if (status === 'pending' && expired) {
       return <Badge variant="outline" className="text-gray-500">Expirée</Badge>
     }
     switch (status) {
-      case 'pending':
+      case hairDresserInvitationStatusEnum.PENDING :
         return <Badge variant="secondary" className="text-yellow-700 bg-yellow-100">En attente</Badge>
-      case 'accepted':
+      case hairDresserInvitationStatusEnum.ACCEPTED:
         return <Badge variant="default" className="text-green-700 bg-green-100">Acceptée</Badge>
-      case 'rejected':
+      case hairDresserInvitationStatusEnum.REJECTED:
         return <Badge variant="destructive">Refusée</Badge>
-      case 'expired':
+      case hairDresserInvitationStatusEnum.EXPIRED:
         return <Badge variant="outline" className="text-gray-500">Expirée</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
   }
 
   return (
@@ -243,7 +257,19 @@ function InvitationCard({ invitation }: { invitation: IHairDresserInvitation }) 
                 <p className="text-sm text-muted-foreground">{invitation.hairDresserEmail}</p>
               </div>
             </div>
-            {getStatusBadge(invitation.status, invitation.expiresAt)}
+            <div className="flex items-center gap-2">
+              {getStatusBadge(invitation.status, invitation.expiresAt)}
+              {invitation.status === 'pending' && onEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={onEdit}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
 
           <Separator />
@@ -254,7 +280,6 @@ function InvitationCard({ invitation }: { invitation: IHairDresserInvitation }) 
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span>Envoyée le {formatDate(invitation.createdAt)}</span>
             </div>
-            
             {invitation.status === 'pending' && (
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -279,10 +304,10 @@ function InvitationCard({ invitation }: { invitation: IHairDresserInvitation }) 
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Jours:</span>
               <div className="flex gap-1">
-                {invitation.workingDays.map(dayKey => {
-                  const day = DAYS_OF_WEEK.find(d => d.key === dayKey)
+                {invitation.workingHours.filter(wh => wh.openDay).map(workingHour => {
+                  const day = DAYS_OF_WEEK.find(d => d.key === workingHour.day)
                   return (
-                    <Badge key={dayKey} variant="outline" className="text-xs">
+                    <Badge key={workingHour.day} variant="outline" className="text-xs">
                       {day?.label}
                     </Badge>
                   )

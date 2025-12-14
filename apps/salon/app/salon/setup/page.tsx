@@ -33,6 +33,7 @@ export default function SalonSetupPage() {
 
   // Fonction de déconnexion
   const handleLogout = async () => {
+    console.log('Déconnexion en cours...')
     try {
       await signOut(auth)
       queryClient.clear()
@@ -144,7 +145,9 @@ export default function SalonSetupPage() {
             {/* Dropdown utilisateur */}
             <div className="relative">
               <button
-                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                onClick={() => 
+           handleLogout()
+                    }
                 className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 rounded-lg px-4 py-2 transition-colors"
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -160,9 +163,9 @@ export default function SalonSetupPage() {
               {showUserDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                   <button
-                    onClick={() => {
-                      handleLogout();
-                    }}
+                    onClick={() => 
+           handleLogout()
+                    }
                     className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                   >
                     <LogOut className="h-4 w-4" />

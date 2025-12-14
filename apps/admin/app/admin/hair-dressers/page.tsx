@@ -5,10 +5,11 @@ import PageHeader from '@/presentation/components/common/PageHeader'
 import HairDressersList from '@/presentation/components/hairdressers/HairDressersList'
 import CreateHairDresserModal from '@/presentation/components/hairdressers/CreateHairDresserModal'
 import { useQuery } from '@tanstack/react-query'
-import { fetchCollectionPaginate, fetchCollection } from '@zyra/conf/lib/query'
+import { fetchCollectionPaginate, fetchCollection, fetchSubCollection } from '@zyra/conf/lib/query'
 import Pagination from '@/presentation/components/common/Pagination'
 import { Input } from '@zyra/ui/components/input'
 import { where, orderBy } from "firebase/firestore"
+import { hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
 
 const PAGE_SIZE = 25
 
@@ -75,9 +76,18 @@ export default function HairDressersListPage() {
           Array.isArray(hd.salonIds) && hd.salonIds.length >= Number(minSalons)
         )
       }
+      const fetchCountofSalonAssociation = hairDressers.map(async h => {
+          const countAssociations = await fetchSubCollection('hair_dressers', h.id, hairDresserAssociationNameEnum.SALON_HAIR_DRESSER).then(res => res.length)
+          return {
+            ...h,
+            salonsCount : countAssociations
+          }
+      })
+
+      const hairDressersList = await Promise.all(fetchCountofSalonAssociation)
 
       return {
-        data: hairDressers,
+        data: hairDressersList,
         total: res.total
       }
     },
@@ -85,7 +95,6 @@ export default function HairDressersListPage() {
 
   const hairDressers = data?.data || []
   const total = data?.total || 0
-
   return (
     <>
       <PageHeader 
@@ -140,14 +149,13 @@ export default function HairDressersListPage() {
         </div>
 
         <HairDressersList hairDressers={hairDressers} />
-        
         <Pagination
           page={page}
           pageSize={PAGE_SIZE}
           total={total}
           onPageChange={setPage}
         />
-        
+
         <CreateHairDresserModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
