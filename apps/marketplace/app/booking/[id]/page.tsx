@@ -15,14 +15,16 @@ import SupplementsSelection from '@/presentation/components/booking/SupplementsS
 import HairdresserSelection from '@/presentation/components/booking/HairdresserSelection'
 import DateTimeSelection from '@/presentation/components/booking/DateTimeSelection'
 import ClientInfoForm from '@/presentation/components/booking/ClientInfoForm'
+import ReservationType from '@/presentation/components/booking/ReservationType'
 import { toast } from 'sonner'
 
 const steps = [
-  { number: 1, title: 'Service' },
-  { number: 2, title: 'Suppléments' },
-  { number: 3, title: 'Coiffeur' },
-  { number: 4, title: 'Date & Heure' },
-  { number: 5, title: 'Informations' },
+  { number: 1, title: 'Type' },
+  { number: 2, title: 'Service' },
+  { number: 3, title: 'Suppléments' },
+  { number: 4, title: 'Coiffeur' },
+  { number: 5, title: 'Date & Heure' },
+  { number: 6, title: 'Informations' },
 ]
 
 // Générer des créneaux horaires selon les horaires d'ouverture du salon
@@ -50,6 +52,7 @@ export default function BookingPage() {
   const salonId = params.id as string
 
   const [currentStep, setCurrentStep] = useState(1)
+  const [reservationType, setReservationType] = useState<'single' | 'multiple' | null>(null)
   const [selectedService, setSelectedService] = useState<ISalonService | null>(null)
   const [selectedSupplements, setSelectedSupplements] = useState<string[]>([])
   const [selectedHairdresser, setSelectedHairdresser] = useState<IHairDresser | null>(null)
@@ -132,20 +135,20 @@ export default function BookingPage() {
   const handleServiceSelect = (service: ISalonService) => {
     setSelectedService(service)
     // Avancer automatiquement à l'étape suivante
-    setTimeout(() => setCurrentStep(2), 300)
+    setTimeout(() => setCurrentStep(3), 300)
   }
 
   const handleHairdresserSelect = (hairdresser: IHairDresser | null) => {
     setSelectedHairdresser(hairdresser)
     setHairdresserSelectionMade(true)
     // Avancer automatiquement à l'étape suivante
-    setTimeout(() => setCurrentStep(4), 300)
+    setTimeout(() => setCurrentStep(5), 300)
   }
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time)
     // Avancer automatiquement à l'étape suivante
-    setTimeout(() => setCurrentStep(5), 300)
+    setTimeout(() => setCurrentStep(6), 300)
   }
 
   const handleClientInfoChange = (field: string, value: string) => {
@@ -155,14 +158,16 @@ export default function BookingPage() {
   const canGoNext = () => {
     switch (currentStep) {
       case 1:
-        return !!selectedService
+        return reservationType !== null
       case 2:
-        return true // Suppléments optionnels
+        return !!selectedService
       case 3:
-        return hairdresserSelectionMade // Can be null (any hairdresser) or an IHairDresser
+        return true // Suppléments optionnels
       case 4:
-        return !!selectedDate && !!selectedTime
+        return hairdresserSelectionMade // Can be null (any hairdresser) or an IHairDresser
       case 5:
+        return !!selectedDate && !!selectedTime
+      case 6:
         return clientInfo.clientName.trim() !== '' && clientInfo.clientPhone.trim() !== ''
       default:
         return false
@@ -219,26 +224,35 @@ export default function BookingPage() {
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => router.push('/')}
+            onClick={handlePrevious}
             className="mb-6"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Button>
-          <div className="text-center space-y-2">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-              Réservation chez {salon.name}
-            </h1>
-            <p className="text-lg text-gray-600">{salon.address}, {salon.city}</p>
-          </div>
+          {currentStep === 1 && (
+            <div className="text-center space-y-2">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+                {salon.name}
+              </h1>
+              <p className="text-lg text-gray-600">{salon.address}, {salon.city}</p>
+            </div>
+          )}
         </div>
-
-        {/* Step Indicator */}
-        <StepIndicator steps={steps} currentStep={currentStep} />
 
         {/* Content */}
         <div className="mt-8 mb-8">
           {currentStep === 1 && (
+            <ReservationType
+              selectedType={reservationType}
+              onSelectType={(type) => {
+                setReservationType(type)
+                setTimeout(() => setCurrentStep(2), 300)
+              }}
+            />
+          )}
+
+          {currentStep === 2 && (
             <ServiceSelection
               services={salon.services || []}
               categories={salon.serviceCategories || []}
@@ -247,7 +261,7 @@ export default function BookingPage() {
             />
           )}
 
-          {currentStep === 2 && selectedService && (
+          {currentStep === 3 && selectedService && (
             <SupplementsSelection
               supplements={selectedService.supplements || []}
               selectedSupplements={selectedSupplements}
@@ -255,7 +269,7 @@ export default function BookingPage() {
             />
           )}
 
-          {currentStep === 3 && (
+          {currentStep === 4 && (
             <HairdresserSelection
               hairdressers={hairdressers}
               selectedHairdresser={selectedHairdresser}
@@ -263,7 +277,7 @@ export default function BookingPage() {
             />
           )}
 
-          {currentStep === 4 && (
+          {currentStep === 5 && (
             <DateTimeSelection
               selectedDate={selectedDate}
               selectedTime={selectedTime}
@@ -274,7 +288,7 @@ export default function BookingPage() {
             />
           )}
 
-          {currentStep === 5 && (
+          {currentStep === 6 && (
             <ClientInfoForm
               formData={clientInfo}
               onChange={handleClientInfoChange}
@@ -293,7 +307,18 @@ export default function BookingPage() {
             Précédent
           </Button>
 
-          {currentStep === 2 && (
+          {currentStep === 1 && (
+            <Button
+              onClick={handleNext}
+              disabled={!canGoNext()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Continuer
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          )}
+
+          {currentStep === 3 && (
             <Button
               onClick={handleNext}
               className="bg-blue-600 hover:bg-blue-700"
@@ -303,7 +328,7 @@ export default function BookingPage() {
             </Button>
           )}
 
-          {currentStep === 5 && (
+          {currentStep === 6 && (
             <Button
               onClick={handleSubmit}
               disabled={!canGoNext()}

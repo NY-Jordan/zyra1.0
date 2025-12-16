@@ -51,9 +51,8 @@ export default function ServiceSelection({
       <div className="sticky top-16 z-10 bg-white border rounded-lg shadow-sm p-2 -mx-4 px-4">
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category) => {
-            const hasServices = servicesByCategory[category.id]?.length > 0
+            const hasServices = (servicesByCategory[category.id]?.length ?? 0) > 0
             if (!hasServices) return null
-
             return (
               <button
                 key={category.id}
