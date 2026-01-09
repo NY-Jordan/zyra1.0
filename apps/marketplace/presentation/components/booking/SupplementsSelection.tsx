@@ -10,7 +10,7 @@ import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entit
 interface SupplementsSelectionProps {
   supplements: ISalonServiceSupplement[]
   selectedSupplements: string[]
-  onToggleSupplement: (supplementId: string) => void
+  onToggleSupplement: (supplementId: ISalonServiceSupplement) => void
 }
 
 export default function SupplementsSelection({
@@ -21,7 +21,7 @@ export default function SupplementsSelection({
   const totalSupplementsPrice = supplements
     .filter(s => selectedSupplements.includes(s.id))
     .reduce((sum, s) => sum + s.price, 0)
-
+  console.log( supplements)
   return (
     <div className="space-y-6">
       <div>
@@ -37,16 +37,15 @@ export default function SupplementsSelection({
         </Card>
       ) : (
         <div className="space-y-3">
-          {supplements.map((supplement) => {
-            const isSelected = selectedSupplements.includes(supplement.id)
-
+          {supplements.map((supplement, key) => {
+            const isSelected = selectedSupplements.includes(supplement.name)
             return (
               <Card
-                key={supplement.id}
+                key={key}
                 className={`cursor-pointer transition-all hover:shadow-md ${
                   isSelected ? 'ring-2 ring-blue-600 bg-blue-50' : ''
                 }`}
-                onClick={() => onToggleSupplement(supplement.id)}
+                onClick={() => onToggleSupplement(supplement)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -75,7 +74,7 @@ export default function SupplementsSelection({
                       }`}
                       onClick={(e) => {
                         e.stopPropagation()
-                        onToggleSupplement(supplement.id)
+                        onToggleSupplement(supplement)
                       }}
                     >
                       {isSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}

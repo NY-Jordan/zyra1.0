@@ -168,6 +168,7 @@ interface PaginateOptions {
   page?: number;
   pageSize?: number;
   orderByField?: string;
+  orderDirection?: 'asc' | 'desc';
   constraints?: QueryConstraint[];
 }
 
@@ -180,6 +181,7 @@ export const fetchCollectionPaginate = async (
     page = 1,
     pageSize = 10,
     orderByField = "createdAt",
+    orderDirection = 'desc',
     constraints = [],
   }: PaginateOptions = {}
 ): Promise<{ data: FirestoreData[]; total: number }> => {
@@ -192,7 +194,7 @@ export const fetchCollectionPaginate = async (
   let q = query(
     collectionRef,
     ...constraints,
-    orderBy(orderByField),
+    orderBy(orderByField, orderDirection),
     limit(pageSize)
   );
   if (page > 1) {
@@ -200,7 +202,7 @@ export const fetchCollectionPaginate = async (
       query(
         collectionRef,
         ...constraints,
-        orderBy(orderByField),
+        orderBy(orderByField, orderDirection),
         limit((page - 1) * pageSize)
       )
     );
@@ -209,7 +211,7 @@ export const fetchCollectionPaginate = async (
       q = query(
         collectionRef,
         ...constraints,
-        orderBy(orderByField),
+        orderBy(orderByField, orderDirection),
         startAfter(lastVisible),
         limit(pageSize)
       );

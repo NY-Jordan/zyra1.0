@@ -19,9 +19,9 @@ interface HairdresserWithAssociation {
 }
 
 interface HairdresserSelectionProps {
-  hairdressers: HairdresserWithAssociation[]
-  selectedHairdresser: IHairDresser | null
-  onSelectHairdresser: (hairdresser: IHairDresser | null) => void
+  hairdressers: { hairdresser: IHairDresser; association: HairDresserSalonAssociation; }[] | undefined
+  selectedHairdresser: HairDresserSalonAssociation | null
+  onSelectHairdresser: (hairdresser: HairDresserSalonAssociation | null) => void
 }
 
 export default function HairdresserSelection({
@@ -32,7 +32,7 @@ export default function HairdresserSelection({
   const [selectedDetailsId, setSelectedDetailsId] = useState<string | null>(null)
   const isAnySelected = selectedHairdresser === null
 
-  const detailsHairdresser = selectedDetailsId
+  const detailsHairdresser = selectedDetailsId && hairdressers
     ? hairdressers.find(h => h.hairdresser.id === selectedDetailsId)
     : null
 
@@ -79,8 +79,8 @@ export default function HairdresserSelection({
         </Card>
 
         {/* Specific Hairdressers */}
-        {hairdressers.map((item) => {
-          const isSelected = selectedHairdresser?.id === item.hairdresser.id
+        {hairdressers?.map((item, key) => {
+          const isSelected = selectedHairdresser?.parentId === item.hairdresser.id
           const hairdresser = item.hairdresser
 
           return (
@@ -89,7 +89,7 @@ export default function HairdresserSelection({
               className={`cursor-pointer transition-all hover:shadow-md ${
                 isSelected ? 'ring-2 ring-blue-600 bg-blue-50' : ''
               }`}
-              onClick={() => onSelectHairdresser(hairdresser)}
+              onClick={() => onSelectHairdresser(item.association)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
@@ -229,33 +229,7 @@ export default function HairdresserSelection({
                 </div>
               </div>
 
-              {/* Association Details */}
-              <div className="border-t pt-4 space-y-2">
-                <h4 className="font-semibold text-sm">Services disponibles</h4>
-                <div className="flex flex-wrap gap-2">
-                  {detailsHairdresser.association.salonServiceIds.map((serviceId) => (
-                    <Badge key={serviceId} variant="secondary">
-                      {serviceId}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="border-t pt-4 grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Réservations</p>
-                  <p className="text-lg font-semibold">
-                    {detailsHairdresser.hairdresser.reservationsDone}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Confirmées</p>
-                  <p className="text-lg font-semibold">
-                    {detailsHairdresser.hairdresser.reservationsConfirmed}
-                  </p>
-                </div>
-              </div>
+              
             </div>
           )}
         </DialogContent>

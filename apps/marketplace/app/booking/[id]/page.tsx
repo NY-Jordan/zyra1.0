@@ -1,344 +1,320 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
-import { Button } from '@zyra/ui/components/button'
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
-import { fetchCollection, fetchAllSubCollections } from '@zyra/conf/lib/query'
-import { where } from 'firebase/firestore'
-import { ISalon, ISalonService } from '@zyra/conf/domain/entities/salons.entities'
-import { IHairDresser, HairDresserSalonAssociation, hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
-import StepIndicator from '@/presentation/components/booking/StepIndicator'
-import ServiceSelection from '@/presentation/components/booking/ServiceSelection'
-import SupplementsSelection from '@/presentation/components/booking/SupplementsSelection'
-import HairdresserSelection from '@/presentation/components/booking/HairdresserSelection'
-import DateTimeSelection from '@/presentation/components/booking/DateTimeSelection'
-import ClientInfoForm from '@/presentation/components/booking/ClientInfoForm'
-import ReservationType from '@/presentation/components/booking/ReservationType'
+import React from 'react'
+import { useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
-const steps = [
-  { number: 1, title: 'Type' },
-  { number: 2, title: 'Service' },
-  { number: 3, title: 'Suppléments' },
-  { number: 4, title: 'Coiffeur' },
-  { number: 5, title: 'Date & Heure' },
-  { number: 6, title: 'Informations' },
-]
+// Components
+import {
+  BookingHeader,
+  BookingNavigation,
+  SingleReservationFlow,
+  MultipleReservationFlow,
+  MobileDrawer,
+  DesktopSidebar,
+} from '../../../presentation/components/booking/Process'
 
-// Générer des créneaux horaires selon les horaires d'ouverture du salon
-const generateTimeSlots = (openTime: string, closeTime: string) => {
-  const slots = []
-  const [openHour, openMinute] = openTime.split(':').map(Number)
-  const [closeHour, closeMinute] = closeTime.split(':').map(Number)
-  
-  const openInMinutes = openHour * 60 + openMinute
-  const closeInMinutes = closeHour * 60 + closeMinute
-  
-  // Créneaux de 30 minutes
-  for (let time = openInMinutes; time < closeInMinutes; time += 30) {
-    const hour = Math.floor(time / 60)
-    const minute = time % 60
-    slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
-  }
-  
-  return slots
-}
+// Types
+import { Booking } from './types'
+import { useBookingReducerHook } from '@/hooks/useBookingReducerHook'
+import { useBookingValidation } from '@/hooks/useBookingValidation'
+import { useReservationSave } from '@/hooks/useReservationSave'
+import { useAvailableSlots, useHairdressersData, useSalonData } from '@/hooks/useData'
+import { getEndTime, addMinutesToDate } from '@/lib/timeHelpers'
+import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 
 export default function BookingPage() {
   const params = useParams()
   const router = useRouter()
   const salonId = params.id as string
 
-  const [currentStep, setCurrentStep] = useState(1)
-  const [reservationType, setReservationType] = useState<'single' | 'multiple' | null>(null)
-  const [selectedService, setSelectedService] = useState<ISalonService | null>(null)
-  const [selectedSupplements, setSelectedSupplements] = useState<string[]>([])
-  const [selectedHairdresser, setSelectedHairdresser] = useState<IHairDresser | null>(null)
-  const [hairdresserSelectionMade, setHairdresserSelectionMade] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  const [clientInfo, setClientInfo] = useState({
-    clientName: '',
-    clientPhone: '',
-    clientEmail: '',
-    notes: '',
-  })
+  // State management with reducer
+  const bookingState = useBookingReducerHook()
+  const { state } = bookingState
+  const { canGoNext, handleNext: handleNavigateNext, handlePrevious: handleNavigatePrevious } = useBookingValidation()
 
-  // Fetch salon
-  const { data: salon, isLoading: loadingSalon } = useQuery({
-    queryKey: ['salon', salonId],
-    queryFn: async () => {
-      const salons = await fetchCollection('salons', [where('id', '==', salonId)])
-      return salons[0] as ISalon
-    },
-  })
+  // Reservation hook - MUST be at component level
+  const { createAndSaveReservation } = useReservationSave()
 
-  // Fetch hairdressers with active associations
-  const { data: hairdressers = [], isLoading: loadingHairdressers } = useQuery({
-    queryKey: ['hairdressers', salonId, selectedService?.categoryId],
-    queryFn: async () => {
-      if (!salonId) return []
-      
-      // Fetch all associations for this salon
-      const associations = await fetchAllSubCollections(
-        hairDresserAssociationNameEnum.SALON_HAIR_DRESSER,
-        [where('salonId', '==', salonId), where('active', '==', true)]
-      ) as HairDresserSalonAssociation[]
+  // Data fetching
+  const currentBooking = state.multipleBookings[state.currentPersonIndex]
+  const { data: salon, isLoading: loadingSalon } = useSalonData(salonId)
+  const { data: hairdressersData, isLoading: loadingHairdressers } = useHairdressersData(
+    salonId,
+    currentBooking?.service
+  )
+  const availableSlots = useAvailableSlots(salon || null, currentBooking?.date || null)
+  
+  // Hairdressers formatting
+  const hairdressers = hairdressersData
 
-      if (associations.length === 0) return []
-
-      // Fetch hairdresser details for each active association
-      const hairdresserPromises = associations.map(async (assoc) => {
-        const hairdressers = await fetchCollection('hair_dressers', [
-          where('id', '==', assoc.parentId)
-        ])
-        return {
-          hairdresser: hairdressers[0] as IHairDresser,
-          association: assoc
-        }
-      })
-
-      const results = await Promise.all(hairdresserPromises)
-      let filtered = results.filter(r => r.hairdresser)
-
-      // Filter by selected service category if provided
-      if (selectedService?.categoryId) {
-        filtered = filtered.filter(r => 
-          r.association.salonServiceIds.includes(selectedService.categoryId)
-        )
-      }
-
-      return filtered
-    },
-    enabled: !!salonId,
-  })
-
-  // Générer les créneaux horaires en fonction de la date sélectionnée et des horaires du salon
-  const availableSlots = React.useMemo(() => {
-    if (!salon || !selectedDate) return []
-    const dayOfWeek = selectedDate.toLocaleDateString('en-EN', { weekday: 'long' }).toLowerCase()
-    const daySchedule = salon.openingHours.find(h => h.day.toLowerCase() === dayOfWeek)
-    if (!daySchedule || !daySchedule.openDay) return []
-    return generateTimeSlots(daySchedule.open, daySchedule.close)
-  }, [salon, selectedDate])
-
-  const handleToggleSupplement = (supplementId: string) => {
-    setSelectedSupplements(prev => 
-      prev.includes(supplementId)
-        ? prev.filter(id => id !== supplementId)
-        : [...prev, supplementId]
-    )
+  // Handlers for single booking
+  const handleSelectBooking = (index: number) => {
+    bookingState.setCurrentPersonIndex(index)
+    bookingState.setCurrentStep(2)
   }
 
-  const handleServiceSelect = (service: ISalonService) => {
-    setSelectedService(service)
-    // Avancer automatiquement à l'étape suivante
-    setTimeout(() => setCurrentStep(3), 300)
+  // Handlers for multiple booking
+  const handleDeleteBooking = (index: number) => {
+    bookingState.deleteBooking(index)
   }
 
-  const handleHairdresserSelect = (hairdresser: IHairDresser | null) => {
-    setSelectedHairdresser(hairdresser)
-    setHairdresserSelectionMade(true)
-    // Avancer automatiquement à l'étape suivante
-    setTimeout(() => setCurrentStep(5), 300)
+  const handleAddPerson = () => {
+    const newBooking: Booking = {
+      personNumber: state.multipleBookings.length + 1,
+      service: null,
+      supplements: [],
+      hairdresser: null,
+      date: null,
+      time: null,
+    }
+    bookingState.addBooking(newBooking)
+    bookingState.setCurrentPersonIndex(state.currentPersonIndex + 1)
+    bookingState.resetCurrentPersonState()
+    bookingState.setCurrentStep(2)
+  }
+
+  const handleFinalize = () => {
+    bookingState.setCurrentStep(8)
+  }
+
+  // Navigation handlers
+  const handleMultipleDateSelect = (date: Date) => {
+    bookingState.updateCurrentBooking({ date })
+  }
+
+  const handleMultipleSupplementToggle = (supplement: ISalonServiceSupplement) => {
+    const currentBooking = state.multipleBookings[state.currentPersonIndex]
+    if (!currentBooking) return
+    const newSupplements = currentBooking.supplements.includes(supplement)
+      ? currentBooking.supplements.filter((sups: ISalonServiceSupplement) => sups.id !== supplement.id)
+      : [...currentBooking.supplements, supplement]
+      console.log(newSupplements);
+    bookingState.updateCurrentBooking({ supplements: newSupplements })
+  }
+
+  const handleServiceSelect = (service: any) => {
+    bookingState.updateCurrentBooking({ service })
+    setTimeout(() => bookingState.setCurrentStep(3), 300)
+  }
+
+  const handleHairdresserSelect = (hairdresser: any) => {
+    bookingState.updateCurrentBooking({ hairdresser })
+    setTimeout(() => bookingState.setCurrentStep(5), 300)
   }
 
   const handleTimeSelect = (time: string) => {
-    setSelectedTime(time)
-    // Avancer automatiquement à l'étape suivante
-    setTimeout(() => setCurrentStep(6), 300)
-  }
-
-  const handleClientInfoChange = (field: string, value: string) => {
-    setClientInfo((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const canGoNext = () => {
-    switch (currentStep) {
-      case 1:
-        return reservationType !== null
-      case 2:
-        return !!selectedService
-      case 3:
-        return true // Suppléments optionnels
-      case 4:
-        return hairdresserSelectionMade // Can be null (any hairdresser) or an IHairDresser
-      case 5:
-        return !!selectedDate && !!selectedTime
-      case 6:
-        return clientInfo.clientName.trim() !== '' && clientInfo.clientPhone.trim() !== ''
-      default:
-        return false
-    }
+    bookingState.updateCurrentBooking({ time })
   }
 
   const handleNext = () => {
-    if (!canGoNext()) {
-      toast.error('Veuillez compléter cette étape avant de continuer')
-      return
-    }
-    if (currentStep < 5) {
-      setCurrentStep(currentStep + 1)
-    }
+    const canContinue = canGoNext(
+      state.reservationType,
+      state.currentStep,
+      state.currentPersonIndex,
+      state.multipleBookings
+    )
+    handleNavigateNext(
+      canContinue,
+      state.currentStep,
+      state.reservationType,
+      bookingState.setCurrentStep
+    )
   }
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
+  const handlePrev = () => {
+    handleNavigatePrevious(
+      state.currentStep,
+      state.reservationType,
+      state.currentPersonIndex,
+      bookingState.setCurrentStep,
+      bookingState.setCurrentPersonIndex
+    )
   }
 
   const handleSubmit = async () => {
-    if (!canGoNext()) {
+    const currentBooking = state.multipleBookings[state.currentPersonIndex]
+    const clientInfoComplete = state.clientInfo.clientName.trim() !== '' && state.clientInfo.clientPhone.trim() !== ''
+    
+    if (!currentBooking || !clientInfoComplete) {
       toast.error('Veuillez compléter tous les champs obligatoires')
       return
     }
 
-    // TODO: Créer la réservation
-    toast.success('Réservation créée avec succès!')
-    router.push('/')
+    try {
+      // Construire le tableau avec les heures de début et fin
+      const bookingsWithTimes = state.multipleBookings.map(booking => {
+        const startDate = new Date(booking.date!)
+        const [hour, minute] = booking.time!.split(':').map(Number)
+        startDate.setHours(hour || 0, minute || 0, 0, 0)
+        console.log(booking);
+        // Calculer la durée totale pour l'heure de fin
+        const totalDuration = (booking.service?.duration || 0) + 
+          booking.supplements.reduce((sum, suppId) => {
+            const supplement = booking.service?.supplements?.find(s => s.id === suppId)
+            return sum + (supplement?.duration || 0)
+          }, 0)
+        // Utiliser le helper addMinutesToDate pour calculer l'heure de fin
+        const endDate = addMinutesToDate(startDate, totalDuration)
+        return {
+          booking,
+          scheduledAt: startDate,
+          endsAt: endDate,
+        }
+      })
+
+      // Utiliser createAndSaveReservation directement (hook appelé au niveau du composant)
+      const result = await createAndSaveReservation(
+        salonId,
+        bookingsWithTimes,
+        {
+          clientName: state.clientInfo.clientName,
+          clientPhone: state.clientInfo.clientPhone,
+          clientEmail: state.clientInfo.clientEmail,
+          notes : state.clientInfo.notes,
+          userId: null, // À adapter selon l'auth
+        },
+        state.reservationType === 'single'
+      )
+      if (result.success) {
+        toast.success(`Réservation #${result.reservationId} créée avec succès!`)
+        router.push('/')
+      } else {
+        toast.error(result.error || 'Erreur lors de la création de la réservation')
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      toast.error('Erreur lors de la création de la réservation')
+    }
   }
 
-  if (loadingSalon || loadingHairdressers) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    )
-  }
-
-  if (!salon) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Salon non trouvé</p>
-      </div>
-    )
-  }
+  const isLoading = loadingSalon || loadingHairdressers
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={handlePrevious}
-            className="mb-6"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
-          </Button>
-          {currentStep === 1 && (
-            <div className="text-center space-y-2">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-                {salon.name}
-              </h1>
-              <p className="text-lg text-gray-600">{salon.address}, {salon.city}</p>
-            </div>
+      <BookingHeader
+        salon={salon || null}
+        currentStep={state.currentStep}
+        isLoading={isLoading}
+        onPrevious={handlePrev}
+      />
+
+      {!isLoading && salon && (
+        <div className="container mx-auto px-4">
+          {state.reservationType === 'multiple' ? (
+            <>
+              {/* Mobile Drawer */}
+              <MobileDrawer
+                multipleBookings={state.multipleBookings}
+                currentPersonIndex={state.currentPersonIndex}
+                currentStep={state.currentStep}
+                onSelectBooking={handleSelectBooking}
+                onDeleteBooking={handleDeleteBooking}
+              />
+
+              <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-6 gap-6">
+                {/* Main content */}
+                <div className="lg:col-span-4">
+                  <div className="mt-8 mb-8">
+                    <MultipleReservationFlow
+                      salon={salon}
+                      currentStep={state.currentStep}
+                      currentPersonIndex={state.currentPersonIndex}
+                      multipleBookings={state.multipleBookings}
+                      availableSlots={availableSlots}
+                      hairdressers={hairdressers}
+                      reservationType={state.reservationType}
+                      clientInfo={state.clientInfo}
+                      onSelectReservationType={(type) => {
+                        bookingState.setReservationType(type)
+                        setTimeout(() => bookingState.setCurrentStep(2), 300)
+                      }}
+                      onSelectService={handleServiceSelect}
+                      onToggleSupplement={handleMultipleSupplementToggle}
+                      onSelectHairdresser={handleHairdresserSelect}
+                      onSelectDate={handleMultipleDateSelect}
+                      onSelectTime={handleTimeSelect}
+                      onChangeClientInfo={bookingState.updateClientInfo}
+                      onAddPerson={handleAddPerson}
+                      onFinalize={handleFinalize}
+                    />
+                  </div>
+
+                  {/* Navigation */}
+                  <BookingNavigation
+                    currentStep={state.currentStep}
+                    reservationType={state.reservationType}
+                    canGoNext={canGoNext(
+                      state.reservationType,
+                      state.currentStep,
+                      state.currentPersonIndex,
+                      state.multipleBookings
+                    )}
+                    isLastStep={state.currentStep === 7}
+                    onPrevious={handlePrev}
+                    onNext={handleNext}
+                    onSubmit={handleSubmit}
+                    disablePrevious={state.currentStep === 1 || state.currentStep === 7}
+                  />
+                </div>
+
+                {/* Sidebar */}
+                <DesktopSidebar
+                  multipleBookings={state.multipleBookings}
+                  currentPersonIndex={state.currentPersonIndex}
+                  currentStep={state.currentStep}
+                  onSelectBooking={handleSelectBooking}
+                  onDeleteBooking={handleDeleteBooking}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="max-w-4xl mx-auto">
+                <div className="mt-8 mb-8">
+                  <SingleReservationFlow
+                    salon={salon}
+                    currentStep={state.currentStep}
+                    currentPersonIndex={state.currentPersonIndex}
+                    multipleBookings={state.multipleBookings}
+                    availableSlots={availableSlots}
+                    hairdressers={hairdressers}
+                    reservationType={state.reservationType}
+                    clientInfo={state.clientInfo}
+                    onSelectReservationType={(type) => {
+                      bookingState.setReservationType(type)
+                      setTimeout(() => bookingState.setCurrentStep(2), 300)
+                    }}
+                    onSelectService={handleServiceSelect}
+                    onToggleSupplement={handleMultipleSupplementToggle}
+                    onSelectHairdresser={handleHairdresserSelect}
+                    onSelectDate={handleMultipleDateSelect}
+                    onSelectTime={handleTimeSelect}
+                    onChangeClientInfo={bookingState.updateClientInfo}
+                  />
+                </div>
+
+                {/* Navigation */}
+                <BookingNavigation
+                  currentStep={state.currentStep}
+                  reservationType={state.reservationType}
+                  canGoNext={canGoNext(
+                    state.reservationType,
+                    state.currentStep,
+                    state.currentPersonIndex,
+                    state.multipleBookings
+                  )}
+                  isLastStep={state.currentStep === 6}
+                  onPrevious={handlePrev}
+                  onNext={handleNext}
+                  onSubmit={handleSubmit}
+                />
+              </div>
+            </>
           )}
         </div>
-
-        {/* Content */}
-        <div className="mt-8 mb-8">
-          {currentStep === 1 && (
-            <ReservationType
-              selectedType={reservationType}
-              onSelectType={(type) => {
-                setReservationType(type)
-                setTimeout(() => setCurrentStep(2), 300)
-              }}
-            />
-          )}
-
-          {currentStep === 2 && (
-            <ServiceSelection
-              services={salon.services || []}
-              categories={salon.serviceCategories || []}
-              selectedService={selectedService}
-              onSelectService={handleServiceSelect}
-            />
-          )}
-
-          {currentStep === 3 && selectedService && (
-            <SupplementsSelection
-              supplements={selectedService.supplements || []}
-              selectedSupplements={selectedSupplements}
-              onToggleSupplement={handleToggleSupplement}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <HairdresserSelection
-              hairdressers={hairdressers}
-              selectedHairdresser={selectedHairdresser}
-              onSelectHairdresser={handleHairdresserSelect}
-            />
-          )}
-
-          {currentStep === 5 && (
-            <DateTimeSelection
-              selectedDate={selectedDate}
-              selectedTime={selectedTime}
-              onSelectDate={setSelectedDate}
-              onSelectTime={handleTimeSelect}
-              availableSlots={availableSlots}
-              openingHours={salon.openingHours}
-            />
-          )}
-
-          {currentStep === 6 && (
-            <ClientInfoForm
-              formData={clientInfo}
-              onChange={handleClientInfoChange}
-            />
-          )}
-        </div>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center pt-6 border-t">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Précédent
-          </Button>
-
-          {currentStep === 1 && (
-            <Button
-              onClick={handleNext}
-              disabled={!canGoNext()}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Continuer
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
-
-          {currentStep === 3 && (
-            <Button
-              onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Continuer
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
-
-          {currentStep === 6 && (
-            <Button
-              onClick={handleSubmit}
-              disabled={!canGoNext()}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Confirmer la réservation
-            </Button>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   )
 }

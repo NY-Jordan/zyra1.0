@@ -14,7 +14,6 @@ export default function ReservationsPage() {
             Consultez et gérez toutes les réservations de votre salon
           </p>
         </div>
-        
         <ReservationsManagement />
       </div>
     </ProtectedLayout>

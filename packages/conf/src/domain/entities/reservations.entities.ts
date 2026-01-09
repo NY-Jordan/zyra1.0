@@ -1,24 +1,43 @@
 import { Timestamp } from 'firebase/firestore';
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '../enums/ReservationEnum.js';
-import { ISalonServiceSupplement } from './salons.entities.js';
+import { ISalonServiceSupplement, OpeningHour } from './salons.entities.js';
 
+// Détails d'une réservation pour une personne
+export interface IReservationPerson {
+  personNumber: number;
+  serviceId: string;
+  serviceName: string;
+  serviceDuration: number;
+  servicePrice: number;
+  hairdresserId?: string | null;
+  hairdresserName?: string;
+  supplements: ISalonServiceSupplement[];
+  supplementsTotalPrice: number;
+  supplementsTotalDuration: number;
+  totalPrice: number;
+  totalDuration: number;
+  scheduledAt: Timestamp;
+  endsAt: Timestamp;
+}
 
+// Réservation globale (peut contenir plusieurs personnes)
 export interface IReservation {
   id: string; 
   salonId: string;
-  serviceId: string;
-  serviceName: string;
-  price: number;
-  status: reservationStatusEnum
-  scheduledAt: Timestamp;
-  endsAt : Timestamp;
+  reservationNumber: string; // Numéro de 5 chiffres (ex: "12345")
   createdAt: Timestamp;
   clientName: string;
   clientPhone: string;
+  clientEmail?: string;
   userId?: string | null;
   isGuest: boolean;
-  supplements : string[]
+  status: reservationStatusEnum;
   notes?: string;
   isPaid: boolean;
   paymentMethod: reservationPaymentMethodEnum;
+  isSingleReservation: boolean;
+  totalPrice: number;
+  people: IReservationPerson[];
+  earliestScheduledAt?: Timestamp;
+  latestEndsAt?: Timestamp;
 }
