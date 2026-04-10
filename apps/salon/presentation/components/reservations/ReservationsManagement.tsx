@@ -12,6 +12,7 @@ import {
   DollarSign,
   CheckCircle,
   XCircle,
+  Plus,
 } from 'lucide-react'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
@@ -19,6 +20,8 @@ import useSalon from '@/hooks/useSalon'
 import ReservationCard from './ReservationCard'
 import Pagination from '../common/Pagination'
 import ConfirmReservationModal from './ConfirmReservationModal'
+import CalendarReservationsModal from './CalendarReservationsModal'
+import NewReservationSheet from './NewReservationSheet'
 import { useReservations } from '@/usecases/useReservations'
 
 export default function ReservationsManagement() {
@@ -30,6 +33,8 @@ export default function ReservationsManagement() {
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [showCalendarModal, setShowCalendarModal] = useState(false)
+  const [showNewReservationSheet, setShowNewReservationSheet] = useState(false)
   const PAGE_SIZE = 10
 
   // Utiliser le useCase pour récupérer les réservations
@@ -42,7 +47,7 @@ export default function ReservationsManagement() {
     dateFilter,
     searchTerm,
     reservationNumber: reservationNumberFilter.length === 5 ? reservationNumberFilter : ''
-  })
+  });
 
   const reservations = (queryData.data || []) as IReservation[]
   const totalReservations = queryData.total || 0
@@ -138,7 +143,15 @@ export default function ReservationsManagement() {
       </div>
 
       {/* Bouton confirmation rapide */}
-      <div className="flex justify-center">
+      <div className="flex justify-start gap-4">
+        <Button
+          onClick={() => setShowNewReservationSheet(true)}
+          size="lg"
+          variant="default"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nouvelle réservation
+        </Button>
         <Button
           onClick={() => setShowConfirmModal(true)}
           className="bg-green-600 hover:bg-green-700"
@@ -146,6 +159,15 @@ export default function ReservationsManagement() {
         >
           <CheckCircle className="h-4 w-4 mr-2" />
           Confirmer une réservation
+        </Button>
+        <Button
+          onClick={() => setShowCalendarModal(true)}
+          className="bg-blue-600 hover:bg-blue-700"
+          size="lg"
+          variant="default"
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Voir le calendrier
         </Button>
       </div>
 
@@ -262,9 +284,18 @@ export default function ReservationsManagement() {
       </Card>
 
       {/* Modal de confirmation générique */}
+      <NewReservationSheet
+        open={showNewReservationSheet}
+        onOpenChange={setShowNewReservationSheet}
+      />
       <ConfirmReservationModal
         open={showConfirmModal}
         onOpenChange={setShowConfirmModal}
+      />
+      {/* Modal du calendrier des réservations */}
+      <CalendarReservationsModal
+        open={showCalendarModal}
+        onOpenChange={setShowCalendarModal}
       />
     </div>
   )

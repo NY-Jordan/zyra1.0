@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertDialog,
@@ -15,21 +15,7 @@ import { Badge } from '@zyra/ui/components/badge'
 import { Button } from '@zyra/ui/components/button'
 import { ScrollArea } from '@zyra/ui/components/scroll-area'
 import { Separator } from '@zyra/ui/components/separator'
-import {
-  Calendar,
-  Clock,
-  User,
-  Phone,
-  Mail,
-  DollarSign,
-  Smartphone,
-  Banknote,
-  CreditCard,
-  CheckCircle,
-  XCircle,
-  MessageCircle,
-  Scissors,
-} from 'lucide-react'
+import { Calendar,Clock,User,Phone,Mail,DollarSign,Smartphone,Banknote,CreditCard,CheckCircle,XCircle,MessageCircle,Scissors } from 'lucide-react'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { fetchCollection } from '@zyra/conf/lib/query'
@@ -41,17 +27,24 @@ interface ReservationDetailsModalProps {
   reservation: IReservation
   open: boolean
   onOpenChange: (open: boolean) => void
+  onReservationUpdated?: (reservation: IReservation) => void
 }
 
 export default function ReservationDetailsModal({
-  reservation,
+  reservation: initialReservation,
   open,
   onOpenChange,
+  onReservationUpdated,
 }: ReservationDetailsModalProps) {
+  const [reservation, setReservation] = useState(initialReservation)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [showCompleteDialog, setShowCompleteDialog] = useState(false)
+
+  useEffect(() => {
+    setReservation(initialReservation)
+  }, [initialReservation])
 
   // Mutations du useCase
   const updateStatusMutation = useUpdateReservationStatus()
@@ -62,12 +55,21 @@ export default function ReservationDetailsModal({
   const isCanceling = updateStatusMutation.isPending
   const isCompleting = updateStatusMutation.isPending
 
+  const syncUpdatedReservation = (updatedReservation: IReservation) => {
+    setReservation(updatedReservation)
+    onReservationUpdated?.(updatedReservation)
+  }
+
   const handleConfirmReservation = async () => {
     try {
       await updateStatusMutation.mutateAsync({
         reservationId: reservation.id,
         currentStatus: reservation.status as reservationStatusEnum,
         newStatus: reservationStatusEnum.confirmed
+      })
+      syncUpdatedReservation({
+        ...reservation,
+        status: reservationStatusEnum.confirmed,
       })
       setShowConfirmDialog(false)
     } catch (error) {
@@ -80,6 +82,10 @@ export default function ReservationDetailsModal({
       await updatePaymentMutation.mutateAsync({
         reservationId: reservation.id,
         isPaid: true
+      })
+      syncUpdatedReservation({
+        ...reservation,
+        isPaid: true,
       })
       setShowPaymentDialog(false)
     } catch (error) {
@@ -94,6 +100,10 @@ export default function ReservationDetailsModal({
         currentStatus: reservation.status as reservationStatusEnum,
         newStatus: reservationStatusEnum.canceled
       })
+      syncUpdatedReservation({
+        ...reservation,
+        status: reservationStatusEnum.canceled,
+      })
       setShowCancelDialog(false)
     } catch (error) {
       console.error('Erreur lors de l\'annulation:', error)
@@ -107,12 +117,14 @@ export default function ReservationDetailsModal({
         currentStatus: reservation.status as reservationStatusEnum,
         newStatus: reservationStatusEnum.completed
       })
+      syncUpdatedReservation({
+        ...reservation,
+        status: reservationStatusEnum.completed,
+      })
       setShowCompleteDialog(false)
     } catch (error) {
       console.error('Erreur lors de la finalisation:', error)
     }
-  }
-  
   // Vérifier si la réservation a au moins un coiffeur associé
   const hasHairdresser = useMemo(() => {
     return reservation.people.some(person => person.hairdresserId)

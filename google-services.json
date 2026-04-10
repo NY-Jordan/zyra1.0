@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "623248365188",
+    "project_id": "minders-7447e",
+    "storage_bucket": "minders-7447e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623248365188:android:9d6fdb1ca7bd82dff194d1",
+        "android_client_info": {
+          "package_name": "minders.mind237"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPZT8Y9H20rjulrHYezKa-BO7Q9_fUrJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

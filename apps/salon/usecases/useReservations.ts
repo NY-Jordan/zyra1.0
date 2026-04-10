@@ -165,7 +165,10 @@ export const useUpdateReservationStatus = () => {
     },
     onSuccess: () => {
       // Invalider les queries de réservations pour rafraîchir
-      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] });
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] });
+      queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] });
     }
   })
 }
@@ -193,6 +196,8 @@ export const useUpdateReservationPayment = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
     }
   })
 }
