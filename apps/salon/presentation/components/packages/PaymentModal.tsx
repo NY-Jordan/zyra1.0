@@ -87,16 +87,16 @@ export default function PaymentModal({
     <>
       {/* Loader full-page quand le paiement est réussi */}
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px] bg-white">
+        <DialogContent className="sm:max-w-[500px] bg-white dark:bg-slate-900">
           <DialogHeader className="space-y-4">
-            <DialogTitle className="text-2xl font-bold text-center text-gray-900">
+            <DialogTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
               Finaliser votre abonnement
             </DialogTitle>
 
             {pkg && (
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 rounded-lg">
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     {pkg.name}
                   </h3>
 
@@ -115,7 +115,7 @@ export default function PaymentModal({
                   <div className="text-3xl font-bold text-blue-600 mb-2">
                     {formatPrice(totalAmount, pkg.currency)}
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-slate-400">
                     {billingPeriod === 'yearly' ? 'par an' : 'par mois'}
                   </p>
 
@@ -126,7 +126,7 @@ export default function PaymentModal({
                       </span>
                     </div>
                   )}
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 dark:text-slate-500 mt-2">
                     Package {pkg.name} - {pkg.features.length} fonctionnalités incluses
                   </p>
                 </div>
@@ -140,7 +140,7 @@ export default function PaymentModal({
               {!selectedMethod && (
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-4">
+                    <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
                       Choisissez votre méthode de paiement
                     </p>
                   </div>
@@ -198,7 +198,7 @@ export default function PaymentModal({
               )}
 
               {/* Informations de sécurité */}
-              <div className="text-center text-xs text-gray-500 space-y-1">
+              <div className="text-center text-xs text-gray-500 dark:text-slate-500 space-y-1">
                 <p>🔒 Paiement sécurisé via Korapay</p>
                 <p>Vos données bancaires ne sont jamais stockées</p>
               </div>
@@ -207,7 +207,7 @@ export default function PaymentModal({
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="w-full py-3 border border-gray-300 hover:bg-gray-50"
+                className="w-full py-3 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800"
               >
                 Annuler
               </Button>

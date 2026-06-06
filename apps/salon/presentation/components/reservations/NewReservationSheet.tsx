@@ -543,7 +543,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
   return (
     <>
       <Dialog open={open} onOpenChange={handleModalOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[94vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[94vh] overflow-y-auto dark:bg-slate-900">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
@@ -603,7 +603,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
                       id="serviceId"
                       value={formData.serviceId}
                       onChange={(e) => setFormData((prev) => ({ ...prev, serviceId: e.target.value, supplements: [] }))}
-                      className="w-full px-3 py-2 border rounded-md"
+                      className="w-full px-3 py-2 border dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                       required
                     >
                       <option value="">-- Choisir un service --</option>
@@ -770,7 +770,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
                           scheduledTimes: prev.scheduledTimes.map(() => ''),
                         }))
                       }}
-                      className="w-full px-3 py-2 border rounded-md"
+                      className="w-full px-3 py-2 border dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                       required
                     >
                       <option value="">-- Choisir un coiffeur --</option>

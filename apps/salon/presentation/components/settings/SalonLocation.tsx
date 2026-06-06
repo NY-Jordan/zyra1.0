@@ -42,7 +42,7 @@ export default function SalonLocation({ salon, onUpdate }: SalonLocationProps) {
   const InteractiveMap = () => {
     if (!salon.location_lat || !salon.location_lng) {
       return (
-        <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="w-full h-64 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <MapPin className="h-8 w-8 mx-auto mb-2" />
             <p>Aucune coordonnée disponible</p>
@@ -57,7 +57,7 @@ export default function SalonLocation({ salon, onUpdate }: SalonLocationProps) {
 
     if (isNaN(lat) || isNaN(lng)) {
       return (
-        <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="w-full h-64 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <MapPin className="h-8 w-8 mx-auto mb-2" />
             <p>Coordonnées invalides</p>
@@ -83,7 +83,7 @@ export default function SalonLocation({ salon, onUpdate }: SalonLocationProps) {
             <Popup>
               <div className="text-center">
                 <p className="font-medium">{salon.name}</p>
-                <p className="text-sm text-gray-600">{salon.address}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">{salon.address}</p>
                 <div className="mt-2 space-y-1">
                   <Button
                     size="sm"

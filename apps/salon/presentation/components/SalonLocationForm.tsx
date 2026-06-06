@@ -192,7 +192,7 @@ export default function SalonLocationForm({
             <div className="space-y-4">
               {/* Search Input with Autocomplete */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   Rechercher l'adresse de votre salon
                 </label>
                 <Autocomplete
@@ -222,16 +222,16 @@ export default function SalonLocationForm({
 
               {/* Selected Location Info */}
               {selectedLocation && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-green-800 mb-2">Emplacement sélectionné :</h3>
-                  <p className="text-sm text-gray-700 mb-3">{selectedAddress}</p>
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">Emplacement sélectionné :</h3>
+                  <p className="text-sm text-gray-700 dark:text-slate-300 mb-3">{selectedAddress}</p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-600">Latitude :</span>
+                      <span className="text-gray-600 dark:text-slate-400">Latitude :</span>
                       <span className="font-mono text-black ml-2">{selectedLocation.lat.toFixed(6)}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Longitude :</span>
+                      <span className="text-gray-600 dark:text-slate-400">Longitude :</span>
                       <span className="font-mono text-black ml-2">{selectedLocation.lng.toFixed(6)}</span>
                     </div>
                   </div>
@@ -259,8 +259,8 @@ export default function SalonLocationForm({
                 )}
               </GoogleMap>
               {!selectedLocation && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 text-center">
+                <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
                     Recherchez votre adresse ou cliquez sur la carte pour localiser votre salon
                   </p>
                 </div>
@@ -279,7 +279,7 @@ export default function SalonLocationForm({
             <Button
               onClick={handleSave}
               disabled={!selectedAddress || !selectedLocation || isUpdating}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300"
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 dark:disabled:bg-slate-600"
             >
               {isUpdating ? 'Enregistrement...' : 'Confirmer l\'emplacement'}
             </Button>

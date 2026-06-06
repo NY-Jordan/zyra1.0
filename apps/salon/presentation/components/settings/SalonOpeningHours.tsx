@@ -105,7 +105,7 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm border">
             <thead>
-              <tr className="bg-gray-50">
+              <tr className="bg-gray-50 dark:bg-slate-800">
                 <th className="px-4 py-2 text-left">Jour</th>
                 <th className="px-4 py-2 text-left">Heures</th>
                 <th className="px-4 py-2 text-left">Actions</th>
@@ -118,7 +118,7 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
                 return (
                   <tr
                     key={slot.day || index}
-                    className={`border-t ${isDisabled ? "bg-red-50 text-red-600" : ""}`}
+                    className={`border-t dark:border-slate-700 ${isDisabled ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400" : ""}`}
                   >
                     <td className="px-4 py-2 font-medium">
                       {slot.day}

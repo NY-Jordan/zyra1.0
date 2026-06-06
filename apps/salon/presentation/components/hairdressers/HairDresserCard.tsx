@@ -51,11 +51,11 @@ export default function HairDresserCard({
   const getStatusColor = (active: boolean) => {
     switch (active) {
       case true:
-        return 'bg-green-100 text-green-700 border-green-200'
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
       case false:
-        return 'bg-red-100 text-red-700 border-red-200'
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200'
+        return 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
     }
   }
 
@@ -87,7 +87,7 @@ export default function HairDresserCard({
     if (hasHalfStar) {
       stars.push(
         <div key="half" className="relative">
-          <Star className="h-4 w-4 text-gray-300" />
+          <Star className="h-4 w-4 text-gray-300 dark:text-slate-600" />
           <div className="absolute inset-0 overflow-hidden" style={{ width: '50%' }}>
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
           </div>
@@ -99,7 +99,7 @@ export default function HairDresserCard({
     const emptyStars = 5 - Math.ceil(rating)
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <Star key={`empty-${i}`} className="h-4 w-4 text-gray-300" />
+        <Star key={`empty-${i}`} className="h-4 w-4 text-gray-300 dark:text-slate-600" />
       )
     }
 

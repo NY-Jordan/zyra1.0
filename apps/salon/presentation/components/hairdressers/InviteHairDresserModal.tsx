@@ -223,7 +223,7 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
@@ -234,7 +234,7 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
               <div
                 key={step}
                 className={`h-2 flex-1 rounded-full ${
-                  step <= currentStep ? 'bg-primary' : 'bg-gray-200'
+                  step <= currentStep ? 'bg-primary' : 'bg-gray-200 dark:bg-slate-700'
                 }`}
               />
             ))}

@@ -120,7 +120,7 @@ export default function SearchHairDresserForm({
                 key={hairDresser.id}
                 className={`transition-all ${
                   isDisabled 
-                    ? 'opacity-60 cursor-not-allowed bg-gray-50' 
+                    ? 'opacity-60 cursor-not-allowed bg-gray-50 dark:bg-slate-800'
                     : `cursor-pointer hover:shadow-md ${
                         selectedHairDresser?.id === hairDresser.id
                           ? 'ring-2 ring-primary border-primary'

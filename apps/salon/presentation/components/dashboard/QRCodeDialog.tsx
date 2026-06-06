@@ -177,7 +177,7 @@ export default function QRCodeDialog({ bookingUrl, salonName }: QRCodeDialogProp
           Voir le QR Code
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] dark:bg-slate-900">
         <DialogHeader>
           <DialogTitle className="text-2xl">QR Code de réservation</DialogTitle>
           <DialogDescription>
@@ -189,7 +189,7 @@ export default function QRCodeDialog({ bookingUrl, salonName }: QRCodeDialogProp
           {/* QR Code Container */}
           <div 
             ref={qrCodeRef}
-            className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-8 border-2 border-blue-200"
+            className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 rounded-lg p-8 border-2 border-blue-200 dark:border-slate-600"
           >
             <div className="bg-white p-6 rounded-xl shadow-lg">
               <QRCodeSVG
@@ -207,15 +207,15 @@ export default function QRCodeDialog({ bookingUrl, salonName }: QRCodeDialogProp
             </div>
             
             <div className="mt-4 text-center">
-              <p className="text-sm font-medium text-gray-700">{salonName}</p>
-              <p className="text-xs text-gray-500 mt-1">Scannez pour réserver</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{salonName}</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Scannez pour réserver</p>
             </div>
           </div>
 
           {/* URL Display */}
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <p className="text-xs font-medium text-gray-500 mb-2">Lien de réservation</p>
-            <p className="text-sm text-gray-700 break-all font-mono">{bookingUrl}</p>
+          <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">Lien de réservation</p>
+            <p className="text-sm text-gray-700 dark:text-slate-300 break-all font-mono">{bookingUrl}</p>
           </div>
 
           {/* Action Buttons */}
@@ -238,9 +238,9 @@ export default function QRCodeDialog({ bookingUrl, salonName }: QRCodeDialogProp
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-sm text-blue-900 mb-2">💡 Comment utiliser ce QR code ?</h4>
-            <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-300 mb-2">💡 Comment utiliser ce QR code ?</h4>
+            <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
               <li>Affichez-le dans votre salon (vitrine, comptoir, miroirs)</li>
               <li>Imprimez-le sur vos cartes de visite</li>
               <li>Partagez-le sur vos réseaux sociaux</li>

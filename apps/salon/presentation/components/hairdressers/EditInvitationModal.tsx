@@ -163,7 +163,7 @@ export default function EditInvitationModal({ open, onOpenChange, invitation }: 
               <div
                 key={step}
                 className={`h-2 flex-1 rounded-full ${
-                  step <= currentStep ? 'bg-primary' : 'bg-gray-200'
+                  step <= currentStep ? 'bg-primary' : 'bg-gray-200 dark:bg-slate-700'
                 }`}
               />
             ))}

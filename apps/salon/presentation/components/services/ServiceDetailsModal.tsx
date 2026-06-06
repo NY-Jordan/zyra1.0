@@ -61,7 +61,7 @@ export default function ServiceDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
@@ -144,7 +144,7 @@ export default function ServiceDetailsModal({
                       <CardContent className="pt-4">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{supplement.name}</h4>
+                            <h4 className="font-medium text-gray-900 dark:text-white">{supplement.name}</h4>
                           </div>
                           <div className="flex items-center gap-4 text-sm">
                             <div className="flex items-center gap-1">
@@ -167,10 +167,10 @@ export default function ServiceDetailsModal({
                 </div>
 
                 {/* Total des suppléments */}
-                <Card className="bg-orange-50 border-orange-200">
+                <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-orange-800">Total suppléments</h4>
+                      <h4 className="font-medium text-orange-800 dark:text-orange-300">Total suppléments</h4>
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-3 w-3 text-green-600" />
@@ -194,30 +194,30 @@ export default function ServiceDetailsModal({
 
           {/* Prix total */}
           <Separator />
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <Star className="h-5 w-5 text-yellow-500" />
               Prix total du service
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Prix total</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Prix total</p>
                 <p className="text-3xl font-bold text-green-600">
                   {formatPrice(grandTotal.price, 'XAF')}
                 </p>
                 {service.supplements && service.supplements.length > 0 && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-slate-500">
                     Base: {formatPrice(service.price, 'XAF')} + Suppléments: {formatPrice(supplementsTotal.totalPrice, 'XAF')}
                   </p>
                 )}
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Durée totale</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Durée totale</p>
                 <p className="text-3xl font-bold text-blue-600">
                   {formatDuration(grandTotal.duration)}
                 </p>
                 {service.supplements && service.supplements.length > 0 && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-slate-500">
                     Base: {formatDuration(service.duration)} + Suppléments: {formatDuration(supplementsTotal.totalDuration)}
                   </p>
                 )}
@@ -228,8 +228,8 @@ export default function ServiceDetailsModal({
           {/* Message si pas de suppléments */}
           {(!service.supplements || service.supplements.length === 0) && (
             <div className="text-center py-8">
-              <Plus className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-gray-600">Aucun supplément configuré pour ce service</p>
+              <Plus className="h-12 w-12 mx-auto text-gray-400 dark:text-slate-500 mb-3" />
+              <p className="text-gray-600 dark:text-slate-400">Aucun supplément configuré pour ce service</p>
             </div>
           )}
         </div>

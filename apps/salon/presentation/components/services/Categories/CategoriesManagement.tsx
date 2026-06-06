@@ -145,14 +145,14 @@ export default function CategoriesManagement({ categories, services }: Categorie
       return (
         <div className="space-y-2">
           <p>Êtes-vous sûr de vouloir supprimer la catégorie <strong>"{deleteModal.categoryName}"</strong> ?</p>
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-800">
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+            <p className="text-sm text-red-800 dark:text-red-300">
               ⚠️ <strong>Attention :</strong> Cette catégorie contient {servicesCount} service{servicesCount > 1 ? 's' : ''}. 
               La suppression sera bloquée tant que des services y sont rattachés.
             </p>
           </div>
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-800">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+            <p className="text-sm text-blue-800 dark:text-blue-300">
               💡 <strong>Conseil :</strong> Supprimez d'abord les services liés ou déplacez-les vers une autre catégorie.
             </p>
           </div>
@@ -206,7 +206,7 @@ export default function CategoriesManagement({ categories, services }: Categorie
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
+                  <tr className="border-b dark:border-slate-700">
                     <th className="text-left py-3 px-4 font-medium">Catégorie</th>
                     <th className="text-left py-3 px-4 font-medium">Description</th>
                     <th className="text-left py-3 px-4 font-medium">Services</th>
@@ -219,7 +219,7 @@ export default function CategoriesManagement({ categories, services }: Categorie
                   {filteredCategories.categories.map((category) => {
                     const servicesCount = getServicesCountByCategory(category.id)
                     return (
-                      <tr key={category.id} className="border-b hover:bg-gray-50">
+                      <tr key={category.id} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
                             <div>
@@ -271,7 +271,7 @@ export default function CategoriesManagement({ categories, services }: Categorie
                                   {category.isActive !== false ? "Désactiver" : "Activer"}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
-                                  className={servicesCount > 0 ? "text-gray-400" : "text-destructive"}
+                                  className={servicesCount > 0 ? "text-gray-400 dark:text-slate-500" : "text-destructive"}
                                   onClick={() => handleDeleteClick(category)}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />

@@ -25,17 +25,17 @@ export default function PageHeader({ title, breadcrumbs, actions }: PageHeaderPr
             {breadcrumbs.map((item, index) => (
               <li key={index} className="inline-flex items-center">
                 {index > 0 && (
-                  <ChevronRight className="w-4 h-4 text-gray-400 mx-1" />
+                  <ChevronRight className="w-4 h-4 text-gray-400 dark:text-slate-500 mx-1" />
                 )}
                 {item.href && !item.isCurrent ? (
                   <Link
                     href={item.href}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                    className="text-sm font-medium text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
                   >
                     {item.label}
                   </Link>
                 ) : (
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
                     {item.label}
                   </span>
                 )}

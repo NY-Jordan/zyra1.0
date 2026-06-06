@@ -153,7 +153,7 @@ export default function Dashboard() {
                     href={`${process.env.NEXT_PUBLIC_MARKETPLACE_URL}/salon/details/${salon.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
                   >
                     <ExternalLink className="h-4 w-4" />
                     Voir la page du salon
@@ -214,8 +214,8 @@ export default function Dashboard() {
                     </Card>
                   ))
                 ) : error ? (
-                  <div className="col-span-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600">Erreur lors du chargement des statistiques</p>
+                  <div className="col-span-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">Erreur lors du chargement des statistiques</p>
                   </div>
                 ) : (
                   stats.map((stat, index) => (
@@ -264,7 +264,7 @@ export default function Dashboard() {
                   ) : (
                     <div className="space-y-4">
                       {recentAppointments.map((appointment, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition">
+                        <div key={index} className="flex items-center justify-between p-4 border dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                           <div className="flex items-center gap-4 flex-1">
                             <div className="flex flex-col gap-1">
                               <div className="flex items-center gap-2">
@@ -353,7 +353,7 @@ export default function Dashboard() {
 
                       <Button
                         variant="outline"
-                        className="w-full justify-start bg-green-50 border-green-200 hover:bg-green-100 text-green-700"
+                        className="w-full justify-start bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-400"
                         onClick={handleWhatsAppShare}
                         disabled={!bookingLink}
                       >

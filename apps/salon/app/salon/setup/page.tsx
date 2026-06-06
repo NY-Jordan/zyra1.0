@@ -95,12 +95,12 @@ export default function SalonSetupPage() {
 
   if (!owner) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Accès non autorisé</h2>
-            <p className="text-gray-600 mb-6">Vous devez être connecté pour accéder à cette page.</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Accès non autorisé</h2>
+            <p className="text-gray-600 dark:text-slate-400 mb-6">Vous devez être connecté pour accéder à cette page.</p>
             <Button onClick={() => {
                 handleLogout();
                 router.push('/auth/login')
@@ -115,12 +115,12 @@ export default function SalonSetupPage() {
 
   if (salons.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center">
-            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Aucun salon trouvé</h2>
-            <p className="text-gray-600 mb-6">
+            <Building2 className="h-12 w-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Aucun salon trouvé</h2>
+            <p className="text-gray-600 dark:text-slate-400 mb-6">
               Vous ne possédez aucun salon pour le moment. Veuillez contacter le support pour créer votre salon.
             </p>
             <Button onClick={() => router.push('/auth/login')} variant="outline" className="w-full">
@@ -133,40 +133,40 @@ export default function SalonSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
         <div className="max-w-4xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Sélectionnez votre salon</h1>
-              <p className="text-gray-600">Choisissez le salon que vous souhaitez gérer</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Sélectionnez votre salon</h1>
+              <p className="text-gray-600 dark:text-slate-400">Choisissez le salon que vous souhaitez gérer</p>
             </div>
             {/* Dropdown utilisateur */}
             <div className="relative">
               <button
-                onClick={() => 
+                onClick={() =>
            handleLogout()
                     }
-                className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 rounded-lg px-4 py-2 transition-colors"
+                className="flex items-center gap-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg px-4 py-2 transition-colors"
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
                     {owner.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700">{owner.name}</span>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{owner.name}</span>
+                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-slate-400" />
               </button>
 
               {/* Dropdown menu */}
               {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-10">
                   <button
-                    onClick={() => 
+                    onClick={() =>
            handleLogout()
                     }
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                   >
                     <LogOut className="h-4 w-4" />
                     Se déconnecter
@@ -214,7 +214,7 @@ export default function SalonSetupPage() {
 
         {/* Footer */}
         <div className="mt-12 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-slate-500">
             Besoin d'aide ? Contactez notre équipe support
           </p>
         </div>

@@ -119,7 +119,7 @@ export default function SalonConfigModal({ isOpen, onClose, salon }: SalonConfig
               <span>Progression de la configuration</span>
               <span className="font-medium">{salon.progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
               <div 
                 className={`h-2 rounded-full transition-all duration-300 ${
                   salon.progress < 50 ? 'bg-red-500' : salon.progress < 80 ? 'bg-amber-500' : 'bg-green-500'
@@ -141,7 +141,7 @@ export default function SalonConfigModal({ isOpen, onClose, salon }: SalonConfig
                 <div
                   key={hour.day} 
                   className={`flex items-center gap-4 p-3 rounded-lg border ${
-                    hour.openDay ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
+                    hour.openDay ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export default function SalonConfigModal({ isOpen, onClose, salon }: SalonConfig
                       onChange={() => handleDayToggle(index)}
                       className="h-4 w-4 text-blue-600 rounded"
                     />
-                    <span className="w-20 font-medium text-gray-700">
+                    <span className="w-20 font-medium text-gray-700 dark:text-slate-300">
                       {hour.day}
                     </span>
                   </div>
@@ -164,7 +164,7 @@ export default function SalonConfigModal({ isOpen, onClose, salon }: SalonConfig
                         onChange={(e) => handleHourChange(index, 'open', e.target.value)}
                         className="w-[120px]"
                       />
-                      <span className="text-gray-500">à</span>
+                      <span className="text-gray-500 dark:text-slate-400">à</span>
                       <Input
                         type="time"
                         value={hour.close}
@@ -173,7 +173,7 @@ export default function SalonConfigModal({ isOpen, onClose, salon }: SalonConfig
                       />
                     </div>
                   ) : (
-                    <span className="text-gray-500 italic">Fermé</span>
+                    <span className="text-gray-500 dark:text-slate-400 italic">Fermé</span>
                   )}
                 </div>
               ))}

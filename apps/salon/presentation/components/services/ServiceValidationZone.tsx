@@ -39,11 +39,11 @@ export default function ServiceValidationZone({
 
   return (
     <div className={`p-4 rounded-lg border space-y-3 ${
-      analysisResult.isForbidden ? 'bg-red-50 border-red-200' : 'bg-gray-50'
+      analysisResult.isForbidden ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-gray-50 dark:bg-slate-800/50 dark:border-slate-700'
     }`}>
       {/* En-tête avec statut de validation */}
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-900">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
           Validation du service
         </h4>
         <ValidationStatusBadge analysisResult={analysisResult} />
@@ -98,7 +98,7 @@ function ValidationStatusBadge({ analysisResult }: { analysisResult: ServiceAnal
 
   if (analysisResult.isValid) {
     return (
-      <Badge variant="default" className="bg-green-100 text-green-800">
+      <Badge variant="default" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
         <Check className="h-3 w-3 mr-1" />
         Validé
       </Badge>
@@ -118,15 +118,15 @@ function ValidationStatusBadge({ analysisResult }: { analysisResult: ServiceAnal
  */
 function ForbiddenServiceMessage({ errorMessage }: { errorMessage?: string }) {
   return (
-    <div className="p-3 bg-red-100 border border-red-200 rounded-md">
+    <div className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
       <div className="flex items-start gap-3">
-        <ShieldAlert className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+        <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
         <div>
-          <h5 className="font-medium text-red-800 mb-1">Service non autorisé</h5>
-          <p className="text-sm text-red-700">
+          <h5 className="font-medium text-red-800 dark:text-red-300 mb-1">Service non autorisé</h5>
+          <p className="text-sm text-red-700 dark:text-red-400">
             {errorMessage || 'Ce service n\'est pas autorisé.'}
           </p>
-          <div className="mt-2 text-xs text-red-600">
+          <div className="mt-2 text-xs text-red-600 dark:text-red-400">
             💡 <strong>Conseil :</strong> Essayez d'être plus précis dans la dénomination 
             (ex: "Coupe Homme Moderne" au lieu de "Coupe")
           </div>
@@ -148,7 +148,7 @@ function FoundServicesSection({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-600 dark:text-slate-400">
         {searchResults.length} service(s) trouvé(s) dans la base globale :
       </p>
       <div className="space-y-2 max-h-32 overflow-y-auto">
@@ -177,11 +177,11 @@ function ServiceCard({
   return (
     <div
       onClick={onClick}
-      className="p-3 bg-white rounded-md border hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-colors group"
+      className="p-3 bg-white dark:bg-slate-800 rounded-md border dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-colors group"
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h5 className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
+          <h5 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
             {service.name}
           </h5>
         </div>
@@ -203,8 +203,8 @@ function CreateGlobalServiceSection({
   onCreate: () => void 
 }) {
   return (
-    <div className="pt-2 border-t">
-      <p className="text-sm text-gray-600 mb-2">
+    <div className="pt-2 border-t dark:border-slate-600">
+      <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">
         Aucun service trouvé. Vous devez d'abord créer ce service dans la base globale.
       </p>
       <Button

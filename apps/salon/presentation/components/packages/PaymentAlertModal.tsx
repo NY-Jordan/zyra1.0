@@ -140,7 +140,7 @@ export default function PaymentAlertModal({
       case 'retry_needed':
         return <AlertTriangle className="w-12 h-12 text-orange-500" />
       default:
-        return <Clock className="w-12 h-12 text-gray-500" />
+        return <Clock className="w-12 h-12 text-gray-500 dark:text-slate-400" />
     }
   }
 
@@ -162,14 +162,14 @@ export default function PaymentAlertModal({
       case '3ds_redirect':
         return 'border-yellow-200 bg-yellow-50'
       default:
-        return 'border-gray-200 bg-gray-50'
+        return 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800'
     }
   }
 
   if (!alertData || !isOpen) return null
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-white">
+      <DialogContent className="sm:max-w-[500px] bg-white dark:bg-slate-900">
         <DialogHeader>
           <DialogTitle className="text-center">
             {alertData.title}
@@ -182,7 +182,7 @@ export default function PaymentAlertModal({
             {getAlertIcon(alertData.type)}
             
             <Alert className={`w-full ${getAlertColor(alertData.type)}`}>
-              <AlertDescription className="text-center text-gray-900">
+              <AlertDescription className="text-center text-gray-900 dark:text-slate-100">
                 {alertData.message}
               </AlertDescription>
             </Alert>
@@ -192,7 +192,7 @@ export default function PaymentAlertModal({
           {alertData.type === 'otp_required' && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block text-center">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block text-center">
                   Entrez le code OTP reçu par SMS
                 </label>
                 <Input
@@ -228,7 +228,7 @@ export default function PaymentAlertModal({
               </div>
 
               {countdown > 0 && (
-                <p className="text-xs text-center text-gray-500">
+                <p className="text-xs text-center text-gray-500 dark:text-slate-400">
                   Nouveau code disponible dans {countdown} secondes
                 </p>
               )}
@@ -238,7 +238,7 @@ export default function PaymentAlertModal({
           {alertData.type === 'pin_required' && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block text-center">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block text-center">
                   Entrez votre PIN de carte
                 </label>
                 <Input
@@ -300,7 +300,7 @@ export default function PaymentAlertModal({
 
           {/* Informations additionnelles */}
           {alertData.transactionReference && (
-            <div className="text-center text-xs text-gray-500">
+            <div className="text-center text-xs text-gray-500 dark:text-slate-400">
               Référence: {alertData.transactionReference}
             </div>
           )}

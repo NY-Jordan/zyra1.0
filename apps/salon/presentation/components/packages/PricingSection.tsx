@@ -22,14 +22,14 @@ export default function PricingSection({
   }, [packages])
 
   return (
-    <section className="py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <section className="py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-3xl font-semibold text-gray-800 dark:text-white mb-4">
             Nos forfaits
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
             Choisissez le forfait qui vous convient le mieux
           </p>
         </div>
@@ -49,11 +49,11 @@ export default function PricingSection({
 
         {/* Bottom CTA */}
         <div className="mt-16 text-center">
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 max-w-md mx-auto">
-            <h3 className="text-lg font-medium text-gray-800 mb-2">
+          <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-slate-700/50 max-w-md mx-auto">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-slate-100 mb-2">
               Une question ?
             </h3>
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 dark:text-slate-400 text-sm mb-4">
               Notre équipe est là pour vous aider
             </p>
             <button className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors text-sm">

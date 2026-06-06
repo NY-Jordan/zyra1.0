@@ -31,7 +31,7 @@ export default function PaymentLayout({
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-100 border-t-emerald-600" />
-          <p className="mt-4 text-gray-500">Chargement...</p>
+          <p className="mt-4 text-gray-500 dark:text-slate-400">Chargement...</p>
         </div>
       </div>
     );

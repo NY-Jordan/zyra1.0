@@ -70,12 +70,12 @@ export default function WorkingHoursForm({
                     <div>
                       <label className="font-medium">{day.label}</label>
                       {isSalonOpen && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-slate-400">
                           Salon: {formatTimeToFrench(salonDay?.open || '')} - {formatTimeToFrench(salonDay?.close || '')}
                         </p>
                       )}
                       {!isSalonOpen && (
-                        <p className="text-xs text-gray-400">Salon fermé ce jour</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500">Salon fermé ce jour</p>
                       )}
                     </div>
                   </div>

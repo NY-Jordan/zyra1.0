@@ -38,9 +38,9 @@ export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDe
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">En attente</Badge>
+        return <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">En attente</Badge>
       case 'completed':
-        return <Badge variant="default" className="bg-green-100 text-green-700">Terminée</Badge>
+        return <Badge variant="default" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Terminée</Badge>
       case 'canceled':
         return <Badge variant="destructive">Annulée</Badge>
       default:
@@ -89,7 +89,7 @@ export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
         <DialogHeader>
           <DialogTitle className="text-2xl">Détails de la commande</DialogTitle>
           <DialogDescription>
@@ -99,16 +99,16 @@ export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDe
 
         <div className="space-y-6">
           {/* Statut et paiement */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
             <div className="flex items-center gap-3">
               {getStatusBadge(order.status)}
               {order.isPaid ? (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Payé
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                <Badge variant="outline" className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800">
                   <XCircle className="h-3 w-3 mr-1" />
                   Non payé
                 </Badge>
@@ -186,7 +186,7 @@ export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDe
                   <span className="font-medium">{order.supplementsPrice.toLocaleString()} XAF</span>
                 </div>
               )}
-              <div className="flex justify-between pt-2 border-t text-lg">
+              <div className="flex justify-between pt-2 border-t dark:border-slate-700 text-lg">
                 <span className="font-semibold">Total:</span>
                 <span className="font-bold text-primary">{order.totalPrice.toLocaleString()} XAF</span>
               </div>

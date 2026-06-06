@@ -153,7 +153,7 @@ export default function SalonInfoPage() {
                       <span className="text-muted-foreground">Configuration du salon</span>
                       <span className="font-medium">{salon.progress || 0}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full transition-all ${getProgressColor(salon.progress || 0)}`}
                         style={{ width: `${salon.progress || 0}%` }}

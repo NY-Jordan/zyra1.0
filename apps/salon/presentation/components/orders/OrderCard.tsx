@@ -121,7 +121,7 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
             {/* Statut de paiement avec toggle */}
             <div className="pt-2 border-t">
               {order.isPaid ? (
-                <Badge variant="outline" className="w-full justify-center bg-green-50 text-green-700 border-green-200">
+                <Badge variant="outline" className="w-full justify-center bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Payé
                 </Badge>
@@ -129,7 +129,7 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full text-red-700 border-red-200 hover:bg-red-50"
+                  className="w-full text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/30"
                   onClick={handleTogglePayment}
                   disabled={markAsPaidMutation.isPending}
                 >
@@ -153,7 +153,7 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
                 <Trash2 className="h-4 w-4" />

@@ -254,7 +254,7 @@ export default function CreateServiceModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
@@ -285,16 +285,16 @@ export default function CreateServiceModal({
                         disabled={isFormDisabled}
                         className={`pr-10 ${
                           inputState === 'forbidden'
-                            ? 'border-red-500 bg-red-50'
+                            ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                             : inputState === 'valid'
-                              ? 'border-green-500 bg-green-50' 
+                              ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                               : inputState === 'warning'
-                                ? 'border-orange-500' 
+                                ? 'border-orange-500'
                                 : ''
                         }`}
                       />
                       {inputState === 'loading' && (
-                        <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+                        <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-gray-400 dark:text-slate-500" />
                       )}
                       {inputState === 'forbidden' && (
                         <ShieldAlert className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
@@ -309,7 +309,7 @@ export default function CreateServiceModal({
                   </FormControl>
                   <FormDescription>
                     {watchedName && watchedName.trim().length < 4 && (
-                      <span className="text-gray-500">
+                      <span className="text-gray-500 dark:text-slate-400">
                         Tapez au moins 4 caractères pour déclencher la validation
                       </span>
                     )}
@@ -435,13 +435,13 @@ export default function CreateServiceModal({
                           {!imagePreview ? (
                             <label
                               htmlFor="service-image"
-                              className={`flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors ${
+                              className={`flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 dark:border-slate-600 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors ${
                                 isFormDisabled ? 'opacity-50 cursor-not-allowed' : ''
                               }`}
                             >
                               <div className="flex flex-col items-center justify-center pt-2 pb-3">
-                                <Upload className="w-4 h-4 mb-1 text-gray-500" />
-                                <p className="text-xs text-gray-500">
+                                <Upload className="w-4 h-4 mb-1 text-gray-500 dark:text-slate-400" />
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
                                   Cliquez pour choisir
                                 </p>
                               </div>
@@ -529,10 +529,10 @@ export default function CreateServiceModal({
 
             {/* Indicateur d'upload d'image */}
             {isUploadingImage && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
                 <div className="flex items-center gap-3">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                  <span className="text-sm text-blue-700">Upload de l'image en cours...</span>
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm text-blue-700 dark:text-blue-300">Upload de l'image en cours...</span>
                 </div>
               </div>
             )}

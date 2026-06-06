@@ -31,11 +31,11 @@ export default function SalonPackagesPage() {
   const yearlyDiscount = 20 // percentage
 
   return (
-    <main className="h-screen bg-white text-gray-900 overflow-y-scroll">
+    <main className="h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-white overflow-y-scroll">
       {/* Simple Header */}
-      <header className="py-12 border-b border-gray-200 text-center bg-white">
+      <header className="py-12 border-b border-gray-200 dark:border-slate-800 text-center bg-white dark:bg-slate-950">
         <h1 className="text-3xl font-bold mb-2">Forfaits salons</h1>
-        <p className="text-gray-500">Choisissez le forfait qui correspond à votre activité</p>
+        <p className="text-gray-500 dark:text-slate-400">Choisissez le forfait qui correspond à votre activité</p>
       </header>
 
       {/* Pricing Section */}

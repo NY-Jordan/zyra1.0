@@ -82,8 +82,8 @@ export default function SalonGallery({ onGalleryChange, maxFiles = 6, minFiles =
   return (
     <div className="space-y-3 lg:space-y-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <h3 className="text-sm sm:text-base lg:text-lg font-medium text-gray-800">Galerie du salon</h3>
-        <span className="text-xs sm:text-sm text-gray-500">
+        <h3 className="text-sm sm:text-base lg:text-lg font-medium text-gray-800 dark:text-slate-100">Galerie du salon</h3>
+        <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
           {selectedFiles.length}/{maxFiles} photos • Min. {minFiles} requis
         </span>
       </div>
@@ -100,7 +100,7 @@ export default function SalonGallery({ onGalleryChange, maxFiles = 6, minFiles =
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         {previews.map((preview, index) => (
           <div key={index} className="relative group">
-            <div className="aspect-square rounded-lg overflow-hidden border border-gray-300 bg-gray-100">
+            <div className="aspect-square rounded-lg overflow-hidden border border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-800">
               <img
                 src={preview}
                 alt={`Photo ${index + 1}`}
@@ -123,7 +123,7 @@ export default function SalonGallery({ onGalleryChange, maxFiles = 6, minFiles =
           <button
             type="button"
             onClick={openFileDialog}
-            className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 flex flex-col items-center justify-center text-gray-500 hover:text-gray-600 transition-all duration-200 min-h-[80px] sm:min-h-[100px] lg:min-h-[120px]"
+            className="aspect-square rounded-lg border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 hover:bg-gray-50 dark:hover:bg-slate-800 flex flex-col items-center justify-center text-gray-500 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300 transition-all duration-200 min-h-[80px] sm:min-h-[100px] lg:min-h-[120px]"
             aria-label="Ajouter une photo"
           >
             <Plus size={16} className="mb-1 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
@@ -162,10 +162,10 @@ export default function SalonGallery({ onGalleryChange, maxFiles = 6, minFiles =
       )}
 
       {/* Instructions détaillées */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 lg:p-4">
+      <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 lg:p-4">
         <div className="flex items-start gap-2 lg:gap-3">
-          <Upload size={16} className="text-gray-500 mt-0.5 flex-shrink-0 lg:w-5 lg:h-5" />
-          <div className="text-xs sm:text-sm text-gray-600">
+          <Upload size={16} className="text-gray-500 dark:text-slate-400 mt-0.5 flex-shrink-0 lg:w-5 lg:h-5" />
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-300">
             <p className="font-medium mb-1 lg:mb-2">Conseils pour vos photos :</p>
             <ul className="space-y-0.5 lg:space-y-1">
               <li>• Formats acceptés : JPG, PNG, JPEG</li>

@@ -97,7 +97,7 @@ export default function ConfirmReservationModal({
 
   return (
     <AlertDialog open={open} onOpenChange={handleClose}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md dark:bg-slate-900">
         <AlertDialogHeader className="pb-4">
           <div className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
@@ -132,9 +132,9 @@ export default function ConfirmReservationModal({
 
           {/* Résultat de la recherche */}
           {foundReservation && (
-            <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-2">
-              <p className="text-sm font-medium text-green-900">Réservation trouvée</p>
-              <div className="text-sm space-y-1 text-gray-700">
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 space-y-2">
+              <p className="text-sm font-medium text-green-900 dark:text-green-300">Réservation trouvée</p>
+              <div className="text-sm space-y-1 text-gray-700 dark:text-slate-300">
                 <p><span className="font-medium">Client:</span> {foundReservation.clientName}</p>
                 <p><span className="font-medium">Téléphone:</span> {foundReservation.clientPhone}</p>
                 <p><span className="font-medium">Montant:</span> {foundReservation.totalPrice.toLocaleString()} XAF</p>
@@ -173,14 +173,14 @@ export default function ConfirmReservationModal({
 
           {/* Messages d'erreur */}
           {error && (
-            <div className="p-3 bg-red-50 rounded-lg border border-red-200 flex gap-2 items-start">
-              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 flex gap-2 items-start">
+              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           )}
         </div>
 
-        <div className="flex gap-3 justify-end pt-4 border-t">
+        <div className="flex gap-3 justify-end pt-4 border-t dark:border-slate-700">
           <AlertDialogCancel disabled={isConfirming || isSearching}>Annuler</AlertDialogCancel>
           <Button
             onClick={handleConfirm}

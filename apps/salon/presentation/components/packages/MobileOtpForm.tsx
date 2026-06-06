@@ -87,12 +87,12 @@ export default function MobileOtpForm({
           variant="ghost" 
           size="sm" 
           onClick={onBack}
-          className="text-gray-600 hover:text-gray-800"
+          className="text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-white"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Retour
         </Button>
-        <div className="flex items-center text-sm text-gray-500">
+        <div className="flex items-center text-sm text-gray-500 dark:text-slate-400">
           <Clock className="w-4 h-4 mr-1" />
           {formatTime(timeLeft)}
         </div>
@@ -103,10 +103,10 @@ export default function MobileOtpForm({
         <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
           <Smartphone className="h-8 w-8 text-green-600" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
           Validation Mobile Money
         </h3>
-        <p className="text-sm text-gray-600 max-w-md mx-auto">
+        <p className="text-sm text-gray-600 dark:text-slate-300 max-w-md mx-auto">
           {message}
         </p>
       </div>
@@ -123,7 +123,7 @@ export default function MobileOtpForm({
       {/* Formulaire OTP */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="otp" className="text-sm font-medium text-gray-700 mb-2 block">
+          <label htmlFor="otp" className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
             Code OTP
           </label>
           <Input
@@ -132,11 +132,11 @@ export default function MobileOtpForm({
             placeholder="123456"
             value={otp}
             onChange={(e) => handleOtpChange(e.target.value)}
-            className="text-center text-black text-xl font-mono tracking-widest bg-white border-gray-300 focus:border-green-500 focus:ring-green-500"
+            className="text-center text-black dark:text-white text-xl font-mono tracking-widest bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 focus:border-green-500 focus:ring-green-500"
             disabled={isSubmitting}
             maxLength={6}
           />
-          <p className="text-xs text-gray-500 mt-1 text-center">
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 text-center">
             Code à 4-6 chiffres reçu par SMS
           </p>
         </div>
@@ -167,7 +167,7 @@ export default function MobileOtpForm({
               variant="outline"
               onClick={handleResend}
               disabled={isSubmitting || timeLeft > 0}
-              className="w-full h-10 border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="w-full h-10 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               {timeLeft > 0 
@@ -180,11 +180,11 @@ export default function MobileOtpForm({
       </form>
 
       {/* Informations sur la transaction */}
-      <div className="text-center pt-4 border-t border-gray-100">
-        <p className="text-xs text-gray-500">
+      <div className="text-center pt-4 border-t border-gray-100 dark:border-slate-700">
+        <p className="text-xs text-gray-500 dark:text-slate-400">
           Référence: {transactionReference}
         </p>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
           🔒 Transaction sécurisée via Korapay
         </p>
       </div>

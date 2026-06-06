@@ -79,7 +79,7 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
       case 'rejected':
         return <Badge variant="destructive">Refusée</Badge>
       case 'expired':
-        return <Badge variant="outline" className="text-gray-500">Expirée</Badge>
+        return <Badge variant="outline" className="text-gray-500 dark:text-slate-400">Expirée</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -121,8 +121,8 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
           ) : invitations.length === 0 ? (
             <div className="text-center py-8">
               <div className="flex flex-col items-center gap-4">
-                <div className="p-4 bg-gray-100 rounded-full">
-                  <Mail className="h-8 w-8 text-gray-400" />
+                <div className="p-4 bg-gray-100 dark:bg-slate-800 rounded-full">
+                  <Mail className="h-8 w-8 text-gray-400 dark:text-slate-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Aucune invitation</h3>
@@ -189,7 +189,7 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
               {/* Invitations expirées */}
               {groupedInvitations.expired.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-3 flex items-center gap-2 text-gray-500">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2 text-gray-500 dark:text-slate-400">
                     <Calendar className="h-4 w-4" />
                     Expirées ({groupedInvitations.expired.length})
                   </h3>
@@ -224,17 +224,17 @@ function InvitationCard({
   const getStatusBadge = (status: string, expiresAt: string) => {
     const expired = new Date(expiresAt) < new Date()
     if (status === 'pending' && expired) {
-      return <Badge variant="outline" className="text-gray-500">Expirée</Badge>
+      return <Badge variant="outline" className="text-gray-500 dark:text-slate-400">Expirée</Badge>
     }
     switch (status) {
       case hairDresserInvitationStatusEnum.PENDING :
-        return <Badge variant="secondary" className="text-yellow-700 bg-yellow-100">En attente</Badge>
+        return <Badge variant="secondary" className="text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30">En attente</Badge>
       case hairDresserInvitationStatusEnum.ACCEPTED:
-        return <Badge variant="default" className="text-green-700 bg-green-100">Acceptée</Badge>
+        return <Badge variant="default" className="text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30">Acceptée</Badge>
       case hairDresserInvitationStatusEnum.REJECTED:
         return <Badge variant="destructive">Refusée</Badge>
       case hairDresserInvitationStatusEnum.EXPIRED:
-        return <Badge variant="outline" className="text-gray-500">Expirée</Badge>
+        return <Badge variant="outline" className="text-gray-500 dark:text-slate-400">Expirée</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }

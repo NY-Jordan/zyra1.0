@@ -195,7 +195,7 @@ export default function CardPaymentForm({
     <>
       <div className="space-y-4">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-medium text-gray-900 flex items-center">
+          <h4 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
             <CreditCard className="w-5 h-5 mr-2" />
             Paiement par Carte
           </h4>
@@ -203,7 +203,7 @@ export default function CardPaymentForm({
             variant="outline" 
             size="sm" 
             onClick={onBack}
-            className="text-gray-600 hover:text-gray-800 border-gray-300"
+            className="text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-white border-gray-300 dark:border-slate-600"
           >
             ← Retour
           </Button>
@@ -211,20 +211,20 @@ export default function CardPaymentForm({
 
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
               Nom sur la carte
             </label>
             <Input
               placeholder="Entrez le nom sur la carte"
               value={cardData.name}
               onChange={(e) => setCardData({...cardData, name: e.target.value})}
-              className="text-gray-900 bg-white border-gray-300 placeholder-gray-500"
+              className="text-gray-900 dark:text-white bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 placeholder-gray-500 dark:placeholder-slate-400"
               disabled={cardPayment.isLoading}
             />
           </div>
           
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
               Numéro de carte
             </label>
             <Input
@@ -235,14 +235,14 @@ export default function CardPaymentForm({
                 setCardData({...cardData, number: formatted})
               }}
               maxLength={19}
-              className="text-gray-900 bg-white border-gray-300 placeholder-gray-500"
+              className="text-gray-900 dark:text-white bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 placeholder-gray-500 dark:placeholder-slate-400"
               disabled={cardPayment.isLoading}
             />
           </div>
           
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
                 Mois
               </label>
               <Input
@@ -255,12 +255,12 @@ export default function CardPaymentForm({
                   }
                 }}
                 maxLength={2}
-                className="text-gray-900 bg-white border-gray-300 placeholder-gray-500"
+                className="text-gray-900 dark:text-white bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 placeholder-gray-500 dark:placeholder-slate-400"
                 disabled={cardPayment.isLoading}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
                 Année
               </label>
               <Input
@@ -271,12 +271,12 @@ export default function CardPaymentForm({
                   setCardData({...cardData, expiry_year: value})
                 }}
                 maxLength={2}
-                className="text-gray-900 bg-white border-gray-300 placeholder-gray-500"
+                className="text-gray-900 dark:text-white bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 placeholder-gray-500 dark:placeholder-slate-400"
                 disabled={cardPayment.isLoading}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
                 CVV
               </label>
               <Input
@@ -288,14 +288,14 @@ export default function CardPaymentForm({
                 }}
                 maxLength={4}
                 type="password"
-                className="text-gray-900 bg-white border-gray-300 placeholder-gray-500"
+                className="text-gray-900 dark:text-white bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 placeholder-gray-500 dark:placeholder-slate-400"
                 disabled={cardPayment.isLoading}
               />
             </div>
           </div>
           
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
               PIN (optionnel)
             </label>
             <Input
@@ -307,7 +307,7 @@ export default function CardPaymentForm({
               }}
               maxLength={4}
               type="password"
-              className="text-gray-900 bg-white border-gray-300 placeholder-gray-500"
+              className="text-gray-900 dark:text-white bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 placeholder-gray-500 dark:placeholder-slate-400"
               disabled={cardPayment.isLoading}
             />
           </div>
@@ -322,7 +322,7 @@ export default function CardPaymentForm({
         </Button>
         
         {/* Message d'aide pour carte */}
-        <div className="text-xs text-gray-500 text-center mt-2">
+        <div className="text-xs text-gray-500 dark:text-slate-400 text-center mt-2">
           <p>💳 Carte de test : 5130000052131820 | CVV : 419 | 12/32</p>
         </div>
       </div>

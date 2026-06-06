@@ -221,7 +221,7 @@ export default function ReservationDetailsModal({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-2xl max-h-[90vh]">
+      <AlertDialogContent className="max-w-2xl max-h-[90vh] dark:bg-slate-900">
         <AlertDialogHeader className="pb-4 border-b">
           <div className="flex items-start justify-between">
             <div>
@@ -339,7 +339,7 @@ export default function ReservationDetailsModal({
                         (   ()=> {
                           const hairdresser =  getHairdresserInfo(String(person.hairdresserId))
                           return (
-                            <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
                               {hairdresser?.photo && (
                                 <img
                                   src={hairdresser.photo}
@@ -422,13 +422,13 @@ export default function ReservationDetailsModal({
                   <div className="flex items-center gap-2 text-sm">
                     {reservation.isPaid ? (
                       <>
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="font-medium text-green-700">Payé</span>
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <span className="font-medium text-green-700 dark:text-green-400">Payé</span>
                       </>
                     ) : (
                       <>
-                        <XCircle className="h-4 w-4 text-red-600" />
-                        <span className="font-medium text-red-700">Non payé</span>
+                        <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <span className="font-medium text-red-700 dark:text-red-400">Non payé</span>
                       </>
                     )}
                   </div>

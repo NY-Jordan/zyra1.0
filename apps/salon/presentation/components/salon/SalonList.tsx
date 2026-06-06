@@ -28,9 +28,9 @@ export default function SalonList({
           key={salon.id}
           className={`
             cursor-pointer transition-all duration-200 hover:shadow-md
-            ${selectedSalonId === salon.id 
-              ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' 
-              : 'border-gray-200 hover:border-gray-300'
+            ${selectedSalonId === salon.id
+              ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+              : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
             }
           `}
           onClick={() => onSalonSelect(salon.id)}
@@ -41,15 +41,15 @@ export default function SalonList({
                 {/* Icône du salon */}
                 <div className={`
                   w-12 h-12 rounded-lg flex items-center justify-center
-                  ${selectedSalonId === salon.id ? 'bg-blue-600' : 'bg-gray-100'}
+                  ${selectedSalonId === salon.id ? 'bg-blue-600' : 'bg-gray-100 dark:bg-slate-800'}
                 `}>
-                  <Building2 className={`h-6 w-6 ${selectedSalonId === salon.id ? 'text-white' : 'text-gray-600'}`} />
+                  <Building2 className={`h-6 w-6 ${selectedSalonId === salon.id ? 'text-white' : 'text-gray-600 dark:text-slate-400'}`} />
                 </div>
                 
                 {/* Informations du salon */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{salon.name}</h3>
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{salon.name}</h3>
+                  <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-slate-400">
                     <MapPin className="h-4 w-4" />
                     <span>{salon.address || salon.city}</span>
                   </div>
@@ -63,12 +63,12 @@ export default function SalonList({
                   {salon.progress >= 80 ? (
                     <>
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span className="text-sm font-medium text-green-700">Configuré</span>
+                      <span className="text-sm font-medium text-green-700 dark:text-green-400">Configuré</span>
                     </>
                   ) : (
                     <>
                       <AlertCircle className="h-5 w-5 text-amber-500" />
-                      <span className="text-sm font-medium text-amber-700">
+                      <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
                         Configuration incomplète ({salon.progress}%)
                       </span>
                     </>
@@ -90,17 +90,17 @@ export default function SalonList({
 
       {/* Card "Ajouter un nouveau salon" */}
       <Card 
-        className="border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-200 cursor-pointer"
+        className="border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all duration-200 cursor-pointer"
         onClick={onAddNewSalon}
       >
         <CardContent className="p-6">
-          <div className="flex items-center justify-center gap-4 text-gray-500 hover:text-blue-600">
-            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+          <div className="flex items-center justify-center gap-4 text-gray-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+            <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
               <Plus className="h-6 w-6" />
             </div>
             <div className="text-center">
               <h3 className="text-lg font-semibold">Ajouter un nouveau salon</h3>
-              <p className="text-sm text-gray-400">Créer et configurer un nouveau salon</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500">Créer et configurer un nouveau salon</p>
             </div>
           </div>
         </CardContent>

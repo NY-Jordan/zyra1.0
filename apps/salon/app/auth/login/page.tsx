@@ -72,7 +72,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-zinc-100">
+    <div className="min-h-screen flex bg-zinc-100 dark:bg-slate-950">
       {/* Colonne de gauche - Branding avec image de fond */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         {/* Image de fond avec effet blur */}
@@ -133,16 +133,16 @@ export default function Login() {
       </div>
 
       {/* Colonne de droite - Formulaire */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white dark:bg-slate-900">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="mb-2 flex justify-center">
-              <div className="h-12 w-12 rounded-full bg-zinc-800 flex items-center justify-center text-white">
+              <div className="h-12 w-12 rounded-full bg-zinc-800 dark:bg-slate-700 flex items-center justify-center text-white">
                 <LogIn size={24} />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-zinc-800">Connexion</h2>
-            <p className="text-zinc-600 mt-2">Bienvenue ! Connectez-vous à votre compte.</p>
+            <h2 className="text-2xl font-bold text-zinc-800 dark:text-white">Connexion</h2>
+            <p className="text-zinc-600 dark:text-slate-400 mt-2">Bienvenue ! Connectez-vous à votre compte.</p>
           </div>
           
           <form onSubmit={handleSubmit(handleAuth)} className="space-y-5">
@@ -166,17 +166,17 @@ export default function Login() {
             )}
 
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-zinc-700">
+              <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-slate-300">
                 Adresse e-mail
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 h-5 w-5" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-slate-400 h-5 w-5" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="exemple@domaine.com"
-                  className="pl-10 py-5 bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-400 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
-                  {...register("email", { 
+                  className="pl-10 py-5 bg-white dark:bg-slate-800 border-zinc-300 dark:border-slate-600 text-zinc-800 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-slate-500 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
+                  {...register("email", {
                     required: "L'adresse e-mail est requise",
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -194,25 +194,25 @@ export default function Login() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium text-zinc-700">
+                <label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-slate-300">
                   Mot de passe
                 </label>
                 <button
                   type="button"
                   onClick={() => router.push('/auth/forgot-password')}
-                  className="text-sm text-zinc-600 hover:text-zinc-900 hover:underline"
+                  className="text-sm text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white hover:underline"
                 >
                   Mot de passe oublié ?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 h-5 w-5" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-slate-400 h-5 w-5" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-10 py-5 bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-400 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
-                  {...register("password", { 
+                  className="pl-10 py-5 bg-white dark:bg-slate-800 border-zinc-300 dark:border-slate-600 text-zinc-800 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-slate-500 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
+                  {...register("password", {
                     required: "Le mot de passe est requis",
                     minLength: {
                       value: 6,
@@ -232,47 +232,42 @@ export default function Login() {
               <input
                 type="checkbox"
                 id="remember"
-                className="rounded bg-white border-zinc-300 text-zinc-800"
+                className="rounded bg-white dark:bg-slate-800 border-zinc-300 dark:border-slate-600 text-zinc-800 dark:text-white"
               />
               <label
                 htmlFor="remember"
-                className="text-sm text-zinc-600 leading-none"
+                className="text-sm text-zinc-600 dark:text-slate-400 leading-none"
               >
                 Se souvenir de moi
               </label>
             </div>
-            
+
             <Button
               type="submit"
-              className="w-full py-6 bg-zinc-800 hover:bg-zinc-700 text-white"
+              className="w-full py-6 bg-zinc-800 hover:bg-zinc-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white"
               disabled={isLoading}
             >
               {isLoading ? "Connexion en cours..." : "Se connecter"}
               {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>
-          
+
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-200"></div>
+                <div className="w-full border-t border-zinc-200 dark:border-slate-700"></div>
               </div>
-            {/*   <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-zinc-500">Ou continuer avec</span>
-              </div> */}
             </div>
-
-           
           </div>
-          
+
           <div className="mt-8 text-center">
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+            <p className="text-xs text-zinc-500 dark:text-slate-500 max-w-sm mx-auto">
               En vous connectant, vous acceptez nos{" "}
-              <Link href="/legal/terms" className="text-zinc-700 hover:underline">
+              <Link href="/legal/terms" className="text-zinc-700 dark:text-slate-300 hover:underline">
                 conditions d'utilisation
               </Link>{" "}
               et notre{" "}
-              <Link href="/legal/privacy" className="text-zinc-700 hover:underline">
+              <Link href="/legal/privacy" className="text-zinc-700 dark:text-slate-300 hover:underline">
                 politique de confidentialité
               </Link>.
             </p>

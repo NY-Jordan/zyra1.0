@@ -47,7 +47,7 @@ export default function PackageCard({
     return {
       gradient: 'from-gray-400 to-gray-500',
       bg: 'bg-white',
-      border: 'border border-gray-200',
+      border: 'border border-gray-200 dark:border-slate-700',
       shadow: 'shadow-sm hover:shadow-md',
       icon: index === 0 ? Star : Zap,
       badge: index === 0 ? 'Starter' : 'Pro'
@@ -74,9 +74,9 @@ export default function PackageCard({
     >
       {/* Card Container */}
       <div className={`
-        bg-white ${theme.border} ${theme.shadow}
+        bg-white dark:bg-slate-900 ${theme.border} ${theme.shadow}
         rounded-2xl overflow-hidden transition-all duration-300
-        ${isPopular ? 'ring-2 ring-blue-200' : ''}
+        ${isPopular ? 'ring-2 ring-blue-200 dark:ring-blue-900' : ''}
       `}>
         
         {/* Popular Badge */}
@@ -95,17 +95,17 @@ export default function PackageCard({
               <Icon className="h-6 w-6 text-white" />
             </div>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">{pkg.name}</h3>
-            <p className="text-gray-500 text-sm">Pour votre salon</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">{pkg.name}</h3>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">Pour votre salon</p>
           </div>
 
           {/* Pricing */}
           <div className="text-center mb-6">
             <div className="flex items-end justify-center mb-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-gray-900 dark:text-white">
                 {formatPrice(currentPrice, currency).split(',')[0]}
               </span>
-              <span className="text-lg text-gray-500 ml-1">/mois</span>
+              <span className="text-lg text-gray-500 dark:text-slate-400 ml-1">/mois</span>
             </div>
             {billingPeriod === 'yearly' && (
               <div className="space-y-1">
@@ -126,7 +126,7 @@ export default function PackageCard({
               w-full py-3 px-4 rounded-xl font-medium transition-all duration-200
               ${isPopular 
                 ? `bg-gradient-to-r ${theme.gradient} text-white hover:shadow-md` 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700'
               }
               flex items-center justify-center gap-2
             `}
@@ -138,8 +138,8 @@ export default function PackageCard({
 
         {/* Features List */}
         <div className="px-6 pb-6">
-          <div className="border-t border-gray-100 pt-6">
-            <h4 className="font-medium text-gray-800 mb-3 text-center text-sm">
+          <div className="border-t border-gray-100 dark:border-slate-800 pt-6">
+            <h4 className="font-medium text-gray-800 dark:text-slate-100 mb-3 text-center text-sm">
               Fonctionnalités incluses
             </h4>
             <ul className="space-y-2">
@@ -150,12 +150,12 @@ export default function PackageCard({
                       <Check className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
-                  <span className="text-xs text-gray-600 leading-relaxed">{feature}</span>
+                  <span className="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">{feature}</span>
                 </li>
               ))}
             </ul>
             {(pkg.features || []).length > 6 && (
-              <p className="text-xs text-gray-400 mt-3 text-center">
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-3 text-center">
                 + {(pkg.features || []).length - 6} autres fonctionnalités
               </p>
             )}
@@ -164,7 +164,7 @@ export default function PackageCard({
 
         {/* Hover Effect Overlay */}
         {isHovered && (
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-2xl pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10 rounded-2xl pointer-events-none" />
         )}
       </div>
 

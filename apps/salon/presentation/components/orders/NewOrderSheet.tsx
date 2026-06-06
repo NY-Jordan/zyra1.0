@@ -329,7 +329,7 @@ export default function NewOrderSheet({ open, onOpenChange }: NewOrderSheetProps
                   id="hairDresser"
                   value={formData.hairDresserId}
                   onChange={(e) => setFormData(prev => ({ ...prev, hairDresserId: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                   required
                 >
                   <option value="">-- Choisir un coiffeur --</option>
@@ -357,13 +357,13 @@ export default function NewOrderSheet({ open, onOpenChange }: NewOrderSheetProps
                   id="service"
                   value={formData.serviceId}
                   onChange={(e) => {
-                    setFormData(prev => ({ 
-                      ...prev, 
+                    setFormData(prev => ({
+                      ...prev,
                       serviceId: e.target.value,
-                      supplements: [] 
+                      supplements: []
                     }))
                   }}
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                   required
                 >
                   <option value="">-- Choisir un service --</option>
@@ -383,7 +383,7 @@ export default function NewOrderSheet({ open, onOpenChange }: NewOrderSheetProps
                     {selectedService.supplements.map((supplement : ISalonServiceSupplement) => (
                       <label
                         key={supplement.name}
-                        className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-gray-50"
+                        className="flex items-center gap-2 p-2 border dark:border-slate-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700"
                       >
                         <input
                           type="checkbox"
@@ -436,7 +436,7 @@ export default function NewOrderSheet({ open, onOpenChange }: NewOrderSheetProps
                     className={`p-4 border-2 rounded-lg flex flex-col items-center gap-2 transition-all ${
                       formData.paymentMethod === 'cash'
                         ? 'border-primary bg-primary/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                     }`}
                   >
                     <Banknote className="h-6 w-6" />
@@ -449,7 +449,7 @@ export default function NewOrderSheet({ open, onOpenChange }: NewOrderSheetProps
                     className={`p-4 border-2 rounded-lg flex flex-col items-center gap-2 transition-all ${
                       formData.paymentMethod === 'mobile'
                         ? 'border-primary bg-primary/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                     }`}
                   >
                     <Smartphone className="h-6 w-6" />

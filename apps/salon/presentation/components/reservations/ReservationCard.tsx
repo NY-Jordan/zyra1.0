@@ -65,11 +65,11 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
   const getStatusBadge = (status: reservationStatusEnum) => {
     switch (status) {
       case reservationStatusEnum.pending:
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">En attente</Badge>
+        return <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">En attente</Badge>
       case reservationStatusEnum.confirmed:
-        return <Badge variant="default" className="bg-blue-100 text-blue-700">Confirmée</Badge>
+        return <Badge variant="default" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">Confirmée</Badge>
       case reservationStatusEnum.completed:
-        return <Badge variant="default" className="bg-green-100 text-green-700">Terminée</Badge>
+        return <Badge variant="default" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Terminée</Badge>
       case reservationStatusEnum.canceled:
         return <Badge variant="destructive">Annulée</Badge>
       default:
@@ -205,7 +205,7 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
           {!hasHairdresser && (
             <div className="mb-4 flex items-center justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-orange-100 rounded-full blur-sm"></div>
+                <div className="absolute inset-0 bg-orange-100 dark:bg-orange-900/30 rounded-full blur-sm"></div>
                 <UserX className="h-6 w-6 text-orange-600 relative" />
               </div>
             </div>
@@ -220,12 +220,12 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
                   <div className="flex items-center gap-2 flex-wrap">
                     {getStatusBadge(reservation.status)}
                     {reservation.isPaid ? (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Payé
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                      <Badge variant="outline" className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800">
                         <XCircle className="h-3 w-3 mr-1" />
                         Non payé
                       </Badge>
@@ -247,7 +247,7 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
               </div>
 
               {/* Infos clés - Compact */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t dark:border-slate-700">
                 {/* Client */}
                 <div className="flex items-center gap-2 text-sm">
                   <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />

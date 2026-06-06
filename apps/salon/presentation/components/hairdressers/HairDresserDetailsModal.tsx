@@ -113,7 +113,7 @@ export default function HairDresserDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent style={{ maxWidth : 'none' }} className="w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent style={{ maxWidth : 'none' }} className="w-5xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
         <DialogHeader>
           <div className="flex items-center justify-between w-full">
             <DialogTitle className="flex items-center gap-2">
@@ -171,7 +171,7 @@ export default function HairDresserDetailsModal({
               {/* Basic Info */}
               <div className="space-y-2 text-center">
                 <h3 className="font-semibold text-lg">{hairdresser.name}</h3>
-                <p className="text-sm text-gray-600">{hairdresser.speciality}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">{hairdresser.speciality}</p>
 
                 {/* Rating */}
                 <div className="flex items-center justify-center gap-1">
@@ -183,19 +183,19 @@ export default function HairDresserDetailsModal({
                           ? 'fill-yellow-400 text-yellow-400'
                           : i === Math.floor(2.5) && 2.5 % 1 !== 0
                           ? 'fill-yellow-200 text-yellow-400'
-                          : 'text-gray-300'
+                          : 'text-gray-300 dark:text-slate-600'
                       }`}
                     />
                   ))}
-                  <span className="text-sm text-gray-600 ml-1">2.5</span>
+                  <span className="text-sm text-gray-600 dark:text-slate-400 ml-1">2.5</span>
                 </div>
 
                 {/* Status Badge */}
                 <Badge
                   className={`inline-block text-xs ${
                     hairdresser.associationHairdresser.active
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                      : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                   }`}
                 >
                   {hairdresser.associationHairdresser.active ? 'Actif' : 'Suspendu'}
@@ -203,17 +203,17 @@ export default function HairDresserDetailsModal({
               </div>
 
               {/* Contact Info */}
-              <div className="space-y-2 border-t pt-4">
+              <div className="space-y-2 border-t dark:border-slate-700 pt-4">
                 <div>
-                  <p className="text-xs text-gray-600">Email</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Email</p>
                   <p className="text-sm font-medium break-all">{hairdresser.email}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Téléphone</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Téléphone</p>
                   <p className="text-sm font-medium">{hairdresser.phone}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Localisation</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Localisation</p>
                   <p className="text-sm font-medium">
                     {hairdresser.city}, {hairdresser.country}
                   </p>
@@ -259,7 +259,7 @@ export default function HairDresserDetailsModal({
                               e.stopPropagation()
                               handleRemoveService(serviceId)
                             }}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-0 hover:bg-gray-300 rounded"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-0 hover:bg-gray-300 dark:hover:bg-slate-600 rounded"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -279,11 +279,11 @@ export default function HairDresserDetailsModal({
               </div>
 
               {/* Contract Info */}
-              <div className="border-t pt-4 space-y-3">
+              <div className="border-t dark:border-slate-700 pt-4 space-y-3">
                 <div className="grid grid-cols-2 gap-4">
                   {/* Contract Type */}
                   <div>
-                    <p className="text-xs text-gray-600">Type de contrat</p>
+                    <p className="text-xs text-gray-600 dark:text-slate-400">Type de contrat</p>
                     <p className="text-sm font-medium capitalize">
                       {hairdresser.associationHairdresser.contractType || '-'}
                     </p>
@@ -292,7 +292,7 @@ export default function HairDresserDetailsModal({
                   {/* Commission Rate */}
                   {hairdresser.associationHairdresser.contractType === 'commission' && (
                     <div>
-                      <p className="text-xs text-gray-600">Taux de commission</p>
+                      <p className="text-xs text-gray-600 dark:text-slate-400">Taux de commission</p>
                       <p className="text-sm font-medium">
                         {hairdresser.associationHairdresser.commissionRate
                           ? `${hairdresser.associationHairdresser.commissionRate}%`
@@ -304,7 +304,7 @@ export default function HairDresserDetailsModal({
                   {/* Salary */}
                   {hairdresser.associationHairdresser.contractType === 'salary' && (
                     <div>
-                      <p className="text-xs text-gray-600">Salaire</p>
+                      <p className="text-xs text-gray-600 dark:text-slate-400">Salaire</p>
                       <p className="text-sm font-medium">
                         {hairdresser.associationHairdresser.salary || '-'}
                       </p>
@@ -315,7 +315,7 @@ export default function HairDresserDetailsModal({
 
               {/* Working Hours */}
               {editedWorkingHours && editedWorkingHours.length > 0 && (
-                <div className="border-t pt-4 space-y-3">
+                <div className="border-t dark:border-slate-700 pt-4 space-y-3">
                   <h4 className="font-semibold text-sm">Horaires de travail</h4>
                   {isEditing ? (
                     <div className="space-y-2">
@@ -326,7 +326,7 @@ export default function HairDresserDetailsModal({
                         return (
                           <div
                             key={day.key}
-                            className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                            className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded"
                           >
                             <p className="font-medium text-sm w-24">{day.label}</p>
                             <input
@@ -357,7 +357,7 @@ export default function HairDresserDetailsModal({
                                   }}
                                   className="text-sm w-24"
                                 />
-                                <span className="text-gray-400">-</span>
+                                <span className="text-gray-400 dark:text-slate-500">-</span>
                                 <Input
                                   type="time"
                                   value={workingHour?.close || ''}
@@ -374,7 +374,7 @@ export default function HairDresserDetailsModal({
                               </>
                             )}
                             {!workingHour?.openDay && (
-                              <span className="text-sm text-gray-600 italic">Fermé</span>
+                              <span className="text-sm text-gray-600 dark:text-slate-400 italic">Fermé</span>
                             )}
                           </div>
                         )
@@ -389,9 +389,9 @@ export default function HairDresserDetailsModal({
                             (d) => d.label === hours.day || d.key === hours.day
                           )?.label || hours.day
                           return (
-                            <div key={hours.day} className="flex items-center gap-2 p-2 bg-blue-50 rounded">
+                            <div key={hours.day} className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                               <p className="font-medium text-sm w-24">{dayLabel}</p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 dark:text-slate-400">
                                 {hours.open} - {hours.close}
                               </p>
                             </div>
@@ -403,21 +403,21 @@ export default function HairDresserDetailsModal({
               )}
 
               {/* Stats */}
-              <div className="border-t pt-4 grid grid-cols-3 gap-4">
+              <div className="border-t dark:border-slate-700 pt-4 grid grid-cols-3 gap-4">
                 <div className="text-center">
-                  <p className="text-xs text-gray-600">Prises</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Prises</p>
                   <p className="text-lg font-semibold text-blue-600">
                     {hairdresser.reservationsTaken || 0}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-gray-600">Confirmées</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Confirmées</p>
                   <p className="text-lg font-semibold text-green-600">
                     {hairdresser.reservationsConfirmed || 0}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-gray-600">Finies</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Finies</p>
                   <p className="text-lg font-semibold text-yellow-600">
                     {hairdresser.reservationsDone || 0}
                   </p>

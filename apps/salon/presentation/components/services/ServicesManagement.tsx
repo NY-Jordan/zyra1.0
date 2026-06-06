@@ -218,7 +218,7 @@ export default function ServicesManagement({ services, categories }: ServicesMan
                 </thead>
                 <tbody>
                   {filteredServices.services.map((service) => (
-                    <tr key={service.id} className="border-b hover:bg-gray-50">
+                    <tr key={service.id} className="border-b hover:bg-gray-50 dark:hover:bg-slate-800/50">
                       <td className="px-4 py-2 flex items-center gap-2">
                         {service.imageUrl && (
                           <img src={service.imageUrl} alt="" className="w-8 h-8 object-cover rounded" />

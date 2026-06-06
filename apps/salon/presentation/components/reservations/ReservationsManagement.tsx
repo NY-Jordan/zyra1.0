@@ -259,8 +259,8 @@ export default function ReservationsManagement() {
           ) : (
             <div className="text-center py-12">
               <div className="flex flex-col items-center gap-4">
-                <div className="p-4 bg-gray-100 rounded-full">
-                  <Calendar className="h-12 w-12 text-gray-400" />
+                <div className="p-4 bg-gray-100 dark:bg-slate-800 rounded-full">
+                  <Calendar className="h-12 w-12 text-gray-400 dark:text-slate-500" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold mb-2">

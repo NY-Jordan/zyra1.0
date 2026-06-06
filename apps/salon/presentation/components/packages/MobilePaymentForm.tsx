@@ -190,7 +190,7 @@ export default function MobilePaymentForm({
       {!mobilePayment.isOtpRequired && (
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-gray-900 flex items-center">
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
               <Smartphone className="w-5 h-5 mr-2" />
               Mobile Money
             </h4>
@@ -198,7 +198,7 @@ export default function MobilePaymentForm({
               variant="outline" 
               size="sm" 
               onClick={onBack}
-              className="text-gray-600 hover:text-gray-800 border-gray-300"
+              className="text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-white border-gray-300 dark:border-slate-600"
             >
               ← Retour
             </Button>
@@ -206,7 +206,7 @@ export default function MobilePaymentForm({
 
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
                 Numéro de téléphone
               </label>
               <Input
@@ -217,11 +217,11 @@ export default function MobilePaymentForm({
                   const formatted = formatPhoneNumber(e.target.value)
                   setMobileData({...mobileData, number: formatted})
                 }}
-                className="text-gray-900 bg-white border-gray-300 placeholder-gray-500"
+                className="text-gray-900 dark:text-white bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 placeholder-gray-500 dark:placeholder-slate-400"
                 disabled={mobilePayment.isLoading}
                 type="tel"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                 Format international requis (ex: +225123456789)
               </p>
             </div>
@@ -235,7 +235,7 @@ export default function MobilePaymentForm({
             {mobilePayment.isLoading ? 'Traitement...' : `Payer ${formatPrice(amount, currency)}`}
           </Button>
           {/* Message d'aide pour Mobile Money */}
-          <div className="text-xs text-gray-500 text-center mt-2 space-y-1">
+          <div className="text-xs text-gray-500 dark:text-slate-400 text-center mt-2 space-y-1">
             <p>📱 Vous recevrez un SMS avec les instructions de paiement</p>
             <p>💡 Supporté: MTN, Orange, Moov Money</p>
           </div>

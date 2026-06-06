@@ -181,10 +181,10 @@ export default function SalonGallery({ salon, onUpdate }: SalonGalleryProps) {
             {Array.from({ length: remainingSlots }, (_, index) => (
               <div 
                 key={`empty-${index}`}
-                className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="w-full h-32 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 onClick={() => !isUploading && document.getElementById('photo-upload')?.click()}
               >
-                <div className="text-center text-gray-400">
+                <div className="text-center text-gray-400 dark:text-slate-500">
                   <Camera className="h-6 w-6 mx-auto mb-1" />
                   <p className="text-xs">Ajouter</p>
                 </div>
