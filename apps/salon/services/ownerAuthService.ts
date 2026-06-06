@@ -1,8 +1,9 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { where } from "firebase/firestore";
 import { auth } from "@zyra/conf/lib/firebase";
-import { fetchCollection } from "@zyra/conf/lib/query";
+import { editDocument, fetchCollection } from "@zyra/conf/lib/query";
 import { ISubscription } from "@zyra/conf/domain/entities/subscriptions.entities";
+import { SalonStatusEnum } from "@zyra/conf/domain/enums/statusEnum";
 
 /**
  * Service d'authentification qui gère la connexion et la vérification des abonnements
@@ -84,8 +85,14 @@ export const ownerAuthService = {
         where("status", "==", "active"),
         where("endDate", ">=", new Date())
       ]) as ISubscription[] | undefined;
-      if (!subscriptions || subscriptions.length === 0) {
+      console.log(subscriptions?.length === 0);
+      if (subscriptions?.length === 0) {
         // Aucun abonnement actif trouvé
+        await editDocument("owners", userId, {
+          status: {
+            name: SalonStatusEnum.payment
+          }
+        });
         return {
           hasSubscription: false,
           redirectTo: '/payment/packages',

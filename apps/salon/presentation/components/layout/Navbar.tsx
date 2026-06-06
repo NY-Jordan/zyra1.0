@@ -1,12 +1,24 @@
 'use client'
 import React from 'react'
+import Link from 'next/link'
 import { Button } from "@zyra/ui/components/button"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@zyra/ui/components/popover"
-import { Settings, User, LogOut, Building2, ChevronDown, Bell, Store } from 'lucide-react'
+import {
+  Settings,
+  User,
+  LogOut,
+  Building2,
+  ChevronDown,
+  Bell,
+  Store,
+  Sun,
+  Moon,
+  Monitor,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
@@ -14,12 +26,14 @@ import { toast } from 'sonner'
 import { useOwner } from '@/hooks/useOwner'
 import { useSalon } from '@/hooks/useSalon'
 import { useQueryClient } from '@tanstack/react-query'
+import { useTheme } from 'next-themes'
 
 export default function Navbar() {
   const router = useRouter()
   const { owner } = useOwner()
-  const { salon, isConnected, switchSalon, disconnectSalon } = useSalon()
-      const queryClient = useQueryClient()
+  const { salon, isConnected } = useSalon()
+  const { theme, setTheme } = useTheme()
+  const queryClient = useQueryClient()
 
   const handleLogout = async () => {
     try {
@@ -33,70 +47,85 @@ export default function Navbar() {
     }
   }
 
-  const handleMenuAction = (action: string) => {
-    switch (action) {
-      case 'profile':
-        router.push('/salon/profil')
-        break
-      case 'settings':
-        router.push('/salon/salon-info')
-        break
-      case 'switch-salon':
-        router.push('/salon/switch')
-        break
-      case 'logout':
-        handleLogout()
-        break
-    }
-  }
-
   return (
-    <header className="bg-white/80 w-full dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-      <div className="w-full  px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/70 bg-white/70 backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/65">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex w-full items-center justify-between h-16">
-          {/* Logo Salon */}
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 via-cyan-500 to-teal-500 shadow-lg shadow-cyan-500/20">
               <Store className="h-6 w-6 text-white" />
             </div>
-            <div className="ml-3">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
                 {salon?.name || 'Salon Admin'}
               </h1>
               {salon && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                   {salon.address || 'Aucune adresse'}
                 </p>
               )}
             </div>
             {!isConnected && (
-              <div className="ml-3 px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">
+              <div className="hidden rounded-full border border-amber-300/70 bg-amber-100/80 px-2 py-1 text-xs text-amber-800 md:block dark:border-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
                 Non connecté
               </div>
             )}
           </div>
 
-          {/* Actions Menu */}
-          <div className="flex items-center space-x-8">
-            {/* Notifications Button */}
-            <button
-              className="relative p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-              onClick={() => router.push('/notifications')}
-            >
-              <Bell className="h-6 w-6" />
-              {/* Badge de notification */}
-              <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                3
-              </span>
-            </button>
-            {/* Profile Dropdown Menu */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                  size="icon"
+                  className="rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  aria-label="Changer le thème"
                 >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                  {theme === 'dark' ? <Moon className="h-5 w-5" /> : theme === 'light' ? <Sun className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-52 p-1">
+                <button
+                  onClick={() => setTheme('light')}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <Sun className="h-4 w-4" />
+                  Clair
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <Moon className="h-4 w-4" />
+                  Sombre
+                </button>
+                <button
+                  onClick={() => setTheme('system')}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <Monitor className="h-4 w-4" />
+                  Système
+                </button>
+              </PopoverContent>
+            </Popover>
+
+            <Link
+              href="/notifications"
+              className="relative rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs text-white">
+                3
+              </span>
+            </Link>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-11 rounded-2xl border border-slate-200/70 bg-white/80 px-2 text-left hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/70 dark:hover:bg-slate-800"
+                >
+                  <div className="h-8 w-8 overflow-hidden rounded-full">
                     {owner?.photo ? (
                       <img
                         src={owner.photo}
@@ -104,21 +133,25 @@ export default function Navbar() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-500 to-teal-500">
                         <User className="h-4 w-4 text-white" />
                       </div>
                     )}
                   </div>
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                  <div className="hidden min-w-0 px-1 sm:block">
+                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
+                      {owner?.name || 'Mon compte'}
+                    </p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-slate-500" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-56 p-0" align="end">
+              <PopoverContent className="w-64 p-0" align="end">
                 <div className="py-1">
-                  {/* Owner Info */}
                   {owner && (
-                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                    <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
+                        <div className="h-10 w-10 overflow-hidden rounded-full">
                           {owner.photo ? (
                             <img
                               src={owner.photo}
@@ -126,16 +159,16 @@ export default function Navbar() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-500 to-teal-500">
                               <User className="h-5 w-5 text-white" />
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                             {owner.name}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                             {owner.email}
                           </p>
                         </div>
@@ -143,59 +176,53 @@ export default function Navbar() {
                     </div>
                   )}
 
-                  {/* Salon Info */}
                   {salon && (
-                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                    <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500">
                           <Store className="h-5 w-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                             {salon.name}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                             {salon.address || 'Aucune adresse'}
                           </p>
                         </div>
                       </div>
                     </div>
                   )}
-                  
-                  {/* Profile */}
-                  <button
-                    onClick={() => handleMenuAction('profile')}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+
+                  <Link
+                    href="/salon/profil"
+                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <User className="h-4 w-4 mr-3" />
                     Profil
-                  </button>
-                  
-                  {/* Settings */}
-                  <button
-                    onClick={() => handleMenuAction('settings')}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  </Link>
+
+                  <Link
+                    href="/salon/salon-info"
+                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <Settings className="h-4 w-4 mr-3" />
                     Paramètres
-                  </button>
-                  
-                  {/* Switcher de salon */}
-                  <button
-                    onClick={() => handleMenuAction('switch-salon')}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  </Link>
+
+                  <Link
+                    href="/salon/switch"
+                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <Building2 className="h-4 w-4 mr-3" />
                     Switcher de salon
-                  </button>
-                  
-                  {/* Separator */}
-                  <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
-                  
-                  {/* Logout */}
+                  </Link>
+
+                  <div className="my-1 border-t border-slate-200 dark:border-slate-700"></div>
+
                   <button
-                    onClick={() => handleMenuAction('logout')}
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    onClick={handleLogout}
+                    className="flex w-full items-center px-4 py-2 text-sm text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20"
                   >
                     <LogOut className="h-4 w-4 mr-3" />
                     Se déconnecter

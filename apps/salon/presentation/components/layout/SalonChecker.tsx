@@ -7,6 +7,7 @@ import SalonConfigModal from '@/presentation/components/modals/SalonConfigModal'
 import SalonLocationForm from '@/presentation/components/SalonLocationForm'
 import { useOwner } from '@/hooks/useOwner'
 import { SalonStatusEnum } from '@zyra/conf/domain/enums/statusEnum'
+import { ownerAuthService } from '@/services/ownerAuthService'
 
 interface SalonCheckerProps {
   children: React.ReactNode
@@ -30,18 +31,19 @@ export default function SalonChecker({ children }: SalonCheckerProps) {
   }, [])
 
   useEffect( () => {
-     if (!isChecking && !isConnected && !ownerIsLoading) {
-      console.log(owner);
+     if (!isChecking && !ownerIsLoading) {
       if (owner?.status.name === SalonStatusEnum.payment) {
         router.push('/payment/packages');
         return;
       }
       if (owner?.status.name === SalonStatusEnum.active) {
-        router.push('/salon/setup')
-        return;
+        if(!isConnected) {
+          router.push('/salon/setup')
+          return;
+        }
       }
     }
-  }, [isConnected, isChecking, router])
+  }, [isConnected, isChecking, router, owner])
 
   useEffect(() => {
     if (salon && !isLoading && !isChecking) {

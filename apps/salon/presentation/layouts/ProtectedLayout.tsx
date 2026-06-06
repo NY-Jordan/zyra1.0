@@ -5,14 +5,6 @@ import { Toaster } from '@zyra/ui/components/sonner'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
 import { LoadingSpinner } from '@/presentation/components/LoadingSpinner'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@zyra/ui/components/breadcrumb"
 import { Menu, X } from 'lucide-react'
 import Navbar from '@/presentation/components/layout/Navbar'
 import Sidebar from '@/presentation/components/layout/Sidebar'
@@ -37,44 +29,41 @@ export default function ProtectedLayout({
       }
     })
     return () => unsubscribe()
-  }, [router])
+  }, [router]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex h-screen w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,_#dbeafe_0%,_#ecfeff_35%,_#f8fafc_60%)] dark:bg-[radial-gradient(circle_at_top_left,_#0f172a_0%,_#111827_45%,_#020617_100%)]">
         <div className="text-center">
           <LoadingSpinner className="h-12 w-12 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-300">Chargement...</p>
+          <p className="text-slate-600 dark:text-slate-300">Chargement...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Navbar */}
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#dbeafe_0%,_#ecfeff_35%,_#f8fafc_60%)] dark:bg-[radial-gradient(circle_at_top_left,_#0f172a_0%,_#111827_45%,_#020617_100%)]">
       <Navbar />
-      {/* Sidebar */}
+
       <Sidebar 
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Mobile menu button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white dark:bg-gray-800 shadow-lg"
+        className="fixed left-4 top-4 z-50 rounded-xl border border-slate-200/80 bg-white/85 p-2.5 text-slate-600 shadow-lg shadow-slate-300/40 transition hover:bg-white lg:hidden dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:shadow-slate-950/30"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
         {sidebarOpen ? (
-          <X className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+          <X className="h-5 w-5" />
         ) : (
-          <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+          <Menu className="h-5 w-5" />
         )}
       </button>
 
-      {/* Main Content */}
-      <main className="lg:ml-64 pt-2 overflow-y-auto h-[calc(100vh-64px)] ">
-        <div className="max-w-7xl mx-auto mb-10 sm:px-6 lg:px-2 py-8">
+      <main className="h-[calc(100vh-64px)] overflow-y-auto pt-3 lg:ml-72">
+        <div className="mx-[4%] mb-10 max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>

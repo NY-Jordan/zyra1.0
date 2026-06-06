@@ -51,7 +51,7 @@ export default function CalendarReservationsModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           style={{ maxWidth: 'none' }}
-          className="w-[96vw] h-[94vh] max-w-none flex flex-col p-0 gap-0 overflow-hidden rounded-xl"
+          className="h-[94vh] w-[96vw] max-w-none gap-0 overflow-hidden rounded-2xl border border-slate-200/70 bg-white/85 p-0 shadow-2xl shadow-slate-300/30 backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/85 dark:shadow-slate-950/40"
         >
           <CalendarReservationsTopBar
             dayLabel={dayLabel}

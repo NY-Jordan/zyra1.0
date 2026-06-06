@@ -6,12 +6,14 @@ import { useForm, FieldValues } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Mail, Lock, ArrowRight, LogIn, Globe, AlertCircle } from "lucide-react";
-import { useRouter } from 'next/navigation';
 import { ownerAuthService } from "@/services/ownerAuthService";
 import Link from "next/link";
 import Image from "next/image";
 import { fetchCollection } from '@zyra/conf/lib/query';
 import { where } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@zyra/conf/lib/firebase";
 
 interface Country {
   id: string;
@@ -33,6 +35,16 @@ export default function Login() {
   const [formError, setFormError] = useState('');
   const router = useRouter();
 
+  // Rediriger les utilisateurs déjà connectés
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace('/salon/dashboard');
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
 
   const handleAuth = async (data: FieldValues) => {
     // Réinitialiser les erreurs
@@ -49,7 +61,7 @@ export default function Login() {
         toast.info(subscriptionStatus.message);
       }
       setTimeout(() => {
-        router.push(subscriptionStatus.redirectTo);
+        window.location.href = subscriptionStatus.redirectTo;
       }, 1000);
     } catch (error: any) {
       setConnectionError(error.message || "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer.");
@@ -245,24 +257,12 @@ export default function Login() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-zinc-200"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
+            {/*   <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-zinc-500">Ou continuer avec</span>
-              </div>
+              </div> */}
             </div>
 
            
-          </div>
-          
-          <div className="mt-8 text-center">
-            <p className="text-zinc-600">
-              Pas encore de compte ?{" "}
-              <button 
-                onClick={() => router.push('/auth/register')}
-                className="text-zinc-800 hover:underline font-medium"
-              >
-                Créer un compte
-              </button>
-            </p>
           </div>
           
           <div className="mt-8 text-center">

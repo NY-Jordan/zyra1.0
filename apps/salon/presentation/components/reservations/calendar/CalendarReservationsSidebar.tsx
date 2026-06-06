@@ -87,34 +87,41 @@ export function CalendarReservationsSidebar({
   }
 
   return (
-    <div className="w-60 shrink-0 border-r bg-gray-50 flex flex-col gap-4 p-4 overflow-y-auto">
+    <div className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-200/70 bg-slate-50/80 p-4 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/55">
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <button onClick={prevMiniMonth} className="p-1 rounded hover:bg-gray-200 transition">
-            <ChevronLeft className="h-3.5 w-3.5 text-gray-600" />
+        <div className="mb-2 flex items-center justify-between">
+          <button
+            onClick={prevMiniMonth}
+            className="rounded-md p-1 transition hover:bg-slate-200 dark:hover:bg-slate-800"
+          >
+            <ChevronLeft className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
           </button>
-          <span className="text-xs font-semibold text-gray-700 capitalize">
+          <span className="text-xs font-semibold capitalize text-slate-700 dark:text-slate-200">
             {MONTHS_FR[miniMonth.month]} {miniMonth.year}
           </span>
-          <button onClick={nextMiniMonth} className="p-1 rounded hover:bg-gray-200 transition">
-            <ChevronRight className="h-3.5 w-3.5 text-gray-600" />
+          <button
+            onClick={nextMiniMonth}
+            className="rounded-md p-1 transition hover:bg-slate-200 dark:hover:bg-slate-800"
+          >
+            <ChevronRight className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
           </button>
         </div>
-        <div className="grid grid-cols-7 gap-0.5">
+
+        <div className="grid grid-cols-7 gap-0.5 rounded-xl border border-slate-200/80 bg-white/80 p-2 dark:border-slate-700 dark:bg-slate-900/60">
           {DAYS_FR.map((d) => (
-            <div key={d} className="text-[10px] text-center text-gray-400 font-medium py-0.5">{d}</div>
+            <div key={d} className="py-0.5 text-center text-[10px] font-medium text-slate-400 dark:text-slate-500">{d}</div>
           ))}
           {miniDays.map((day, i) => (
             <div key={i} className="flex flex-col items-center">
               {day ? (
                 <button
                   onClick={() => selectDay(day)}
-                  className={`w-7 h-7 rounded-full text-[11px] flex items-center justify-center transition font-medium ${
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-medium transition ${
                     isSelected(day)
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-sky-600 text-white dark:bg-sky-500'
                       : isToday(new Date(miniMonth.year, miniMonth.month, day))
-                        ? 'ring-1 ring-blue-400 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-200'
+                        ? 'ring-1 ring-sky-400 text-sky-700 dark:text-sky-300'
+                        : 'text-slate-700 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800'
                   }`}
                 >
                   {day}
@@ -123,7 +130,7 @@ export function CalendarReservationsSidebar({
                 <span className="w-7 h-7" />
               )}
               {hasDot(day) && !isSelected(day) && (
-                <span className="w-1 h-1 rounded-full bg-blue-400 -mt-1" />
+                <span className="-mt-1 h-1 w-1 rounded-full bg-sky-400 dark:bg-sky-300" />
               )}
             </div>
           ))}
@@ -131,21 +138,21 @@ export function CalendarReservationsSidebar({
       </div>
 
       <div>
-        <p className="text-[10px] font-semibold uppercase text-gray-400 tracking-wide mb-2">Statuts</p>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Statuts</p>
         <div className="space-y-1.5">
           {(Object.keys(CALENDAR_STATUS_META) as reservationStatusEnum[]).map((status) => (
             <div key={status} className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full shrink-0 ${CALENDAR_STATUS_META[status].dotClass}`} />
-              <span className="text-[11px] text-gray-600">{CALENDAR_STATUS_META[status].label}</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-300">{CALENDAR_STATUS_META[status].label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-auto pt-2 border-t">
-        <p className="text-[10px] text-gray-400 mb-1">Ce jour</p>
-        <p className="text-xl font-bold text-gray-800">{dayReservationsCount}</p>
-        <p className="text-[11px] text-gray-500">réservation{dayReservationsCount !== 1 ? 's' : ''}</p>
+      <div className="mt-auto rounded-xl border border-slate-200/80 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-900/60">
+        <p className="mb-1 text-[10px] text-slate-400 dark:text-slate-500">Ce jour</p>
+        <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{dayReservationsCount}</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">réservation{dayReservationsCount !== 1 ? 's' : ''}</p>
       </div>
     </div>
   )

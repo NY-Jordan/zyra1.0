@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import { useForm, FieldValues } from 'react-hook-form';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Step1 from '../../../presentation/components/register/Step1';
@@ -13,6 +13,8 @@ import { IRegisterSalon } from '@zyra/conf/domain/entities/salons.entities';
 import { IRegisterOwner } from '@zyra/conf/domain/entities/owners.entities';
 import { authSalonProcess } from '@/services/AuthService';
 import { SalonStatusEnum } from '@zyra/conf/domain/enums/statusEnum';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@zyra/conf/lib/firebase';
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -20,6 +22,16 @@ export default function RegisterPage() {
   const [ownerExists, setOwnerExists] = useState(false);
   const { register, handleSubmit, setValue, watch, setError, formState: { errors,  } } = useForm();
   const router = useRouter();
+
+  // Rediriger les utilisateurs déjà connectés
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace('/salon/dashboard');
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
 
   const handleEmailSubmit = async (data: FieldValues) => {
     setLoading(true);

@@ -81,59 +81,58 @@ export default function ReservationsManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Calendar className="h-6 w-6 text-blue-600" />
+              <div className="rounded-xl bg-sky-100 p-2.5 dark:bg-sky-950/50">
+                <Calendar className="h-6 w-6 text-sky-600 dark:text-sky-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Clock className="h-6 w-6 text-yellow-600" />
+              <div className="rounded-xl bg-amber-100 p-2.5 dark:bg-amber-950/50">
+                <Clock className="h-6 w-6 text-amber-600 dark:text-amber-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">En attente</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">{stats.pending}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="rounded-xl bg-emerald-100 p-2.5 dark:bg-emerald-950/50">
+                <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Confirmées</p>
-                <p className="text-2xl font-bold text-green-600">{stats.confirmed}</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{stats.confirmed}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <DollarSign className="h-6 w-6 text-purple-600" />
+              <div className="rounded-xl bg-violet-100 p-2.5 dark:bg-violet-950/50">
+                <DollarSign className="h-6 w-6 text-violet-600 dark:text-violet-300" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Revenus</p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-2xl font-bold text-violet-600 dark:text-violet-300">
                   {stats.totalRevenue.toLocaleString()} XAF
                 </p>
               </div>
@@ -142,19 +141,18 @@ export default function ReservationsManagement() {
         </Card>
       </div>
 
-      {/* Bouton confirmation rapide */}
       <div className="flex justify-start gap-4">
         <Button
           onClick={() => setShowNewReservationSheet(true)}
           size="lg"
-          variant="default"
+          className="bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
         >
           <Plus className="h-4 w-4 mr-2" />
           Nouvelle réservation
         </Button>
         <Button
           onClick={() => setShowConfirmModal(true)}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400"
           size="lg"
         >
           <CheckCircle className="h-4 w-4 mr-2" />
@@ -162,7 +160,7 @@ export default function ReservationsManagement() {
         </Button>
         <Button
           onClick={() => setShowCalendarModal(true)}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-400"
           size="lg"
           variant="default"
         >
@@ -171,11 +169,10 @@ export default function ReservationsManagement() {
         </Button>
       </div>
 
-      {/* Filtres et recherche */}
-      <Card>
+      <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <CardTitle>Réservations ({reservations.length} sur {totalReservations})</CardTitle>
+            <CardTitle className="text-slate-900 dark:text-slate-100">Réservations ({reservations.length} sur {totalReservations})</CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -183,7 +180,7 @@ export default function ReservationsManagement() {
                   placeholder="Nom, téléphone, service..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
+                  className="w-64 border-slate-200 bg-white/80 pl-10 dark:border-slate-700 dark:bg-slate-900/70"
                 />
               </div>
 
@@ -200,14 +197,14 @@ export default function ReservationsManagement() {
                     }
                   }}
                   maxLength={5}
-                  className="w-40"
+                  className="w-40 border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-900/70"
                 />
               </div>
               
               <select 
                 value={statusFilter} 
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-3 py-2 border rounded-md text-sm"
+                className="rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
               >
                 <option value="all">Tous les statuts</option>
                 <option value={reservationStatusEnum.pending}>En attente</option>
@@ -219,7 +216,7 @@ export default function ReservationsManagement() {
               <select 
                 value={paymentFilter === 'all' ? 'all' : paymentFilter.toString()} 
                 onChange={(e) => setPaymentFilter(e.target.value === 'all' ? 'all' : e.target.value === 'true')}
-                className="px-3 py-2 border rounded-md text-sm"
+                className="rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
               >
                 <option value="all">Tous les paiements</option>
                 <option value="true">Payées</option>
@@ -229,7 +226,7 @@ export default function ReservationsManagement() {
               <select 
                 value={dateFilter} 
                 onChange={(e) => setDateFilter(e.target.value as any)}
-                className="px-3 py-2 border rounded-md text-sm"
+                className="rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
               >
                 <option value="all">Toutes les dates</option>
                 <option value="today">Aujourd'hui</option>
@@ -283,7 +280,6 @@ export default function ReservationsManagement() {
         </CardContent>
       </Card>
 
-      {/* Modal de confirmation générique */}
       <NewReservationSheet
         open={showNewReservationSheet}
         onOpenChange={setShowNewReservationSheet}
@@ -292,7 +288,6 @@ export default function ReservationsManagement() {
         open={showConfirmModal}
         onOpenChange={setShowConfirmModal}
       />
-      {/* Modal du calendrier des réservations */}
       <CalendarReservationsModal
         open={showCalendarModal}
         onOpenChange={setShowCalendarModal}

@@ -125,6 +125,8 @@ export default function ReservationDetailsModal({
     } catch (error) {
       console.error('Erreur lors de la finalisation:', error)
     }
+  }
+
   // Vérifier si la réservation a au moins un coiffeur associé
   const hasHairdresser = useMemo(() => {
     return reservation.people.some(person => person.hairdresserId)

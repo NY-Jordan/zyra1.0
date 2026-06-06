@@ -7,6 +7,7 @@ import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
 import QRCodeDialog from '@/presentation/components/dashboard/QRCodeDialog'
 import { useSalon } from '@/hooks/useSalon'
+import { useDashboard } from '@/hooks/useDashboard'
 import {
   Store,
   Users,
@@ -21,12 +22,14 @@ import {
   Eye,
   ExternalLink,
   MessageCircle,
-  QrCode
+  QrCode,
+  Loader
 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function Dashboard() {
   const { salon, isConnected } = useSalon()
+  const { data: dashboardData, isLoading, error } = useDashboard()
   const [copied, setCopied] = useState(false)
 
   // Générer le lien de réservation
@@ -66,40 +69,64 @@ export default function Dashboard() {
     window.open(bookingLink, '_blank')
   }
 
-  // Données mockées pour la démo
-  const stats = [
+  // Construire les statistiques à partir des vraies données
+  const stats = dashboardData ? [
     {
       title: "Rendez-vous aujourd'hui",
-      value: "12",
+      value: dashboardData.stats.appointmentsToday.toString(),
       icon: <Calendar className="h-4 w-4" />,
-      change: "+2 depuis hier"
+      change: `${dashboardData.stats.appointmentsToday > 0 ? '+' : ''}${dashboardData.stats.appointmentsToday}`
     },
     {
       title: "Revenus du mois",
-      value: "€2,340",
+      value: `XAF ${(dashboardData.stats.monthlyRevenue).toFixed(2)}`,
       icon: <DollarSign className="h-4 w-4" />,
-      change: "+12% ce mois"
+      change: "Ce mois"
     },
     {
       title: "Clients actifs",
-      value: "156",
+      value: dashboardData.stats.activeClients.toString(),
       icon: <Users className="h-4 w-4" />,
-      change: "+8 nouveaux"
+      change: "Ce mois"
     },
     {
       title: "Taux d'occupation",
-      value: "78%",
+      value: `${Math.round(dashboardData.stats.occupancyRate)}%`,
       icon: <TrendingUp className="h-4 w-4" />,
-      change: "+5% cette semaine"
+      change: "Estimation"
     }
-  ]
+  ] : []
 
-  const recentAppointments = [
-    { time: "09:00", client: "Marie Dupont", service: "Coupe + Couleur", duration: "2h" },
-    { time: "11:30", client: "Sophie Martin", service: "Brushing", duration: "1h" },
-    { time: "14:00", client: "Claire Bernard", service: "Coupe", duration: "45min" },
-    { time: "16:15", client: "Anna Rousseau", service: "Mèches", duration: "2h30" }
-  ]
+  // Formater les réservations récentes (les 5 dernières)
+  const recentAppointments = dashboardData ? dashboardData.recentReservations
+    .map((res) => {
+      const firstPerson = res.people?.[0]
+      if (!firstPerson) return null
+      
+      const scheduledTime = firstPerson.scheduledAt.toDate()
+      const timeString = scheduledTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      
+      // Formater la date au format "25 - Mai 2026"
+      const day = scheduledTime.getDate()
+      const monthName = scheduledTime.toLocaleDateString('fr-FR', { month: 'long' })
+      const year = scheduledTime.getFullYear()
+      const dateString = `${day} - ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`
+      
+      const durationMinutes = firstPerson.totalDuration
+      const durationString = durationMinutes >= 60 
+        ? `${Math.floor(durationMinutes / 60)}h${durationMinutes % 60 > 0 ? durationMinutes % 60 : ''}`
+        : `${durationMinutes}min`
+
+      return {
+        date: dateString,
+        time: timeString,
+        client: res.clientName,
+        service: firstPerson.serviceName,
+        duration: durationString,
+        status: res.status
+      }
+    })
+    .filter((apt): apt is NonNullable<typeof apt> => apt !== null) : []
 
   return (
     <ProtectedLayout>
@@ -170,54 +197,97 @@ export default function Dashboard() {
             <div className="lg:col-span-2 space-y-6">
               {/* Statistiques */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, index) => (
-                  <Card key={index}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between space-y-0 pb-2">
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                          {stat.title}
-                        </h3>
-                        {stat.icon}
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-2xl font-bold">{stat.value}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {stat.change}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {isLoading ? (
+                  // Skeleton de chargement
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <Card key={index}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between space-y-0 pb-2">
+                          <div className="h-4 w-24 bg-slate-200 rounded animate-pulse"></div>
+                          <div className="h-4 w-4 bg-slate-200 rounded animate-pulse"></div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-7 w-16 bg-slate-200 rounded animate-pulse"></div>
+                          <div className="h-3 w-20 bg-slate-100 rounded animate-pulse"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : error ? (
+                  <div className="col-span-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">Erreur lors du chargement des statistiques</p>
+                  </div>
+                ) : (
+                  stats.map((stat, index) => (
+                    <Card key={index}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between space-y-0 pb-2">
+                          <h3 className="text-sm font-medium text-muted-foreground">
+                            {stat.title}
+                          </h3>
+                          {stat.icon}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-2xl font-bold">{stat.value}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {stat.change}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
 
-              {/* Rendez-vous récents */}
+              {/* Rendez-vous récents (5 dernières réservations) */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    Rendez-vous d'aujourd'hui
+                    5 dernières réservations
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentAppointments.map((appointment, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{appointment.time}</span>
+                  {isLoading ? (
+                    <div className="space-y-4">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div key={index} className="h-16 bg-slate-100 rounded animate-pulse"></div>
+                      ))}
+                    </div>
+                  ) : error ? (
+                    <p className="text-sm text-red-600">Erreur lors du chargement des réservations</p>
+                  ) : recentAppointments.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+                      <p className="text-sm text-muted-foreground">Aucune réservation</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {recentAppointments.map((appointment, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium text-muted-foreground">{appointment.date}</span>
+                              </div>
+                              <div className="flex items-center gap-2 pl-6">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium">{appointment.time}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="font-medium">{appointment.client}</p>
+                              <p className="text-sm text-muted-foreground">{appointment.service}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{appointment.client}</p>
-                            <p className="text-sm text-muted-foreground">{appointment.service}</p>
+                          <div className="text-sm text-muted-foreground">
+                            {appointment.duration}
                           </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {appointment.duration}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -325,21 +395,46 @@ export default function Dashboard() {
               {/* Statistiques de réservation */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Réservations en ligne</CardTitle>
+                  <CardTitle className="text-sm">Réservations</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Cette semaine</span>
-                    <span className="font-medium">24</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Ce mois</span>
-                    <span className="font-medium">89</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Taux de conversion</span>
-                    <span className="font-medium text-green-600">67%</span>
-                  </div>
+                  {isLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 2 }).map((_, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
+                          <div className="h-4 w-8 bg-slate-200 rounded animate-pulse"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Cette semaine</span>
+                        <span className="font-medium">{dashboardData?.stats.reservationsThisWeek || 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Ce mois</span>
+                        <span className="font-medium">{dashboardData?.stats.reservationsThisMonth || 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Payas aujourd'hui</span>
+                        <span className="font-medium text-green-600">
+                          XAF {dashboardData ? (dashboardData.recentReservations
+                            .filter(res => {
+                              const firstPerson = res.people?.[0]
+                              if (!firstPerson) return false
+                              const scheduledDate = firstPerson.scheduledAt.toDate()
+                              const today = new Date()
+                              const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+                              const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+                              return scheduledDate >= startOfToday && scheduledDate < endOfToday && res.isPaid
+                            })
+                            .reduce((sum, res) => sum + res.totalPrice, 0)).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>

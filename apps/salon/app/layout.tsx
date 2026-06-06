@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { Providers } from "../components/providers";
-import "../styles/globals.css";
-import { Toaster } from "@zyra/ui/components/sonner";
+import { Providers } from "@/components/providers";
+import "@zyra/ui/globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 
 export const metadata: Metadata = {
@@ -26,12 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body
-        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
-      >
+      <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
         <Providers>
           {children}
-          <Toaster />
         </Providers>
       </body>
     </html>

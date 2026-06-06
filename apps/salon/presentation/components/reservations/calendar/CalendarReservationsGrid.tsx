@@ -50,7 +50,7 @@ function EventBlock({ event, onClick }: EventBlockProps) {
 
   return (
     <div
-      className={`absolute left-1 right-1 rounded-md border ${style.bg} ${style.border} ${style.text} px-2 py-1 cursor-pointer hover:brightness-95 transition-all overflow-hidden select-none shadow-sm`}
+      className={`absolute left-1.5 right-1.5 cursor-pointer select-none overflow-hidden rounded-lg border px-2 py-1 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${style.bg} ${style.border} ${style.text}`}
       style={{ top: topPx, height: heightPx }}
       onClick={() => onClick(event.reservation)}
     >
@@ -73,12 +73,12 @@ export function CalendarReservationsGrid({
   onSelectReservation,
 }: Props) {
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-white">
-      <div className="flex border-b bg-white shrink-0">
+    <div className="flex flex-1 flex-col overflow-hidden bg-white/85 dark:bg-slate-900/50">
+      <div className="flex shrink-0 border-b border-slate-200/80 bg-white/70 dark:border-slate-700/70 dark:bg-slate-900/60">
         <div className="w-16 shrink-0" />
         <div className="flex flex-1 overflow-x-auto">
           {columns.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center py-3 text-sm text-gray-400">
+            <div className="flex flex-1 items-center justify-center py-3 text-sm text-slate-400 dark:text-slate-500">
               Aucun coiffeur disponible
             </div>
           ) : (
@@ -87,24 +87,24 @@ export function CalendarReservationsGrid({
               return (
                 <div
                   key={col.id}
-                  className="flex-1 min-w-[160px] flex flex-col items-center gap-1 py-3 border-l first:border-l-0"
+                  className="flex min-w-[170px] flex-1 flex-col items-center gap-1 border-l border-slate-200/80 py-3 first:border-l-0 dark:border-slate-700/70"
                 >
                   {col.photo ? (
                     <img
                       src={col.photo}
                       alt={col.label}
-                      className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow"
+                      className="h-9 w-9 rounded-full object-cover ring-2 ring-white/90 shadow dark:ring-slate-700"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shadow">
-                      <User className="h-4 w-4 text-gray-400" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 shadow dark:bg-slate-800">
+                      <User className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     </div>
                   )}
-                  <span className="text-xs font-medium text-gray-700 text-center leading-tight px-1">
+                  <span className="px-1 text-center text-xs font-medium leading-tight text-slate-700 dark:text-slate-200">
                     {col.label}
                   </span>
                   {hd?.speciality && (
-                    <span className="text-[10px] text-gray-400">{hd.speciality}</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500">{hd.speciality}</span>
                   )}
                 </div>
               )
@@ -114,9 +114,9 @@ export function CalendarReservationsGrid({
       </div>
 
       {isLoading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-          <span className="ml-2 text-sm text-gray-400">Chargement...</span>
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400 dark:text-slate-500" />
+          <span className="ml-2 text-sm text-slate-400 dark:text-slate-500">Chargement...</span>
         </div>
       ) : (
         <div className="flex-1 overflow-auto">
@@ -128,34 +128,34 @@ export function CalendarReservationsGrid({
                   className="absolute w-full flex items-start justify-end pr-3"
                   style={{ top: (h - HOUR_START) * HOUR_HEIGHT - 8, height: HOUR_HEIGHT }}
                 >
-                  <span className="text-[10px] text-gray-400 font-medium">{pad2(h)}:00</span>
+                  <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">{pad2(h)}:00</span>
                 </div>
               ))}
             </div>
 
             <div className="flex flex-1 overflow-x-auto">
               {columns.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
+                <div className="flex flex-1 items-center justify-center text-sm text-slate-400 dark:text-slate-500">
                   Aucune réservation
                 </div>
               ) : (
                 columns.map((col) => (
                   <div
                     key={col.id}
-                    className="flex-1 min-w-[160px] relative border-l first:border-l-0"
+                    className="relative flex min-w-[170px] flex-1 border-l border-slate-200/80 first:border-l-0 dark:border-slate-700/70"
                     style={{ height: GRID_HEIGHT }}
                   >
                     {hours.map((h) => (
                       <div
                         key={h}
-                        className="absolute w-full border-t border-gray-100"
+                        className="absolute w-full border-t border-slate-200/80 dark:border-slate-700/60"
                         style={{ top: (h - HOUR_START) * HOUR_HEIGHT }}
                       />
                     ))}
                     {hours.map((h) => (
                       <div
                         key={`${h}-half`}
-                        className="absolute w-full border-t border-gray-50"
+                        className="absolute w-full border-t border-slate-100/80 dark:border-slate-800/80"
                         style={{ top: (h - HOUR_START) * HOUR_HEIGHT + HOUR_HEIGHT / 2 }}
                       />
                     ))}

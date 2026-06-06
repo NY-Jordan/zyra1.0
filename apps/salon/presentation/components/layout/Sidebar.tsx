@@ -1,6 +1,7 @@
 'use client'
 import React from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Calendar,
@@ -8,10 +9,6 @@ import {
   Users,
   Settings,
   BarChart3,
-  CreditCard,
-  Package,
-  Store,
-  X,
   ShoppingBag,
   User2
 } from 'lucide-react'
@@ -72,48 +69,46 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
-  const router = useRouter()
   const pathname = usePathname()
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(href + '/')
   }
 
-  const handleNavigation = (href: string) => {
-    router.push(href)
-    onClose?.()
-  }
-
   return (
     <>
-      {/* Overlay pour mobile */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 z-20 lg:hidden"
+        <div
+          className="fixed inset-0 z-20 bg-slate-950/50 backdrop-blur-[1px] lg:hidden"
           onClick={onClose}
         />
       )}
-      {/* Sidebar */}
+
       <aside className={`
-        fixed top-16 left-0 z-30 w-64 h-[calc(100vh-4rem)] bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm 
-        border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out
+        fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-72 border-r border-slate-200/80 bg-white/75 backdrop-blur-xl
+        transition-transform duration-300 ease-in-out dark:border-slate-700/70 dark:bg-slate-900/70
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
       `}>
-        <div className="h-full px-3 py-4 overflow-y-auto">
-          <nav className="space-y-2">
+        <div className="h-full overflow-y-auto px-4 py-5">
+          <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
+            Navigation principale
+          </div>
+
+          <nav className="space-y-1.5">
             {sidebarItems.map((item) => (
-              <a
+              <Link
                 key={item.href}
-                onClick={() => handleNavigation(item.href)}
+                href={item.href}
+                onClick={onClose}
                 className={`
-                  flex hover:cursor-pointer items-center w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-colors
-                  ${isActive(item.href) 
-                    ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  group flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all
+                  ${isActive(item.href)
+                    ? 'bg-gradient-to-r from-sky-500/10 via-cyan-500/10 to-teal-500/10 text-sky-700 shadow-sm ring-1 ring-sky-500/20 dark:text-sky-300 dark:ring-sky-400/25'
+                    : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white'
                   }
                 `}
               >
-                <span className={`mr-3 ${isActive(item.href) ? 'text-blue-700 dark:text-blue-400' : ''}`}>
+                <span className={`mr-3 ${isActive(item.href) ? 'text-sky-600 dark:text-sky-300' : 'text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200'}`}>
                   {item.icon}
                 </span>
                 <span className="flex-1 text-left">{item.label}</span>
@@ -122,7 +117,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                     {item.badge}
                   </span>
                 )}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
