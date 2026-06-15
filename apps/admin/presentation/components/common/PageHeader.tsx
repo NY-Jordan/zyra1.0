@@ -4,50 +4,43 @@ import React from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
-type BreadcrumbType = {
-  label: string
-  href?: string
-  isCurrent?: boolean
-}
+type Crumb = { label: string; href?: string; isCurrent?: boolean }
 
 interface PageHeaderProps {
   title?: string
-  breadcrumbs?: BreadcrumbType[]
+  breadcrumbs?: Crumb[]
+  actions?: React.ReactNode
 }
 
-export default function PageHeader({ title, breadcrumbs }: PageHeaderProps) {
+export default function PageHeader({ title, breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className='w-full mb-6 py-3 px-2 sm:px-4 lg:px-6'>
-      {breadcrumbs && (
-        <nav className="flex mb-2" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 md:space-x-2">
-            {breadcrumbs.map((item, index) => (
-              <li key={index} className="inline-flex items-center">
-                {index > 0 && (
-                  <ChevronRight className="w-4 h-4 text-gray-400 mx-1" />
-                )}
+    <div className="mb-6">
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <nav className="flex mb-1.5">
+          <ol className="inline-flex items-center gap-1">
+            {breadcrumbs.map((item, i) => (
+              <li key={i} className="inline-flex items-center gap-1">
+                {i > 0 && <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" />}
                 {item.href && !item.isCurrent ? (
-                  <Link
-                    href={item.href}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-700"
-                  >
+                  <Link href={item.href} className="text-[12px] text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
                     {item.label}
                   </Link>
                 ) : (
-                  <span className="text-sm font-medium text-gray-700">
-                    {item.label}
-                  </span>
+                  <span className="text-[12px] text-slate-400 dark:text-slate-500">{item.label}</span>
                 )}
               </li>
             ))}
           </ol>
         </nav>
       )}
-      {title && (
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          {title}
-        </h1>
-      )}
+      <div className="flex items-center justify-between gap-4">
+        {title && (
+          <h1 className="text-[20px] font-bold text-slate-800 dark:text-white tracking-tight">{title}</h1>
+        )}
+        {actions && (
+          <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>
+        )}
+      </div>
     </div>
   )
 }

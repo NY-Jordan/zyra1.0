@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from "firebase/auth";
 import { where } from "firebase/firestore";
 import { auth } from "@zyra/conf/lib/firebase";
 import { editDocument, fetchCollection } from "@zyra/conf/lib/query";
@@ -17,7 +17,9 @@ export const ownerAuthService = {
    */
   async login(email: string, password: string) {
     try {
+      await setPersistence(auth, browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      sessionStorage.setItem('salonLoginTime', Date.now().toString());
       return userCredential.user;
     } catch (error: any) {
       // Transformer les codes d'erreur Firebase en messages lisibles
@@ -85,7 +87,6 @@ export const ownerAuthService = {
         where("status", "==", "active"),
         where("endDate", ">=", new Date())
       ]) as ISubscription[] | undefined;
-      console.log(subscriptions?.length === 0);
       if (subscriptions?.length === 0) {
         // Aucun abonnement actif trouvé
         await editDocument("owners", userId, {
@@ -130,3 +131,10 @@ const authSalon = (newSalonId: string) => {
       localStorage.setItem('salonId', newSalonId)
     }
   }
+
+export const LogoutauthSalon = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.clear()
+    sessionStorage.clear()
+  }
+}

@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import UserInfoEditForm from '@/presentation/components/profile/UserInfoEditForm'
 import PasswordChangeForm from '@/presentation/components/profile/PasswordChangeForm'
-import SubscriptionInfo from '@/presentation/components/profile/SubscriptionInfo'
+import LogoutSalon from '@/presentation/components/profile/LogoutSalon'
 
 export default function ProfilePage() {
   const { owner, isLoading, refetch } = useOwner()
@@ -253,8 +253,6 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              {/* Nouvelle section Souscription */} 
-              <SubscriptionInfo />
             </div>
           )}
         </div>    

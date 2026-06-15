@@ -22,6 +22,7 @@ import SalonGeneralInfo from '@/presentation/components/settings/SalonGeneralInf
 import SalonOpeningHours from '@/presentation/components/settings/SalonOpeningHours'
 import SalonLocation from '@/presentation/components/settings/SalonLocation'
 import SalonGallery from '@/presentation/components/settings/SalonGallery'
+import SalonSubscriptionInfo from '@/presentation/components/settings/SalonSubscriptionInfo'
 
 
 interface SalonFormData {
@@ -178,11 +179,12 @@ export default function SalonInfoPage() {
 
           {/* Tabs pour les différentes sections */}
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="general">Informations générales</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="general">Informations</TabsTrigger>
               <TabsTrigger value="hours">Horaires</TabsTrigger>
               <TabsTrigger value="location">Localisation</TabsTrigger>
               <TabsTrigger value="gallery">Galerie</TabsTrigger>
+              <TabsTrigger value="subscription">Forfait</TabsTrigger>
             </TabsList>
 
             <TabsContent value="general">
@@ -199,6 +201,10 @@ export default function SalonInfoPage() {
 
             <TabsContent value="gallery">
               <SalonGallery salon={salon} onUpdate={refetch} />
+            </TabsContent>
+
+            <TabsContent value="subscription">
+              <SalonSubscriptionInfo salonId={salon.id} />
             </TabsContent>
           </Tabs>
         </div>

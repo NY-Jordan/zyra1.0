@@ -2,43 +2,34 @@
 import { Building2, Scissors, Calendar, Users } from "lucide-react"
 
 const stats = [
-	{
-		icon: <Building2 className="w-8 h-8 text-blue-600" />,
-		value: "235 salons",
-		label: "Actifs sur la plateforme ce mois",
-	},
-	{
-		icon: <Scissors className="w-8 h-8 text-pink-500" />,
-		value: "800 coiffeurs",
-		label: "Actifs sur la plateforme ce mois",
-	},
-	{
-		icon: <Calendar className="w-8 h-8 text-green-600" />,
-		value: "123 réservations",
-		label: "Aujourd'hui",
-	},
-	{
-		icon: <Users className="w-8 h-8 text-yellow-500" />,
-		value: "1500 clients",
-		label: "Inscrits sur la plateforme",
-	},
+  { icon: Building2, value: "235", label: "Salons actifs", color: "text-slate-700 dark:text-slate-300" },
+  { icon: Scissors, value: "800", label: "Coiffeurs actifs", color: "text-slate-700 dark:text-slate-300" },
+  { icon: Calendar, value: "123", label: "Réservations aujourd'hui", color: "text-slate-700 dark:text-slate-300" },
+  { icon: Users, value: "1 500", label: "Clients inscrits", color: "text-slate-700 dark:text-slate-300" },
 ]
 
 export default function DashboardCards() {
-	return (
-		<div className="flex flex-wrap gap-6">
-			{stats.map((stat) => (
-				<div
-					key={stat.value}
-					className="bg-white rounded-xl shadow p-6 min-w-[220px] flex-1 flex flex-col"
-				>
-					<div className="flex items-center gap-3 text-2xl font-bold mb-2">
-						{stat.icon}
-						<span className="text-gray-800">{stat.value}</span>
-					</div>
-					<div className="text-gray-500 text-sm">{stat.label}</div>
-				</div>
-			))}
-		</div>
-	)
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {stats.map((stat) => {
+        const Icon = stat.icon
+        return (
+          <div
+            key={stat.value}
+            className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-5"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-medium tracking-wide text-slate-400 dark:text-slate-500 uppercase">
+                {stat.label}
+              </span>
+              <Icon className="h-4 w-4 text-slate-300 dark:text-slate-600" />
+            </div>
+            <p className="text-2xl font-semibold text-slate-800 dark:text-white tracking-tight">
+              {stat.value}
+            </p>
+          </div>
+        )
+      })}
+    </div>
+  )
 }

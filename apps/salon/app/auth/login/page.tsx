@@ -5,28 +5,13 @@ import { Alert, AlertDescription } from "@zyra/ui/components/alert";
 import { useForm, FieldValues } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Mail, Lock, ArrowRight, LogIn, Globe, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, LogIn, AlertCircle } from "lucide-react";
 import { ownerAuthService } from "@/services/ownerAuthService";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchCollection } from '@zyra/conf/lib/query';
-import { where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@zyra/conf/lib/firebase";
-
-interface Country {
-  id: string;
-  name: string;
-  flag?: string;
-}
-
-interface Country {
-  id: string;
-  name: string;
-  code: string;
-  flag?: string;
-}
 
 export default function Login() {
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
@@ -35,11 +20,11 @@ export default function Login() {
   const [formError, setFormError] = useState('');
   const router = useRouter();
 
-  // Rediriger les utilisateurs déjà connectés
+  // Rediriger les utilisateurs déjà connectés vers setup
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.replace('/salon/dashboard');
+        router.replace('/salon/setup');
       }
     });
     return () => unsubscribe();
@@ -47,25 +32,18 @@ export default function Login() {
 
 
   const handleAuth = async (data: FieldValues) => {
-    // Réinitialiser les erreurs
     setFormError('');
     setConnectionError('');
     setIsLoading(true);
     try {
       const { email, password } = data;
-      const user = await ownerAuthService.login(email, password);
-      const subscriptionStatus = await ownerAuthService.checkSubscriptionStatus(user.uid);
+      await ownerAuthService.login(email, password);
+      // Clear any stored salon so owner always lands on setup to pick their salon
+      if (typeof window !== 'undefined') localStorage.removeItem('salonId');
       toast.success("Connexion réussie");
-      if (!subscriptionStatus.hasSubscription) {
-        setConnectionError(subscriptionStatus.message);
-        toast.info(subscriptionStatus.message);
-      }
-      setTimeout(() => {
-        window.location.href = subscriptionStatus.redirectTo;
-      }, 1000);
+      window.location.href = `/salon/setup`;
     } catch (error: any) {
       setConnectionError(error.message || "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer.");
-      console.error("Erreur de connexion:", error.originalError || error);
     } finally {
       setIsLoading(false);
     }

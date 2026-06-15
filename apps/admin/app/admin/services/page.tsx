@@ -101,7 +101,7 @@ export default function ServicesIndex() {
       <PageHeader 
         title="Liste des services"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Services", isCurrent: true }
         ]}
       />

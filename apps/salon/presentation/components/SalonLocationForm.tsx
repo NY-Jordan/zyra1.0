@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@zyra/ui/components/dialog';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Navigation } from 'lucide-react';
 import { editDocument } from '@zyra/conf/lib/query';
 import { useSalon } from '@/hooks/useSalon';
 import { toast } from 'sonner';
@@ -59,7 +59,8 @@ export default function SalonLocationForm({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [error, setError] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
-  
+  const [isLocating, setIsLocating] = useState(false);
+
   const { salon, refetch } = useSalon();
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
@@ -161,6 +162,40 @@ export default function SalonLocationForm({
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError('La géolocalisation n\'est pas supportée par votre navigateur.');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setSelectedLocation(location);
+        setMapCenter(location);
+        setError('');
+        if (map) {
+          map.panTo(location);
+          map.setZoom(15);
+        }
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location }, (results: any, status: any) => {
+          if (status === 'OK' && results && results[0]) {
+            setSelectedAddress(results[0].formatted_address);
+          }
+          setIsLocating(false);
+        });
+      },
+      () => {
+        setError('Impossible d\'obtenir votre position. Vérifiez les permissions du navigateur.');
+        setIsLocating(false);
+      }
+    );
+  };
+
   const handleCancel = () => {
     // Reset form data
     setSelectedLocation(null);
@@ -172,7 +207,7 @@ export default function SalonLocationForm({
 
   return (
     <Dialog open={isOpen}  onOpenChange={onClose}>
-      <DialogContent className="w-[80%]  overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[95vw] lg:max-w-5xl xl:max-w-6xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <MapPin className="h-6 w-6 text-blue-600" />
@@ -201,7 +236,7 @@ export default function SalonLocationForm({
                   }}
                   onPlaceChanged={onPlaceChanged}
                   options={{
-                    componentRestrictions: { country: countryCode }, // Use dynamic country code
+                    componentRestrictions: { country: countryCode },
                     fields: ['formatted_address', 'geometry', 'name'],
                   }}
                 >
@@ -212,6 +247,21 @@ export default function SalonLocationForm({
                   />
                 </Autocomplete>
               </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleUseCurrentLocation}
+                disabled={isLocating}
+                className="w-full flex items-center gap-2"
+              >
+                {isLocating ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Navigation className="h-4 w-4 text-blue-500" />
+                )}
+                {isLocating ? 'Localisation en cours...' : 'Utiliser ma position actuelle'}
+              </Button>
 
               {/* Error Message */}
               {error && (

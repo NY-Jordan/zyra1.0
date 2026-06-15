@@ -27,6 +27,7 @@ import { useOwner } from '@/hooks/useOwner'
 import { useSalon } from '@/hooks/useSalon'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from 'next-themes'
+import { LogoutauthSalon } from '@/services/ownerAuthService'
 
 export default function Navbar() {
   const router = useRouter()
@@ -39,6 +40,7 @@ export default function Navbar() {
     try {
       await signOut(auth);
       queryClient.clear();
+      LogoutauthSalon();
       toast.success('Déconnexion réussie')
       router.push('/auth/login')
     } catch (error) {

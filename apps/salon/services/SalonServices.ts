@@ -9,6 +9,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "fire
 import { auth } from "@zyra/conf/lib/firebase"
 import Cookies from "js-cookie";
 import { redirect } from 'next/navigation'
+import { createOwner } from '@/services/OwnerService';
 
 /* Check if an owner exists by email */
 export async function checkOwnerExists(email: string) {
@@ -26,24 +27,7 @@ export async function checkEmailSalonAlreadyExists(email: string) {
 }
 
 /* Create a new owner */
-export async function createOwner(owner: IRegisterOwner) {
-  if (owner.photo && owner.photo instanceof File) {
-    const url = await uploadLogoFile("salons", owner.photo)
-    owner.photo = url
-  }
-  const passwordHash = await bcrypt.hash(owner.password, 10)
-  const userCredential = await createUserWithEmailAndPassword(auth, owner.email, owner.password);
-  const firebaseUid = userCredential.user.uid;
-  await createDocument("owners", {
-    ...owner,
-    password: passwordHash,
-    status : {
-      name : SalonStatusEnum.payment,
-      createdAt : new Date(),
-    }
-  }, firebaseUid); // Utiliser l'UID Firebase comme ID du document
-  return firebaseUid; // Retourner l'UID Firebase
-}
+
 
 /* Create a new salon */
 export async function registerSalon({

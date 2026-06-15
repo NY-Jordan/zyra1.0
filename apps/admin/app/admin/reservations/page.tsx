@@ -82,7 +82,7 @@ export default function ReservationsIndex() {
       <PageHeader 
         title="Liste des réservations"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Réservations", isCurrent: true }
         ]}
       />

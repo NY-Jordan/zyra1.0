@@ -11,14 +11,29 @@ import PublicLayout from '@/presentation/layouts/PublicLayout'
 import { editDocument } from '@zyra/conf/lib/query'
 import { useEffect, useState } from 'react'
 
+function ZyraMark({ light = false }: { light?: boolean }) {
+  const color = light ? '#ffffff' : '#0b0b14'
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path
+        d="M6 7H26L6 25H26"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function Login() {
   const [loading, setLoading] = useState(false)
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
   const [countdown, setCountdown] = useState<number>(0)
   const { register, handleSubmit, formState: { errors } } = useForm()
-  const [now] = useState(() => Date.now());
+  const [now] = useState(() => Date.now())
   const isBlockedNow = blockedUntil && now < blockedUntil
-  // handle countdown for blocked state
+
   useEffect(() => {
     if (isBlockedNow) {
       const interval = setInterval(() => {
@@ -36,12 +51,10 @@ export default function Login() {
       }, 1000)
       return () => clearInterval(interval)
     }
-  }, [blockedUntil]);
-
+  }, [blockedUntil])
 
   const handleLogin = async (data: FieldValues) => {
     setLoading(true)
-    // verifie server side if the email is blocked
     const blockInfo = await isBlocked(data.email)
     if (blockInfo.blocked) {
       setBlockedUntil(blockInfo.blockedUntil!)
@@ -53,112 +66,159 @@ export default function Login() {
     const result = await LoginByEmail(data.email)
     await recordAttempt(data.email)
     setLoading(false)
-    // after record attempt, check if the email is blocked again
     const afterBlockInfo = await isBlocked(data.email)
     if (afterBlockInfo.blocked) {
       setBlockedUntil(afterBlockInfo.blockedUntil!)
-    toast.error("Trop de tentatives. Veuillez patienter 5 minutes avant de réessayer.")
+      toast.error("Trop de tentatives. Veuillez patienter 5 minutes avant de réessayer.")
       return
     }
 
     if (result === StatusCodeEnum.OK) {
       localStorage.setItem('emailForSignIn', data.email)
-      toast.success('Un email a été envoyé à votre adresse. Vérifiez votre boîte de réception pour continuer.')
+      toast.success('Lien envoyé. Vérifiez votre boîte de réception.')
       return
     }
     if (result === StatusCodeEnum.NOT_FOUND) {
-      toast.error('Aucun utilisateur trouvé avec cet email. Veuillez vérifier votre saisie.')
+      toast.error('Aucun compte trouvé avec cet email.')
       return
     }
-    toast.error('Une erreur est survenue. Veuillez réessayer plus tard.')
+    toast.error('Une erreur est survenue. Veuillez réessayer.')
   }
-
 
   return (
     <PublicLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 px-4">
-        {/* Logo section */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-2xl mb-6 shadow-2xl shadow-indigo-500/25 ring-4 ring-white/20">
-            ZA
+      <div className="min-h-screen flex">
+
+        {/* ── Left brand panel (desktop only) ── */}
+        <div className="hidden lg:flex lg:w-[45%] bg-[#0b0b14] flex-col justify-between p-12 relative overflow-hidden select-none">
+          {/* Grid texture */}
+          <div
+            className="absolute inset-0 opacity-[0.035]"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+              backgroundSize: '48px 48px',
+            }}
+          />
+
+          {/* Top: Logo */}
+          <div className="relative z-10">
+            <div className="flex items-center gap-3">
+              <ZyraMark light />
+              <span className="text-white text-xl font-semibold tracking-[0.12em] uppercase">
+                Zyra
+              </span>
+            </div>
+            <div className="mt-1 ml-[44px]">
+              <span className="text-white/25 text-[10px] tracking-[0.3em] uppercase font-medium">
+                Administration
+              </span>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-            Zyra Admin
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-3 font-medium">
-            Connectez-vous à votre espace d'administration
-          </p>
+
+          {/* Center: Tagline */}
+          <div className="relative z-10">
+            <p className="text-white/70 text-2xl font-light leading-snug max-w-xs">
+              Gérez votre plateforme<br />avec précision.
+            </p>
+            <div className="mt-6 flex items-center gap-2">
+              <div className="w-8 h-px bg-white/20" />
+              <span className="text-white/25 text-xs tracking-widest uppercase">Accès restreint</span>
+            </div>
+          </div>
+
+          {/* Bottom: Version */}
+          <div className="relative z-10">
+            <p className="text-white/15 text-xs tracking-wide">
+              © {new Date().getFullYear()} Zyra · v1.0
+            </p>
+          </div>
         </div>
 
-        {/* Form Container */}
-        <div className="w-full max-w-sm">
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-slate-900/10 dark:shadow-black/40 border border-white/20 dark:border-slate-700/50 p-8">
-            <form
-              onSubmit={handleSubmit(handleLogin)}
-              className="space-y-6"
-            >
-              <div className="space-y-3">
-                <label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+        {/* ── Right form panel ── */}
+        <div className="flex-1 flex items-center justify-center bg-white dark:bg-[#0f0f18] p-6 sm:p-12">
+          <div className="w-full max-w-[360px]">
+
+            {/* Mobile logo */}
+            <div className="lg:hidden flex items-center gap-3 mb-12">
+              <ZyraMark />
+              <div>
+                <p className="text-[#0b0b14] dark:text-white text-lg font-semibold tracking-[0.12em] uppercase leading-none">
+                  Zyra
+                </p>
+                <p className="text-slate-400 text-[10px] tracking-[0.25em] uppercase mt-0.5">
+                  Administration
+                </p>
+              </div>
+            </div>
+
+            {/* Header */}
+            <div className="mb-10">
+              <h1 className="text-[#0b0b14] dark:text-white text-2xl font-semibold tracking-tight">
+                Connexion
+              </h1>
+              <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 leading-relaxed">
+                Entrez votre adresse email pour recevoir un lien de connexion sécurisé.
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit(handleLogin)} className="space-y-5">
+              <div className="space-y-2">
+                <label
+                  htmlFor="email"
+                  className="block text-[11px] font-semibold tracking-[0.15em] uppercase text-slate-500 dark:text-slate-400"
+                >
                   Adresse e-mail
                 </label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="vous@exemple.com"
-                  className="w-full h-12 text-base bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                  className="h-11 text-sm bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-[#0b0b14] dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-[#0b0b14] dark:focus-visible:ring-white/30 focus-visible:border-[#0b0b14] dark:focus-visible:border-white/30 rounded-lg transition"
                   {...register("email", { required: true })}
                   disabled={!!isBlockedNow}
                 />
                 {errors?.email && (
-                  <p className="text-xs text-red-500 dark:text-red-400 font-medium">L'adresse e-mail est requise</p>
+                  <p className="text-xs text-red-500 dark:text-red-400">
+                    L'adresse e-mail est requise
+                  </p>
                 )}
               </div>
 
               {isBlockedNow && (
-                <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 text-sm px-4 py-4 backdrop-blur-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                    <span>Trop de tentatives. Réessayez dans <span className="font-semibold">{formatCountdown(countdown)}</span></span>
-                  </div>
+                <div className="flex items-start gap-3 rounded-lg border border-red-100 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-4 py-3">
+                  <div className="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 animate-pulse" />
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    Trop de tentatives. Réessayez dans{' '}
+                    <span className="font-semibold">{formatCountdown(countdown)}</span>
+                  </p>
                 </div>
               )}
 
-              <Button 
+              <Button
                 type="submit"
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/25 transition-all duration-200 transform hover:scale-[1.02]"
+                className="w-full h-11 text-sm font-medium bg-[#0b0b14] hover:bg-[#1a1a2e] dark:bg-white dark:text-[#0b0b14] dark:hover:bg-slate-100 text-white rounded-lg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading || !!isBlockedNow}
               >
                 {loading ? (
-                  <div className="flex items-center gap-3">
-                    <LoadingSpinner className="h-5 w-5" />
-                    <span>Connexion en cours...</span>
-                  </div>
+                  <span className="flex items-center justify-center gap-2.5">
+                    <LoadingSpinner className="h-4 w-4" />
+                    <span>Envoi en cours…</span>
+                  </span>
                 ) : (
-                  "Se connecter"
+                  'Continuer'
                 )}
               </Button>
             </form>
-          </div>
 
-          <div className="mt-8 text-center">
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-              En vous connectant, vous acceptez nos{" "}
-              <span className="text-indigo-600 dark:text-indigo-400 underline cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300">
-                conditions d'utilisation
-              </span>{" "}
-              et notre{" "}
-              <span className="text-indigo-600 dark:text-indigo-400 underline cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300">
-                politique de confidentialité
-              </span>.
-            </p>
+            {/* Footer */}
+            <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800">
+              <p className="text-xs text-slate-300 dark:text-slate-600">
+                Accès réservé aux administrateurs Zyra.
+              </p>
+            </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-12 text-center">
-          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-            © {new Date().getFullYear()} Zyra. Tous droits réservés.
-          </p>
         </div>
       </div>
     </PublicLayout>

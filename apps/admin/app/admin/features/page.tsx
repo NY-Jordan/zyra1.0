@@ -85,7 +85,7 @@ export default function FeaturesPage() {
       <PageHeader 
         title="Fonctionnalités Disponibles"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Fonctionnalités", isCurrent: true }
         ]}
       />

@@ -19,17 +19,16 @@ export const Routes = {
     login : "/auth/login",
   },
   protected : {
-    dashboard : "/",
+    dashboard : "/admin",
     salons : {
-      url : '/salons',
+      url : '/admin/salons',
       details : {
-        url : '/salons/details',
+        url : '/admin/salons/details',
       },
       create : {
-        url : '/salons/create'
+        url : '/admin/salons/create'
       }
     },
-    users : "/users",
+    users : "/admin/utilisateurs",
   },
-  
 };

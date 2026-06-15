@@ -1,223 +1,230 @@
 'use client'
-import React, { useState, useEffect } from 'react'
-import { Button } from '@zyra/ui/components/button'
-import { Card, CardContent } from '@zyra/ui/components/card'
+import React, { useState } from 'react'
 import { useOwner } from '@/hooks/useOwner'
 import { useSalon } from '@/hooks/useSalon'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
-import { Building2, CheckCircle, AlertCircle, ArrowRight, ChevronDown, LogOut, User } from 'lucide-react'
+import { Building2, MapPin, ArrowRight, LogOut, CheckCircle, AlertCircle, Scissors, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import LoadingScreen from '@/presentation/components/common/LoadingScreen'
-import SalonList from '@/presentation/components/salon/SalonList'
 import { signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
+import { LogoutauthSalon } from '@/services/ownerAuthService'
+import LoadingScreen from '@/presentation/components/common/LoadingScreen'
+import { SubscriptionStatus } from '@zyra/conf/domain/entities/subscriptions.entities'
 
 export default function SalonSetupPage() {
-  const { owner, isLoading: ownerLoading, isAuthenticated } = useOwner()
+  const { owner, isLoading: ownerLoading } = useOwner()
   const { switchSalon } = useSalon()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [selectedSalonId, setSelectedSalonId] = useState<string | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
-  const [showUserDropdown, setShowUserDropdown] = useState(false)
-  const queryClient = useQueryClient()
+  const [noSubSalonId, setNoSubSalonId] = useState<string | null>(null)
 
-  // Fonction pour gérer l'ajout d'un nouveau salon
-  const handleAddNewSalon = () => {
-    // TODO: Implémenter la navigation vers la création de salon
-    toast.info('Fonctionnalité de création de salon à venir')
-  }
-
-  // Fonction de déconnexion
-  const handleLogout = async () => {
-    console.log('Déconnexion en cours...')
-    try {
-      await signOut(auth)
-      queryClient.clear()
-      toast.success('Déconnexion réussie')
-      router.push('/auth/login')
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error)
-      toast.error('Erreur lors de la déconnexion')
-    }
-  }
-
-  // Fermer le dropdown quand on clique ailleurs
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showUserDropdown) {
-        setShowUserDropdown(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showUserDropdown])
-
-  // Récupérer les salons du propriétaire connecté
   const { data: salons = [], isLoading: salonsLoading } = useQuery({
     queryKey: ['owner-salons', owner?.id],
     queryFn: async () => {
       if (!owner?.id) return []
-      const result = await fetchCollection('salons', [
-        where('ownerId', '==', owner.id)
-      ])
-      return result as ISalon[]
+      return await fetchCollection('salons', [where('ownerId', '==', owner.id)]) as ISalon[]
     },
     enabled: !!owner?.id,
   })
 
   const handleSelectSalon = async (salonId: string) => {
     setIsConnecting(true)
+    setNoSubSalonId(null)
     try {
+      const subs = await fetchCollection('subscriptions', [
+        where('userId', '==', salonId),
+        where('status', '==', SubscriptionStatus.ACTIVE),
+      ])
+      const hasValidSub = subs.some((s: any) => {
+        if (!s.endDate) return true
+        const end = new Date(s.endDate.seconds * 1000)
+        return end > new Date()
+      })
+      if (!hasValidSub) {
+        setNoSubSalonId(salonId)
+        setIsConnecting(false)
+        return
+      }
       switchSalon(salonId)
-      toast.success('Salon sélectionné avec succès!')
+      toast.success('Salon connecté !')
       window.location.href = '/salon/dashboard'
-    } catch (error) {
-      console.error('Erreur lors de la sélection du salon:', error)
-      toast.error('Erreur lors de la sélection du salon')
-    } finally {
+    } catch {
+      toast.error('Erreur lors de la connexion au salon')
       setIsConnecting(false)
     }
   }
 
-  if (!isAuthenticated || ownerLoading) {
-    return <LoadingScreen message="Chargement de votre profil..." />
+  const handleLogout = async () => {
+    try {
+      await signOut(auth)
+      queryClient.clear()
+      LogoutauthSalon()
+      router.push('/auth/login')
+    } catch {
+      toast.error('Erreur lors de la déconnexion')
+    }
   }
 
-  if (salonsLoading) {
+  if (ownerLoading || salonsLoading) {
     return <LoadingScreen message="Chargement de vos salons..." />
   }
 
-  if (!owner) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Accès non autorisé</h2>
-            <p className="text-gray-600 dark:text-slate-400 mb-6">Vous devez être connecté pour accéder à cette page.</p>
-            <Button onClick={() => {
-                handleLogout();
-                router.push('/auth/login')
-            }} className="w-full">
-              Se connecter
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (salons.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <Building2 className="h-12 w-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Aucun salon trouvé</h2>
-            <p className="text-gray-600 dark:text-slate-400 mb-6">
-              Vous ne possédez aucun salon pour le moment. Veuillez contacter le support pour créer votre salon.
-            </p>
-            <Button onClick={() => router.push('/auth/login')} variant="outline" className="w-full">
-              Retour à la connexion
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
-        <div className="max-w-4xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="text-center flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Sélectionnez votre salon</h1>
-              <p className="text-gray-600 dark:text-slate-400">Choisissez le salon que vous souhaitez gérer</p>
-            </div>
-            {/* Dropdown utilisateur */}
-            <div className="relative">
-              <button
-                onClick={() =>
-           handleLogout()
-                    }
-                className="flex items-center gap-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg px-4 py-2 transition-colors"
-              >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {owner.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{owner.name}</span>
-                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-slate-400" />
-              </button>
+    <div className="min-h-screen bg-[#F8F4F0] dark:bg-[#0F1117] flex flex-col">
 
-              {/* Dropdown menu */}
-              {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-10">
-                  <button
-                    onClick={() =>
-           handleLogout()
-                    }
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Se déconnecter
-                  </button>
-                </div>
-              )}
-            </div>
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+            <Scissors className="w-4 h-4 text-white" />
           </div>
+          <span className="text-[15px] font-bold text-slate-800 dark:text-white tracking-tight">Zyra</span>
         </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-[13px] text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
+        >
+          <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+            {owner?.name?.charAt(0)?.toUpperCase() ?? 'U'}
+          </div>
+          <span className="hidden sm:block font-medium text-slate-700 dark:text-slate-300">{owner?.name}</span>
+          <LogOut className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Liste des salons */}
-        <div className="mb-8">
-          <SalonList
-            salons={salons}
-            selectedSalonId={selectedSalonId}
-            onSalonSelect={setSelectedSalonId}
-            onAddNewSalon={handleAddNewSalon}
-          />
-        </div>
+      {/* Main */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
 
-        {/* Bouton d'action */}
-        <div className="text-center">
-          <Button
-            onClick={() => selectedSalonId && handleSelectSalon(selectedSalonId)}
-            disabled={!selectedSalonId || isConnecting}
-            size="lg"
-            className="px-8"
-          >
-            {isConnecting ? (
-              <>
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-                Connexion en cours...
-              </>
-            ) : (
-              <>
-                Accéder au tableau de bord
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-12 text-center">
-          <p className="text-sm text-gray-500 dark:text-slate-500">
-            Besoin d'aide ? Contactez notre équipe support
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-[28px] sm:text-[32px] font-extrabold text-slate-800 dark:text-white mb-2">
+            Quel salon gérez-vous ?
+          </h1>
+          <p className="text-[14px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            Sélectionnez votre salon pour accéder à votre espace de gestion.
           </p>
         </div>
+
+        {/* Salon list */}
+        <div className="w-full max-w-lg space-y-3">
+          {salons.length === 0 ? (
+            <div className="bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl p-10 text-center">
+              <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Building2 className="w-7 h-7 text-slate-400" />
+              </div>
+              <p className="text-[15px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Aucun salon trouvé</p>
+              <p className="text-[13px] text-slate-400 dark:text-slate-500">
+                Votre compte n'est associé à aucun salon. Contactez l'équipe Zyra.
+              </p>
+            </div>
+          ) : (
+            salons.map((salon) => {
+              const isSelected = selectedSalonId === salon.id
+              const isConfigured = (salon.progress ?? 0) >= 80
+              const photo = Array.isArray(salon.photos) && salon.photos[0]
+
+              return (
+                <div key={salon.id} className="space-y-1.5">
+              <button
+                  onClick={() => { setSelectedSalonId(salon.id); setNoSubSalonId(null) }}
+                  className={`w-full text-left rounded-2xl border transition-all duration-150 ${
+                    isSelected
+                      ? 'bg-white dark:bg-[#161B24] border-emerald-400 dark:border-emerald-500 shadow-md shadow-emerald-100 dark:shadow-emerald-900/20'
+                      : 'bg-white dark:bg-[#161B24] border-[#F0EAE4] dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-4 p-4">
+                    {/* Photo / avatar */}
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-emerald-100 to-[#F0EAE4] dark:from-emerald-900/30 dark:to-slate-800 flex items-center justify-center">
+                      {photo
+                        ? <img src={photo} alt={salon.name} className="w-full h-full object-cover" />
+                        : <Building2 className="w-6 h-6 text-emerald-500" />
+                      }
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14px] font-bold text-slate-800 dark:text-white truncate">{salon.name}</p>
+                      {(salon.address || salon.city) && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                          <span className="text-[12px] text-slate-400 truncate">{salon.address || salon.city}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status + selected indicator */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {isConfigured
+                        ? <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
+                            <CheckCircle className="w-3 h-3" /> Actif
+                          </span>
+                        : <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">
+                            <AlertCircle className="w-3 h-3" /> {salon.progress ?? 0}%
+                          </span>
+                      }
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-500'
+                          : 'border-slate-300 dark:border-slate-600'
+                      }`}>
+                        {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Inline no-subscription warning */}
+                {noSubSalonId === salon.id && (
+                  <div className="flex items-start gap-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/50 rounded-xl px-4 py-3">
+                    <ShieldAlert className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-[12px] text-rose-600 dark:text-rose-400 leading-relaxed">
+                      Ce salon n'a pas de forfait actif. Contactez l'équipe Zyra pour activer votre abonnement.
+                    </p>
+                  </div>
+                )}
+              </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* CTA */}
+        {salons.length > 0 && (
+          <div className="mt-8 w-full max-w-lg">
+            <button
+              onClick={() => selectedSalonId && handleSelectSalon(selectedSalonId)}
+              disabled={!selectedSalonId || isConnecting || noSubSalonId === selectedSalonId}
+              className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white font-semibold text-[14px] py-3.5 rounded-2xl transition-all duration-150 disabled:cursor-not-allowed"
+            >
+              {isConnecting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Connexion en cours...
+                </>
+              ) : (
+                <>
+                  Accéder au tableau de bord
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="py-6 text-center">
+        <p className="text-[12px] text-slate-400 dark:text-slate-600">
+          Besoin d'aide ? Contactez <span className="text-emerald-500">support@zyra.app</span>
+        </p>
       </div>
     </div>
   )

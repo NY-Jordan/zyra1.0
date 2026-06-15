@@ -100,7 +100,7 @@ export default function HairDressersListPage() {
       <PageHeader 
         title="Coiffeurs"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Coiffeurs", isCurrent: true }
         ]}
       />

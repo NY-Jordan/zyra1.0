@@ -109,8 +109,8 @@ export default function UpdateSalon({ params }: { params: Promise<{ id: string }
         <PageHeader 
           title="Modifier un salon"
           breadcrumbs={[
-            { label: "Dashboard", href: "/" },
-            { label: "Salons", href: "/salons" },
+            { label: "Dashboard", href: "/admin" },
+            { label: "Salons", href: "/admin/salons" },
             { label: "Chargement...", isCurrent: true }
           ]}
         />
@@ -124,8 +124,8 @@ export default function UpdateSalon({ params }: { params: Promise<{ id: string }
       <PageHeader 
         title="Modifier un salon"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Salons", href: "/salons" },
+          { label: "Dashboard", href: "/admin" },
+          { label: "Salons", href: "/admin/salons" },
           { label: "Modifier", isCurrent: true }
         ]}
       />

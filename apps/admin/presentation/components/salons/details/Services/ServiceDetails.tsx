@@ -12,10 +12,6 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { uploadLogoFile } from '@zyra/conf/lib/utils'
 import { ISalon, ISalonService } from '@zyra/conf/domain/entities/salons.entities'
-import Categories from '../../../settings/Categories';
-import { log } from 'console'
-
-
 function generateUniqueId() {
   return Math.random().toString(36).substr(2, 16) + Date.now().toString(36)
 }
@@ -104,12 +100,16 @@ export default function ServiceDetails({ services, salon }: { services: ISalonSe
     setServiceToEdit(null)
   }
 
+  const th = "px-4 py-3 text-left text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap"
+  const td = "px-4 py-3 text-[13px] text-slate-700 dark:text-slate-300"
+
   return (
-    <div className="mb-8 mt-5">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="font-semibold">Services proposés</h2>
-        <Button variant="default" onClick={() => setShowForm(v => !v)}>
-          <Plus className="w-4 h-4 mr-1" /> Ajouter
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[12px] text-slate-400">{services?.length ?? 0} service{(services?.length ?? 0) > 1 ? 's' : ''}</p>
+        <Button size="sm" onClick={() => setShowForm(v => !v)}
+          className="h-8 text-[12px] bg-[#0b0b14] dark:bg-emerald-600 text-white hover:opacity-90">
+          <Plus className="w-3.5 h-3.5 mr-1.5" /> Ajouter
         </Button>
       </div>
       <CreateServiceModal
@@ -127,49 +127,89 @@ export default function ServiceDetails({ services, salon }: { services: ISalonSe
         serviceCategories={salon.serviceCategories}
         initialData={serviceToEdit}
       />
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="px-4 py-2 text-left">Service</th>
-              <th className="px-4 py-2 text-left">Prix</th>
-              <th className="px-4 py-2 text-left">Categorie</th>
-              <th className="px-4 py-2 text-left">Durée</th>
-              <th className="px-4 py-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(services || []).map((s: ISalonService, i: number) => (
-              <tr key={i} className="border-t">
-                <td className="px-4 py-2 flex items-center gap-2">
-                  {s.imageUrl && (
-                    <img src={s.imageUrl} alt="" className="w-8 h-8 object-cover rounded" />
-                  )}
-                  {s.name}
-                </td>
-                <td className="px-4 py-2 text-blue-600 font-semibold">{s.price}</td>
-                <td className="px-4 py-2  font-semibold">{salon.serviceCategories.find(cat => cat.id ===  s.categoryId)?.name || ''}</td>
-                <td className="px-4 py-2">{s.duration}</td>
-                <td className="px-4 py-2 flex gap-2">
-                  <Button size="icon" variant="outline" onClick={() => handleEditClick(s)}>
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button size="icon" variant="destructive" onClick={() => handleDeleteClick(s)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                  <Button size="icon" variant="secondary" onClick={() => setSelectedService(s)}>
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </td>
+      {(services || []).length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
+          <p className="text-[14px] font-medium">Aucun service enregistré</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-[#F0EAE4] dark:border-slate-800/50">
+          <table className="min-w-full">
+            <thead className="bg-[#FAF7F4] dark:bg-slate-800/50">
+              <tr>
+                <th className={th}>Service</th>
+                <th className={th}>Catégorie</th>
+                <th className={th}>Prix</th>
+                <th className={th}>Durée</th>
+                <th className={th}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-[#F0EAE4] dark:divide-slate-800/50">
+              {(services || []).map((s: ISalonService, i: number) => {
+                const cat = salon.serviceCategories?.find((c: any) => c.id === s.categoryId)
+                return (
+                  <tr key={i} className="hover:bg-[#FAF7F4] dark:hover:bg-slate-800/20 transition-colors">
+                    <td className={td}>
+                      <div className="flex items-center gap-3">
+                        {s.imageUrl ? (
+                          <img src={s.imageUrl} alt="" className="w-9 h-9 rounded-xl object-cover border border-[#F0EAE4] dark:border-slate-700 flex-shrink-0" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-xl bg-[#FEF1EC] dark:bg-rose-950/30 flex items-center justify-center flex-shrink-0">
+                            <span className="text-rose-400 font-bold text-[11px]">{s.name?.charAt(0)}</span>
+                          </div>
+                        )}
+                        <span className="font-semibold text-[13px] text-slate-800 dark:text-white">{s.name}</span>
+                      </div>
+                    </td>
+                    <td className={td}>
+                      {cat ? (
+                        <span className="text-[11px] font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30 px-2 py-0.5 rounded-full">
+                          {cat.name}
+                        </span>
+                      ) : '—'}
+                    </td>
+                    <td className={td}>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        {Number(s.price).toLocaleString('fr-FR')} FCFA
+                      </span>
+                    </td>
+                    <td className={td}>{s.duration} min</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <Button size="icon" variant="ghost"
+                          className="w-7 h-7 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                          title="Voir les détails"
+                          onClick={() => setSelectedService(s)}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost"
+                          className="w-7 h-7 text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30"
+                          title="Modifier"
+                          onClick={() => handleEditClick(s)}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost"
+                          className="w-7 h-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                          title="Supprimer"
+                          onClick={() => handleDeleteClick(s)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       <SalonServiceDetailsModal
         open={!!selectedService}
         onClose={() => setSelectedService(null)}
         service={selectedService}
+        categoryLabel={selectedService ? salon.serviceCategories?.find((c: any) => c.id === selectedService.categoryId)?.name : undefined}
       />
       <DeleteServiceModal
         open={deleteModalOpen}

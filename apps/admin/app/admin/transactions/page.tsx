@@ -71,7 +71,7 @@ export default function TransactionsIndex() {
       <PageHeader 
         title="Gestion des transactions"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Transactions", isCurrent: true }
         ]}
       />

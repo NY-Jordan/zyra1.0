@@ -14,7 +14,7 @@ export default function Index() {
       <PageHeader 
         title="Paramètres"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Paramètres", isCurrent: true }
         ]}
       />

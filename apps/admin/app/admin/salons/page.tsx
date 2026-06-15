@@ -53,7 +53,7 @@ export default function Index() {
       <PageHeader 
         title="Liste des salons"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Salons", isCurrent: true }
         ]}
       />

@@ -103,7 +103,7 @@ export default function PackagesPage() {
       <PageHeader 
         title="Gestion des Forfaits"
         breadcrumbs={[
-          { label: "Dashboard", href: "/" },
+          { label: "Dashboard", href: "/admin" },
           { label: "Forfaits", isCurrent: true }
         ]}
       />
