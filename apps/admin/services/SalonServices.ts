@@ -10,6 +10,13 @@ export async function createSalon({
   salon: ICreateSalon
   ownerId: string
 }): Promise<string> {
+  // Upload logo
+  let logoUrl: string | undefined
+  if (salon.logo instanceof File) {
+    logoUrl = await uploadLogoFile("salons/logos", salon.logo)
+  }
+
+  // Upload gallery photos
   const rawPhotos = salon.photos
   const files: File[] = rawPhotos instanceof FileList
     ? Array.from(rawPhotos)
@@ -25,12 +32,14 @@ export async function createSalon({
   return await createDocument("salons", {
     ...salon,
     photos: photoUrls,
+    logo: logoUrl,
     ownerId,
     reservationsCount: 0,
     progress: 40,
     services: [],
     serviceCategories: [],
     status: { name: SalonStatusEnum.active, createdAt: new Date() },
+    onboardingStep: 'welcome',
   })
 }
 

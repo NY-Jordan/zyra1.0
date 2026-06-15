@@ -54,8 +54,11 @@ export default function Navbar() {
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex w-full items-center justify-between h-16">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 via-cyan-500 to-teal-500 shadow-lg shadow-cyan-500/20">
-              <Store className="h-6 w-6 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-cyan-500/20 flex-shrink-0">
+              {salon?.logo
+                ? <img src={salon.logo} alt={salon.name} className="w-full h-full object-cover" />
+                : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-500 via-cyan-500 to-teal-500"><Store className="h-6 w-6 text-white" /></div>
+              }
             </div>
             <div className="min-w-0">
               <h1 className="truncate text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
@@ -181,8 +184,11 @@ export default function Navbar() {
                   {salon && (
                     <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
                       <div className="flex items-center space-x-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500">
-                          <Store className="h-5 w-5 text-white" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden flex-shrink-0">
+                          {salon.logo
+                            ? <img src={salon.logo} alt={salon.name} className="w-full h-full object-cover" />
+                            : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-cyan-500"><Store className="h-5 w-5 text-white" /></div>
+                          }
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="truncate text-sm font-medium text-slate-900 dark:text-white">

@@ -1,20 +1,17 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@zyra/ui/components/dialog'
-import { Clock, AlertTriangle } from 'lucide-react'
+import { Clock, Sparkles } from 'lucide-react'
 import { useSalon } from '@/hooks/useSalon'
 import { editDocument } from '@zyra/conf/lib/query'
 import { toast } from 'sonner'
 import { ISalon, OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
-import { defaultOpeningHours } from '../../../../../packages/conf/src/lib/config';
+import { defaultOpeningHours } from '../../../../../packages/conf/src/lib/config'
 
 interface SalonConfigModalProps {
   isOpen: boolean
@@ -29,177 +26,187 @@ export default function SalonConfigModal({ isOpen, onClose, salon }: SalonConfig
 
   useEffect(() => {
     if (salon?.openingHours && Array.isArray(salon.openingHours) && salon.openingHours.length > 0) {
-      const extendedHours: OpeningHour[] = salon.openingHours.map(hour => ({
-        ...hour,
-        openDay: !!(hour.open && hour.close)
-      }))
-      setOpeningHours(extendedHours)
+      setOpeningHours(salon.openingHours.map(h => ({ ...h, openDay: !!(h.open && h.close) })))
     } else {
-      // Utiliser les horaires par défaut si le salon n'a pas encore d'horaires configurés
       setOpeningHours(defaultOpeningHours)
     }
   }, [salon])
 
   const handleHourChange = (index: number, field: 'open' | 'close', value: string) => {
-    const newHours = [...openingHours]
-    newHours[index] = { ...newHours[index], [field]: value }
-    setOpeningHours(newHours)
+    const next = [...openingHours]
+    next[index] = { ...next[index], [field]: value }
+    setOpeningHours(next)
   }
 
   const handleDayToggle = (index: number) => {
-    const newHours = [...openingHours]
-    newHours[index] = { ...newHours[index], openDay: !newHours[index].openDay }
-    setOpeningHours(newHours)
+    const next = [...openingHours]
+    next[index] = { ...next[index], openDay: !next[index].openDay }
+    setOpeningHours(next)
   }
 
   const handleSubmit = async () => {
-    if (!salon?.id) {
-      toast.error('Erreur: ID du salon manquant')
-      return
-    }
-    const hasValidHours = openingHours.some(hour => 
-      hour.openDay && hour.open && hour.close && hour.open < hour.close
-    )
+    if (!salon?.id) return
+    const hasValidHours = openingHours.some(h => h.openDay && h.open && h.close && h.open < h.close)
     if (!hasValidHours) {
       toast.error('Veuillez configurer au moins un jour avec des horaires valides')
       return
     }
     setIsSubmitting(true)
     try {
-      const standardOpeningHours: OpeningHour[] = openingHours
-        .filter(hour => hour.openDay) 
-        .map(hour => ({
-          day: hour.day,
-          open: hour.open,
-          close: hour.close,
-          openDay : hour.openDay
-        }))
-
       await editDocument('salons', salon.id, {
-        openingHours: standardOpeningHours,
+        openingHours: openingHours
+          .filter(h => h.openDay)
+          .map(h => ({ day: h.day, open: h.open, close: h.close, openDay: h.openDay })),
         updatedAt: new Date(),
-        progress : 60
+        progress: 60,
       })
-      toast.success('Horaires mis à jour avec succès!')
-      const updatedSalon = await refetch()
-      if (updatedSalon.data && updatedSalon.data.progress > 40) {
-        onClose()
-        toast.success("Configuration des heures d'ouverture terminée ! ")
-      }
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error)
+      const updated = await refetch()
+      if (updated.data && updated.data.progress > 40) onClose()
+      toast.success('Horaires enregistrés avec succès !')
+    } catch {
       toast.error('Erreur lors de la sauvegarde des horaires')
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const openDaysCount = openingHours.filter(h => h.openDay).length
+
   return (
     <Dialog open={isOpen} onOpenChange={() => {}} modal>
-      <DialogContent 
-        className="max-w-7xl w-full max-h-[90vh] overflow-y-auto"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+      <DialogContent
+        className="max-w-2xl w-full max-h-[90vh] overflow-y-auto p-0"
+        onPointerDownOutside={e => e.preventDefault()}
+        onEscapeKeyDown={e => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <AlertTriangle className="h-6 w-6 text-amber-500" />
-            Configuration incomplète du salon
-          </DialogTitle>
-          <DialogDescription className="text-base">
-            Votre salon n'est configuré qu'à {salon.progress}%. La configuration des horaires d'ouverture est 
-            <strong className="text-red-600"> obligatoire</strong> pour continuer. Veuillez configurer vos horaires pour accéder à votre tableau de bord.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogTitle className="sr-only">Horaires d'ouverture</DialogTitle>
 
-        <div className="space-y-6">
-          {/* Barre de progression */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progression de la configuration</span>
-              <span className="font-medium">{salon.progress}%</span>
+        {/* Header */}
+        <div className="px-8 pt-8 pb-6 border-b border-[#F0EAE4] dark:border-slate-800">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+              <Clock className="w-6 h-6 text-white" />
             </div>
-            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
-              <div 
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  salon.progress < 50 ? 'bg-red-500' : salon.progress < 80 ? 'bg-amber-500' : 'bg-green-500'
-                }`}
-                style={{ width: `${salon.progress}%` }}
-              />
+            <div>
+              <h2 className="text-[20px] font-extrabold text-slate-800 dark:text-white leading-tight">
+                Quand accueillez-vous vos clients ?
+              </h2>
+              <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Définissez vos jours et heures d'ouverture — modifiables à tout moment.
+              </p>
             </div>
           </div>
 
-          {/* Configuration des horaires */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-semibold">Horaires d'ouverture</h3>
-            </div>
-
-            <div className="grid gap-3">
-              {openingHours.map((hour, index) => (
+          {/* Progress */}
+          <div className="bg-[#F8F4F0] dark:bg-slate-800/60 rounded-xl px-4 py-3 flex items-center gap-3">
+            <Sparkles className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300">
+                  Configuration du salon
+                </span>
+                <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400">
+                  {salon.progress}%
+                </span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
                 <div
-                  key={hour.day} 
-                  className={`flex items-center gap-4 p-3 rounded-lg border ${
-                    hour.openDay ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={hour.openDay}
-                      onChange={() => handleDayToggle(index)}
-                      className="h-4 w-4 text-blue-600 rounded"
-                    />
-                    <span className="w-20 font-medium text-gray-700 dark:text-slate-300">
-                      {hour.day}
-                    </span>
-                  </div>
-
-                  {hour.openDay ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="time"
-                        value={hour.open}
-                        onChange={(e) => handleHourChange(index, 'open', e.target.value)}
-                        className="w-[120px]"
-                      />
-                      <span className="text-gray-500 dark:text-slate-400">à</span>
-                      <Input
-                        type="time"
-                        value={hour.close}
-                        onChange={(e) => handleHourChange(index, 'close', e.target.value)}
-                        className="w-[120px]"
-                      />
-                    </div>
-                  ) : (
-                    <span className="text-gray-500 dark:text-slate-400 italic">Fermé</span>
-                  )}
-                </div>
-              ))}
+                  className="h-1.5 rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${salon.progress}%` }}
+                />
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button 
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="min-w-[120px]"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-                  Sauvegarde...
-                </>
-              ) : (
-                <>
-                  <Clock className="mr-2 h-4 w-4" />
-                  Configurer les horaires
-                </>
-              )}
-            </Button>
+        {/* Days grid */}
+        <div className="px-8 py-6 space-y-2">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-300">
+              Activez les jours où vous êtes ouvert
+            </p>
+            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full">
+              {openDaysCount} jour{openDaysCount !== 1 ? 's' : ''} sélectionné{openDaysCount !== 1 ? 's' : ''}
+            </span>
           </div>
+
+          {openingHours.map((hour, index) => (
+            <div
+              key={hour.day}
+              className={`flex items-center gap-4 px-4 py-3 rounded-xl border transition-all duration-200 ${
+                hour.openDay
+                  ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/50'
+                  : 'bg-[#FAFAF9] dark:bg-slate-800/40 border-[#EDE8E3] dark:border-slate-700/50'
+              }`}
+            >
+              {/* Toggle */}
+              <button
+                type="button"
+                onClick={() => handleDayToggle(index)}
+                className={`relative flex-shrink-0 w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none ${
+                  hour.openDay ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                    hour.openDay ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+
+              {/* Day label */}
+              <span className={`w-24 text-[13px] font-semibold transition-colors ${
+                hour.openDay ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-500'
+              }`}>
+                {hour.day}
+              </span>
+
+              {/* Time inputs */}
+              {hour.openDay ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <Input
+                    type="time"
+                    value={hour.open}
+                    onChange={e => handleHourChange(index, 'open', e.target.value)}
+                    className="w-[110px] h-8 text-[13px] text-center dark:bg-slate-800"
+                  />
+                  <span className="text-[12px] text-slate-400 font-medium">—</span>
+                  <Input
+                    type="time"
+                    value={hour.close}
+                    onChange={e => handleHourChange(index, 'close', e.target.value)}
+                    className="w-[110px] h-8 text-[13px] text-center dark:bg-slate-800"
+                  />
+                </div>
+              ) : (
+                <span className="text-[12px] text-slate-400 dark:text-slate-500 italic flex-1">
+                  Fermé ce jour
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="px-8 pb-8">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 h-12 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white font-semibold text-[14px] rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+          >
+            {isSubmitting ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Clock className="w-4 h-4" />
+                Enregistrer mes horaires
+              </>
+            )}
+          </button>
+          <p className="text-center text-[11px] text-slate-400 dark:text-slate-500 mt-3">
+            Ces horaires seront visibles par vos clients sur votre profil Zyra.
+          </p>
         </div>
       </DialogContent>
     </Dialog>

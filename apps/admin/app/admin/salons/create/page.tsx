@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { useForm, Controller, SubmitHandler } from "react-hook-form"
 import { Button } from "@zyra/ui/components/button"
 import { Input } from "@zyra/ui/components/input"
@@ -117,6 +117,8 @@ function Field({ label, required, children, error }: {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function CreateSalon() {
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [galleryFiles, setGalleryFiles] = useState<(File | null)[]>(Array(6).fill(null))
   const [generatedPwd, setGeneratedPwd] = useState("")
   const [includeMail, setIncludeMail] = useState(false)
@@ -126,10 +128,32 @@ export default function CreateSalon() {
   const [pendingOwnerData, setPendingOwnerData] = useState<any>(null)
   const [pendingOwnerExists, setPendingOwnerExists] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [ownerEmailExists, setOwnerEmailExists] = useState<boolean | null>(null)
+  const [ownerEmailChecking, setOwnerEmailChecking] = useState(false)
   const router = useRouter()
   const queryClient = useQueryClient()
 
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<ISalonFormValues>()
+
+  const ownerEmail = watch("ownerEmail")
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  useEffect(() => {
+    if (!ownerEmail || !EMAIL_RE.test(ownerEmail)) {
+      setOwnerEmailExists(null)
+      return
+    }
+    setOwnerEmailChecking(true)
+    const t = setTimeout(async () => {
+      try {
+        const exists = await checkOwnerExists(ownerEmail)
+        setOwnerEmailExists(exists)
+      } finally {
+        setOwnerEmailChecking(false)
+      }
+    }, 600)
+    return () => clearTimeout(t)
+  }, [ownerEmail])
 
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ['salon-categories'],
@@ -162,6 +186,7 @@ export default function CreateSalon() {
           ...pendingSalonData,
           openingHours: defaultOpeningHours,
           photos,
+          logo: logoFile ?? undefined,
         },
         ownerId,
       })
@@ -198,17 +223,14 @@ export default function CreateSalon() {
     const exists = await fetchCollection("salons", [where("name", "==", salonData.name)])
     if (exists.length > 0) { toast.error("Un salon avec ce nom existe déjà."); return }
 
-    const ownerExists = await checkOwnerExists(owner.email)
+    const ownerExists = ownerEmailExists ?? await checkOwnerExists(owner.email)
+    setPendingSalonData(salonData)
+    setPendingOwnerData(owner)
+    setPendingOwnerExists(ownerExists)
     if (ownerExists) {
-      setPendingSalonData(salonData)
-      setPendingOwnerData(owner)
-      setPendingOwnerExists(true)
       setShowOwnerModal(true)
       return
     }
-    setPendingSalonData(salonData)
-    setPendingOwnerData(owner)
-    setPendingOwnerExists(false)
     setShowPlanModal(true)
   }
 
@@ -323,6 +345,49 @@ export default function CreateSalon() {
               </div>
             </div>
 
+            {/* Logo */}
+            <div className={card}>
+              <h2 className="text-[15px] font-bold text-slate-800 dark:text-white mb-4">Logo du salon</h2>
+              <div className="flex items-center gap-5">
+                <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-[#E8E0D8] dark:border-slate-700 overflow-hidden flex-shrink-0 bg-[#F8F4F0] dark:bg-slate-800 flex items-center justify-center">
+                  {logoPreview
+                    ? <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                    : <ImagePlus className="w-7 h-7 text-slate-300 dark:text-slate-600" />
+                  }
+                </div>
+                <div className="flex-1">
+                  <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-2">
+                    Affiché dans la navbar de l'app salon. Format carré recommandé.
+                  </p>
+                  <div className="flex gap-2">
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
+                      <ImagePlus className="w-3.5 h-3.5" />
+                      {logoFile ? 'Changer' : 'Choisir un logo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null
+                          setLogoFile(file)
+                          setLogoPreview(file ? URL.createObjectURL(file) : null)
+                        }}
+                      />
+                    </label>
+                    {logoFile && (
+                      <button
+                        type="button"
+                        onClick={() => { setLogoFile(null); setLogoPreview(null) }}
+                        className="inline-flex items-center gap-1 text-[12px] text-slate-400 hover:text-rose-500 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" /> Retirer
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Gallery */}
             <div className={card}>
               <div className="flex items-center justify-between mb-5">
@@ -361,42 +426,64 @@ export default function CreateSalon() {
                   />
                 </Field>
                 <Field label="Email" required error={errors.ownerEmail?.message}>
-                  <Controller name="ownerEmail" control={control}
-                    rules={{
-                      required: "Email requis",
-                      pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Email invalide" }
-                    }}
-                    render={({ field }) => <Input {...field} type="email" placeholder="gerant@salon.com" />}
-                  />
-                </Field>
-                <Field label="Mot de passe" required error={errors.password?.message}>
-                  <div className="flex gap-2">
-                    <Controller name="password" control={control}
-                      rules={{ required: "Mot de passe requis", minLength: { value: 8, message: "8 car. min." } }}
-                      render={({ field }) => <Input {...field} type="text" placeholder="Mot de passe" className="flex-1" />}
+                  <div className="relative">
+                    <Controller name="ownerEmail" control={control}
+                      rules={{
+                        required: "Email requis",
+                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Email invalide" }
+                      }}
+                      render={({ field }) => <Input {...field} type="email" placeholder="gerant@salon.com" className="pr-8" />}
                     />
-                    <Button type="button" variant="outline" size="sm" onClick={handleGeneratePassword} className="flex-shrink-0">
-                      <RefreshCw className="w-3.5 h-3.5" />
-                    </Button>
+                    {ownerEmailChecking && (
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-slate-300 border-t-emerald-500 rounded-full animate-spin" />
+                    )}
                   </div>
-                  {generatedPwd && (
-                    <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-mono break-all">
-                      {generatedPwd}
+                  {ownerEmailExists === true && (
+                    <p className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                      Gérant existant — aucun mot de passe requis
+                    </p>
+                  )}
+                  {ownerEmailExists === false && (
+                    <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                      Nouveau gérant
                     </p>
                   )}
                 </Field>
-                <Field label="Confirmer" required error={errors.confirmPassword?.message}>
-                  <Controller name="confirmPassword" control={control}
-                    rules={{
-                      required: "Confirmation requise",
-                      validate: v => v === watch("password") || "Les mots de passe ne correspondent pas"
-                    }}
-                    render={({ field }) => <Input {...field} type="text" placeholder="Confirmez le mot de passe" />}
-                  />
-                </Field>
+
+                {ownerEmailExists !== true && (
+                  <>
+                    <Field label="Mot de passe" required error={errors.password?.message}>
+                      <div className="flex gap-2">
+                        <Controller name="password" control={control}
+                          rules={{ required: "Mot de passe requis", minLength: { value: 8, message: "8 car. min." } }}
+                          render={({ field }) => <Input {...field} type="text" placeholder="Mot de passe" className="flex-1" />}
+                        />
+                        <Button type="button" variant="outline" size="sm" onClick={handleGeneratePassword} className="flex-shrink-0">
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                      {generatedPwd && (
+                        <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-mono break-all">
+                          {generatedPwd}
+                        </p>
+                      )}
+                    </Field>
+                    <Field label="Confirmer" required error={errors.confirmPassword?.message}>
+                      <Controller name="confirmPassword" control={control}
+                        rules={{
+                          required: "Confirmation requise",
+                          validate: v => v === watch("password") || "Les mots de passe ne correspondent pas"
+                        }}
+                        render={({ field }) => <Input {...field} type="text" placeholder="Confirmez le mot de passe" />}
+                      />
+                    </Field>
+                  </>
+                )}
               </div>
 
-              {/* Mail checkbox */}
+              {ownerEmailExists !== true && (
               <label className="flex items-center gap-2.5 cursor-pointer mt-1 pt-3 border-t border-[#F0EAE4] dark:border-slate-800/50">
                 <div className="relative flex-shrink-0">
                   <input
@@ -416,6 +503,7 @@ export default function CreateSalon() {
                   <p className="text-[10px] text-slate-400 mt-0.5">Envoie les identifiants au gérant après création</p>
                 </div>
               </label>
+              )}
             </div>
 
             {/* Submit */}

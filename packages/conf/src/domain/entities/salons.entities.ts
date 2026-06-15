@@ -23,6 +23,8 @@ export interface ISalonFormValues  {
 
 export type OpeningHour = { day: string; open: string; close: string, openDay : boolean}
 
+export type OnboardingStep = 'welcome' | 'config' | 'services' | 'hairdressers' | 'done'
+
 export interface ISalon {
   id : string
   name: string
@@ -47,6 +49,8 @@ export interface ISalon {
   createdAt?: Date
   category : string
   country : string
+  onboardingStep?: OnboardingStep
+  logo?: string
 }
 
 
@@ -71,6 +75,7 @@ export type ICreateSalon = {
   location_lng: number
   openingHours: OpeningHour[]
   photos?: FileList | File[] | string[]
+  logo?: File | string
 }
 
 
