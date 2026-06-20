@@ -4,12 +4,8 @@ import React from 'react'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from '@zyra/ui/components/dialog'
-import { Badge } from '@zyra/ui/components/badge'
-import { Button } from '@zyra/ui/components/button'
 import {
   User,
   Phone,
@@ -22,7 +18,9 @@ import {
   DollarSign,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  X,
+  Receipt,
 } from 'lucide-react'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
 
@@ -32,30 +30,57 @@ interface OrderDetailsModalProps {
   onOpenChange: (open: boolean) => void
 }
 
+const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
+  pending: {
+    label: 'En attente',
+    cls: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
+  },
+  completed: {
+    label: 'Terminée',
+    cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50',
+  },
+  canceled: {
+    label: 'Annulée',
+    cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/50',
+  },
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_CONFIG[status] ?? { label: status, cls: 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700' }
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border ${cfg.cls}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      {cfg.label}
+    </span>
+  )
+}
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string }) {
+  if (!value) return null
+  return (
+    <div className="flex items-start gap-2.5">
+      <div className="w-7 h-7 rounded-lg bg-[#F5F2EF] dark:bg-slate-700/50 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-shrink-0 mt-0.5">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-[13px] text-slate-700 dark:text-slate-300 font-medium truncate">{value}</p>
+      </div>
+    </div>
+  )
+}
+
 export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsModalProps) {
   if (!order) return null
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">En attente</Badge>
-      case 'completed':
-        return <Badge variant="default" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Terminée</Badge>
-      case 'canceled':
-        return <Badge variant="destructive">Annulée</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
       case 'cash':
-        return <Banknote className="h-5 w-5" />
+        return <Banknote className="h-4 w-4" />
       case 'mobile':
-        return <Smartphone className="h-5 w-5" />
+        return <Smartphone className="h-4 w-4" />
       default:
-        return <DollarSign className="h-5 w-5" />
+        return <DollarSign className="h-4 w-4" />
     }
   }
 
@@ -76,175 +101,162 @@ export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDe
       month: 'long',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('fr-FR', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Détails de la commande</DialogTitle>
-          <DialogDescription>
-            Informations complètes sur la commande
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-lg p-0 overflow-hidden bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl gap-0 max-h-[88vh]"
+      >
+        <DialogTitle className="sr-only">Détails de la commande</DialogTitle>
 
-        <div className="space-y-6">
-          {/* Statut et paiement */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-[#F0EAE4] dark:border-slate-800/50">
+          <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              {getStatusBadge(order.status)}
-              {order.isPaid ? (
-                <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Payé
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800">
-                  <XCircle className="h-3 w-3 mr-1" />
-                  Non payé
-                </Badge>
-              )}
-            </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-primary">{order.totalPrice.toLocaleString()} XAF</p>
-            </div>
-          </div>
-
-          {/* Service */}
-          <div className="space-y-3">
-            <h3 className="font-semibold flex items-center gap-2 text-lg">
-              <Scissors className="h-5 w-5" />
-              Service
-            </h3>
-            <div className="pl-7 space-y-2">
-              <p className="text-lg font-medium">{order.serviceName}</p>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span className="text-lg font-semibold">{formatTime(order.createdAt)}</span>
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                <Receipt className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-[16px] font-extrabold text-slate-800 dark:text-white leading-tight">
+                  Détails de la commande
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <StatusBadge status={order.status} />
+                  {order.isPaid ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50">
+                      <CheckCircle className="h-3 w-3" />
+                      Payé
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/50">
+                      <XCircle className="h-3 w-3" />
+                      Non payé
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="w-7 h-7 rounded-full bg-[#F5F2EF] dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
+
+          <div className="mt-4 px-4 py-3 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="text-[14px] font-bold text-slate-800 dark:text-white">{order.serviceName}</p>
+              <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 mt-0.5">
+                <Clock className="h-3 w-3" />
+                <span className="text-[11px] font-medium">{formatTime(order.createdAt)}</span>
+              </div>
+            </div>
+            <p className="text-[22px] font-extrabold text-emerald-600 dark:text-emerald-400">
+              {order.totalPrice.toLocaleString()} XAF
+            </p>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-5 overflow-y-auto">
 
           {/* Client */}
           <div className="space-y-3">
-            <h3 className="font-semibold flex items-center gap-2 text-lg">
-              <User className="h-5 w-5" />
-              Informations Client
-            </h3>
-            <div className="pl-7 space-y-3">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{order.clientName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{order.clientPhone}</span>
-              </div>
+            <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Client</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <InfoRow icon={<User className="w-3.5 h-3.5" />} label="Nom" value={order.clientName} />
+              <InfoRow icon={<Phone className="w-3.5 h-3.5" />} label="Téléphone" value={order.clientPhone} />
               {order.clientEmail && (
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{order.clientEmail}</span>
-                </div>
+                <InfoRow icon={<Mail className="w-3.5 h-3.5" />} label="Email" value={order.clientEmail} />
               )}
-            </div>
-          </div>
-
-          {/* Coiffeur */}
-          <div className="space-y-3">
-            <h3 className="font-semibold flex items-center gap-2 text-lg">
-              <Users className="h-5 w-5" />
-              Coiffeur
-            </h3>
-            <div className="pl-7">
-              <p>{order.hairDresserName}</p>
+              <InfoRow icon={<Users className="w-3.5 h-3.5" />} label="Coiffeur" value={order.hairDresserName} />
             </div>
           </div>
 
           {/* Détails des prix */}
-          <div className="space-y-3">
-            <h3 className="font-semibold flex items-center gap-2 text-lg">
-              <DollarSign className="h-5 w-5" />
-              Détails des prix
-            </h3>
-            <div className="pl-7 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Prix du service:</span>
-                <span className="font-medium">{order.price.toLocaleString()} XAF</span>
+          <div className="space-y-3 pt-1 border-t border-[#F0EAE4] dark:border-slate-800/50">
+            <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide pt-3">Détails des prix</h3>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[13px]">
+                <span className="text-slate-500 dark:text-slate-400">Prix du service</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">{order.price.toLocaleString()} XAF</span>
               </div>
               {order.supplementsPrice > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Suppléments:</span>
-                  <span className="font-medium">{order.supplementsPrice.toLocaleString()} XAF</span>
+                <div className="flex justify-between text-[13px]">
+                  <span className="text-slate-500 dark:text-slate-400">Suppléments:</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-300">{order.supplementsPrice.toLocaleString()} XAF</span>
                 </div>
               )}
-              <div className="flex justify-between pt-2 border-t dark:border-slate-700 text-lg">
-                <span className="font-semibold">Total:</span>
-                <span className="font-bold text-primary">{order.totalPrice.toLocaleString()} XAF</span>
+              <div className="flex justify-between text-[14px] pt-1.5 border-t border-[#F0EAE4] dark:border-slate-800/50">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Total:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">{order.totalPrice.toLocaleString()} XAF</span>
               </div>
             </div>
-          </div>
 
-          {/* Suppléments */}
-          {order.supplements && order.supplements.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Suppléments</h3>
-              <div className="pl-7 flex flex-wrap gap-2">
+            {order.supplements && order.supplements.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {order.supplements.map((supplement, index) => (
-                  <Badge key={index} variant="outline" className="text-sm">
+                  <span
+                    key={index}
+                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#F5F2EF] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-[#EDE8E3] dark:border-slate-700"
+                  >
                     {supplement}
-                  </Badge>
+                  </span>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Paiement */}
-          <div className="space-y-3">
-            <h3 className="font-semibold flex items-center gap-2 text-lg">
-              <DollarSign className="h-5 w-5" />
-              Méthode de paiement
-            </h3>
-            <div className="pl-7 flex items-center gap-2">
+          <div className="flex items-center justify-between pt-1 border-t border-[#F0EAE4] dark:border-slate-800/50">
+            <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide pt-3">Méthode de paiement</h3>
+          </div>
+          <div className="flex items-center gap-2 -mt-3">
+            <div className="w-7 h-7 rounded-lg bg-[#F5F2EF] dark:bg-slate-700/50 flex items-center justify-center text-slate-500 dark:text-slate-400">
               {getPaymentMethodIcon(order.paymentMethod)}
-              <span className="font-medium">{getPaymentMethodLabel(order.paymentMethod)}</span>
             </div>
+            <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{getPaymentMethodLabel(order.paymentMethod)}</span>
           </div>
 
           {/* Notes */}
           {order.notes && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Notes</h3>
-              <div className="pl-7">
-                <p className="text-muted-foreground">{order.notes}</p>
-              </div>
+            <div className="space-y-2 pt-1 border-t border-[#F0EAE4] dark:border-slate-800/50">
+              <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide pt-3">Notes</h3>
+              <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">{order.notes}</p>
             </div>
           )}
 
           {/* Date de création */}
-          <div className="space-y-3">
-            <h3 className="font-semibold flex items-center gap-2 text-lg">
-              <Calendar className="h-5 w-5" />
-              Date de création
-            </h3>
-            <div className="pl-7">
-              <p>{formatDate(order.createdAt)}</p>
+          <div className="flex items-center gap-2 pt-1 border-t border-[#F0EAE4] dark:border-slate-800/50">
+            <div className="flex items-center gap-2 pt-3">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <p className="text-[12px] text-slate-500 dark:text-slate-400">{formatDate(order.createdAt)}</p>
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end pt-4">
-          <Button onClick={() => onOpenChange(false)}>
+        {/* Footer */}
+        <div className="flex justify-end px-6 py-4 border-t border-[#F0EAE4] dark:border-slate-800/50 bg-[#FAF7F4] dark:bg-slate-800/30">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="h-9 px-5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+          >
             Fermer
-          </Button>
+          </button>
         </div>
       </DialogContent>
     </Dialog>

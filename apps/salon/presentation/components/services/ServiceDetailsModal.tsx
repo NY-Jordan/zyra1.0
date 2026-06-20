@@ -1,11 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@zyra/ui/components/dialog'
-import { Badge } from '@zyra/ui/components/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@zyra/ui/components/card'
-import { Separator } from '@zyra/ui/components/separator'
-import { Clock, DollarSign, Tag, Eye, Star, ImageIcon, Plus } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
+import { Clock, DollarSign, Tag, Scissors, Star, Plus, X } from 'lucide-react'
 import { formatPrice } from '@zyra/conf/lib/utils'
 import { ISalonService, IServiceCategory, ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 
@@ -14,6 +11,20 @@ interface ServiceDetailsModalProps {
   onOpenChange: (open: boolean) => void
   service: ISalonService | null
   categories: IServiceCategory[]
+}
+
+function InfoStat({ icon, label, value, iconColor }: { icon: React.ReactNode; label: string; value: React.ReactNode; iconColor: string }) {
+  return (
+    <div className="bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-1.5">
+        <div className={`w-7 h-7 rounded-lg bg-white/70 dark:bg-black/20 flex items-center justify-center flex-shrink-0 ${iconColor}`}>
+          {icon}
+        </div>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{label}</p>
+      </div>
+      <p className="text-[20px] font-extrabold text-slate-800 dark:text-white leading-none">{value}</p>
+    </div>
+  )
 }
 
 export default function ServiceDetailsModal({
@@ -61,163 +72,144 @@ export default function ServiceDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Détails du service
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-2xl p-0 overflow-hidden bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl gap-0 max-h-[88vh]"
+      >
+        <DialogTitle className="sr-only">Détails du service</DialogTitle>
 
-        <div className="space-y-6">
-          {/* En-tête du service */}
-          <div className="flex items-start gap-4">
-            {service.imageUrl && (
-              <div className="flex-shrink-0">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-[#F0EAE4] dark:border-slate-800/50">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              {service.imageUrl ? (
                 <img
                   src={service.imageUrl}
                   alt={service.name}
-                  className="w-20 h-20 object-cover rounded-lg border"
+                  className="w-10 h-10 rounded-2xl object-cover shadow-lg shadow-emerald-500/20 flex-shrink-0"
                 />
-              </div>
-            )}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-2">{service.name}</h2>
-              <div className="flex items-center gap-2 mb-3">
-                <Badge variant={service.isActive !== false ? "default" : "secondary"}>
-                  {service.isActive !== false ? "Actif" : "Inactif"}
-                </Badge>
-                <Badge variant="outline">
-                  <Tag className="h-3 w-3 mr-1" />
-                  {getCategoryName(service.categoryId)}
-                </Badge>
+              ) : (
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                  <Scissors className="w-5 h-5 text-white" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <h2 className="text-[16px] font-extrabold text-slate-800 dark:text-white leading-tight truncate">
+                  {service.name}
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      service.isActive !== false
+                        ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    {service.isActive !== false ? "Actif" : "Inactif"}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-[#F5F2EF] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#EDE8E3] dark:border-slate-700">
+                    <Tag className="h-3 w-3" />
+                    {getCategoryName(service.categoryId)}
+                  </span>
+                </div>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="w-7 h-7 rounded-full bg-[#F5F2EF] dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
+        </div>
 
-          <Separator />
+        {/* Body */}
+        <div className="px-6 py-5 space-y-5 overflow-y-auto">
 
           {/* Informations de base */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Prix de base
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-green-600">
-                  {formatPrice(service.price, 'XAF')}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Durée de base
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-blue-600">
-                  {formatDuration(service.duration)}
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <InfoStat
+              icon={<DollarSign className="h-3.5 w-3.5" />}
+              label="Prix de base"
+              value={formatPrice(service.price, 'XAF')}
+              iconColor="text-emerald-600"
+            />
+            <InfoStat
+              icon={<Clock className="h-3.5 w-3.5" />}
+              label="Durée de base"
+              value={formatDuration(service.duration)}
+              iconColor="text-sky-600"
+            />
           </div>
 
           {/* Suppléments */}
           {service.supplements && service.supplements.length > 0 && (
-            <>
-              <Separator />
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Suppléments disponibles ({service.supplements.length})
-                </h3>
-                
-                <div className="grid gap-3">
-                  {service.supplements.map((supplement, index) => (
-                    <Card key={`${supplement.id}-${index}`} className="border-l-4 border-l-orange-400">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-white">{supplement.name}</h4>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm">
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3 text-green-600" />
-                              <span className="font-medium text-green-600">
-                                +{formatPrice(supplement.price, 'XAF')}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3 text-blue-600" />
-                              <span className="font-medium text-blue-600">
-                                +{formatDuration(supplement.duration)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+            <div className="space-y-3 pt-1 border-t border-[#F0EAE4] dark:border-slate-800/50">
+              <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide pt-3">
+                Suppléments disponibles ({service.supplements.length})
+              </h3>
 
-                {/* Total des suppléments */}
-                <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-orange-800 dark:text-orange-300">Total suppléments</h4>
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3 text-green-600" />
-                          <span className="font-medium text-green-600">
-                            +{formatPrice(supplementsTotal.totalPrice, 'XAF')}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-blue-600" />
-                          <span className="font-medium text-blue-600">
-                            +{formatDuration(supplementsTotal.totalDuration)}
-                          </span>
-                        </div>
-                      </div>
+              <div className="space-y-2">
+                {service.supplements.map((supplement, index) => (
+                  <div
+                    key={`${supplement.id}-${index}`}
+                    className="flex items-center justify-between px-3 py-2.5 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl"
+                  >
+                    <h4 className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 truncate">{supplement.name}</h4>
+                    <div className="flex items-center gap-3 text-[12px] flex-shrink-0">
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        +{formatPrice(supplement.price, 'XAF')}
+                      </span>
+                      <span className="font-semibold text-slate-500 dark:text-slate-400">
+                        +{formatDuration(supplement.duration)}
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                ))}
               </div>
-            </>
+
+              {/* Total des suppléments */}
+              <div className="flex items-center justify-between px-3 py-2.5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-xl">
+                <h4 className="text-[12px] font-bold text-amber-800 dark:text-amber-300">Total suppléments</h4>
+                <div className="flex items-center gap-3 text-[12px]">
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                    +{formatPrice(supplementsTotal.totalPrice, 'XAF')}
+                  </span>
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">
+                    +{formatDuration(supplementsTotal.totalDuration)}
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Prix total */}
-          <Separator />
-          <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
+          <div className="pt-1 border-t border-[#F0EAE4] dark:border-slate-800/50">
+            <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide pt-3 mb-3 flex items-center gap-1.5">
+              <Star className="h-3.5 w-3.5 text-amber-500" />
               Prix total du service
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Prix total</p>
-                <p className="text-3xl font-bold text-green-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="text-center bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl p-4">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mb-1">Prix total</p>
+                <p className="text-[22px] font-extrabold text-emerald-600 dark:text-emerald-400">
                   {formatPrice(grandTotal.price, 'XAF')}
                 </p>
                 {service.supplements && service.supplements.length > 0 && (
-                  <p className="text-xs text-gray-500 dark:text-slate-500">
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                     Base: {formatPrice(service.price, 'XAF')} + Suppléments: {formatPrice(supplementsTotal.totalPrice, 'XAF')}
                   </p>
                 )}
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Durée totale</p>
-                <p className="text-3xl font-bold text-blue-600">
+              <div className="text-center bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl p-4">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mb-1">Durée totale</p>
+                <p className="text-[22px] font-extrabold text-sky-600 dark:text-sky-400">
                   {formatDuration(grandTotal.duration)}
                 </p>
                 {service.supplements && service.supplements.length > 0 && (
-                  <p className="text-xs text-gray-500 dark:text-slate-500">
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                     Base: {formatDuration(service.duration)} + Suppléments: {formatDuration(supplementsTotal.totalDuration)}
                   </p>
                 )}
@@ -227,11 +219,22 @@ export default function ServiceDetailsModal({
 
           {/* Message si pas de suppléments */}
           {(!service.supplements || service.supplements.length === 0) && (
-            <div className="text-center py-8">
-              <Plus className="h-12 w-12 mx-auto text-gray-400 dark:text-slate-500 mb-3" />
-              <p className="text-gray-600 dark:text-slate-400">Aucun supplément configuré pour ce service</p>
+            <div className="text-center py-8 border-t border-[#F0EAE4] dark:border-slate-800/50">
+              <Plus className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+              <p className="text-[13px] text-slate-400">Aucun supplément configuré pour ce service</p>
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end px-6 py-4 border-t border-[#F0EAE4] dark:border-slate-800/50 bg-[#FAF7F4] dark:bg-slate-800/30">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="h-9 px-5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+          >
+            Fermer
+          </button>
         </div>
       </DialogContent>
     </Dialog>

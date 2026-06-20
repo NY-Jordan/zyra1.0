@@ -18,6 +18,8 @@ import {
   Sun,
   Moon,
   Monitor,
+  Menu,
+  PanelLeftClose,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
@@ -29,7 +31,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from 'next-themes'
 import { LogoutauthSalon } from '@/services/ownerAuthService'
 
-export default function Navbar() {
+interface NavbarProps {
+  onToggleSidebar?: () => void
+  sidebarOpen?: boolean
+}
+
+export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
   const router = useRouter()
   const { owner } = useOwner()
   const { salon, isConnected } = useSalon()
@@ -50,14 +57,26 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/70 bg-white/70 backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/65">
+    <header className="sticky top-0 z-40 w-full border-b border-[#F0EAE4] bg-white/80 backdrop-blur-xl dark:border-slate-800/70 dark:bg-[#10141b]/80">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex w-full items-center justify-between h-16">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-cyan-500/20 flex-shrink-0">
+        {/*     {onToggleSidebar && (
+              <button
+                type="button"
+                onClick={onToggleSidebar}
+                aria-label="Basculer la barre latérale"
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-[#F5F2EF] hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <span className="hidden lg:flex"><PanelLeftClose className="h-5 w-5" /></span>
+                <span className="flex lg:hidden">{sidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</span>
+              </button>
+            )} */}
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-emerald-500/20 flex-shrink-0">
               {salon?.logo
                 ? <img src={salon.logo} alt={salon.name} className="w-full h-full object-cover" />
-                : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-500 via-cyan-500 to-teal-500"><Store className="h-6 w-6 text-white" /></div>
+                : <div className="flex h-full w-full items-center justify-center bg-emerald-500"><Store className="h-6 w-6 text-white" /></div>
               }
             </div>
             <div className="min-w-0">
@@ -83,30 +102,30 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="rounded-xl text-slate-600 hover:bg-[#F5F2EF] hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
                   aria-label="Changer le thème"
                 >
                   {theme === 'dark' ? <Moon className="h-5 w-5" /> : theme === 'light' ? <Sun className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-52 p-1">
+              <PopoverContent align="end" className="w-52 p-1 rounded-2xl border-[#F0EAE4] dark:border-slate-800/50">
                 <button
                   onClick={() => setTheme('light')}
-                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   <Sun className="h-4 w-4" />
                   Clair
                 </button>
                 <button
                   onClick={() => setTheme('dark')}
-                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   <Moon className="h-4 w-4" />
                   Sombre
                 </button>
                 <button
                   onClick={() => setTheme('system')}
-                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   <Monitor className="h-4 w-4" />
                   Système
@@ -116,7 +135,7 @@ export default function Navbar() {
 
             <Link
               href="/notifications"
-              className="relative rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+              className="relative rounded-xl p-2 text-slate-500 transition-colors hover:bg-[#F5F2EF] hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
             >
               <Bell className="h-5 w-5" />
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs text-white">
@@ -128,7 +147,7 @@ export default function Navbar() {
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-11 rounded-2xl border border-slate-200/70 bg-white/80 px-2 text-left hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/70 dark:hover:bg-slate-800"
+                  className="h-11 rounded-2xl border border-[#F0EAE4] bg-white/80 px-2 text-left hover:bg-[#F5F2EF] dark:border-slate-800/50 dark:bg-slate-900/70 dark:hover:bg-slate-800"
                 >
                   <div className="h-8 w-8 overflow-hidden rounded-full">
                     {owner?.photo ? (
@@ -138,7 +157,7 @@ export default function Navbar() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-500 to-teal-500">
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500">
                         <User className="h-4 w-4 text-white" />
                       </div>
                     )}
@@ -151,10 +170,10 @@ export default function Navbar() {
                   <ChevronDown className="h-4 w-4 text-slate-500" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 p-0" align="end">
+              <PopoverContent className="w-64 p-0 rounded-2xl border-[#F0EAE4] dark:border-slate-800/50" align="end">
                 <div className="py-1">
                   {owner && (
-                    <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+                    <div className="border-b border-[#F0EAE4] px-4 py-3 dark:border-slate-800/50">
                       <div className="flex items-center space-x-3">
                         <div className="h-10 w-10 overflow-hidden rounded-full">
                           {owner.photo ? (
@@ -164,7 +183,7 @@ export default function Navbar() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-500 to-teal-500">
+                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500">
                               <User className="h-5 w-5 text-white" />
                             </div>
                           )}
@@ -182,12 +201,12 @@ export default function Navbar() {
                   )}
 
                   {salon && (
-                    <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+                    <div className="border-b border-[#F0EAE4] px-4 py-3 dark:border-slate-800/50">
                       <div className="flex items-center space-x-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden flex-shrink-0">
                           {salon.logo
                             ? <img src={salon.logo} alt={salon.name} className="w-full h-full object-cover" />
-                            : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-cyan-500"><Store className="h-5 w-5 text-white" /></div>
+                            : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500"><Store className="h-5 w-5 text-white" /></div>
                           }
                         </div>
                         <div className="flex-1 min-w-0">
@@ -204,7 +223,7 @@ export default function Navbar() {
 
                   <Link
                     href="/salon/profil"
-                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <User className="h-4 w-4 mr-3" />
                     Profil
@@ -212,7 +231,7 @@ export default function Navbar() {
 
                   <Link
                     href="/salon/salon-info"
-                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <Settings className="h-4 w-4 mr-3" />
                     Paramètres
@@ -220,13 +239,13 @@ export default function Navbar() {
 
                   <Link
                     href="/salon/switch"
-                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <Building2 className="h-4 w-4 mr-3" />
                     Switcher de salon
                   </Link>
 
-                  <div className="my-1 border-t border-slate-200 dark:border-slate-700"></div>
+                  <div className="my-1 border-t border-[#F0EAE4] dark:border-slate-800/50"></div>
 
                   <button
                     onClick={handleLogout}

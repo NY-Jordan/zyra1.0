@@ -16,6 +16,10 @@ import {
   Check,
   Send,
   UserCheck,
+  ChevronLeft,
+  ChevronRight,
+  Bug,
+  LifeBuoy,
 } from 'lucide-react'
 import { useBookingAccess, BookingAccessState } from '@/hooks/useBookingAccess'
 
@@ -209,9 +213,11 @@ const sidebarItems: SidebarItem[] = [
 interface SidebarProps {
   isOpen?: boolean
   onClose?: () => void
+  collapsed?: boolean
+  onToggleCollapsed?: () => void
 }
 
-export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen = true, onClose, collapsed = false, onToggleCollapsed }: SidebarProps) {
   const pathname = usePathname()
   const access = useBookingAccess()
   const { isReady } = access
@@ -228,15 +234,25 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       )}
 
       <aside className={`
-        fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-72 border-r border-slate-200/80 bg-white/75 backdrop-blur-xl
-        transition-transform duration-300 ease-in-out dark:border-slate-700/70 dark:bg-slate-900/70
+        fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] border-r border-[#F0EAE4] bg-white/90 backdrop-blur-xl
+        transition-all duration-300 ease-in-out dark:border-slate-800/70 dark:bg-[#10141b]/90
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
+        ${collapsed ? 'w-72 lg:w-20' : 'w-72'}
       `}>
-        <div className="h-full overflow-y-auto px-4 py-5">
-          <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
-            Navigation principale
-          </div>
+        {/* Bouton de réduction (desktop uniquement) */}
+        {onToggleCollapsed && (
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? 'Étendre la barre latérale' : 'Réduire la barre latérale'}
+            className="absolute -right-3 top-8 z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-[#F0EAE4] bg-white text-slate-500 shadow-md transition-colors hover:bg-[#F5F2EF] hover:text-slate-800 lg:flex dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          </button>
+        )}
 
+        <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
           <nav className="space-y-1.5">
             {sidebarItems.map((item) => {
               const locked = item.requiresBookingAccess && !isReady
@@ -245,14 +261,17 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               if (locked) {
                 return (
                   <LockedItemTooltip key={item.href} access={access}>
-                    <div className="flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium cursor-not-allowed opacity-40 select-none">
-                      <span className="mr-3 text-slate-400 dark:text-slate-500">
+                    <div
+                      title={collapsed ? item.label : undefined}
+                      className={`flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium cursor-not-allowed opacity-40 select-none ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}
+                    >
+                      <span className={`${collapsed ? 'mr-3 lg:mr-0' : 'mr-3'} text-slate-400 dark:text-slate-500`}>
                         {item.icon}
                       </span>
-                      <span className="flex-1 text-left text-slate-500 dark:text-slate-500">
+                      <span className={`flex-1 text-left text-slate-500 dark:text-slate-500 ${collapsed ? 'lg:hidden' : ''}`}>
                         {item.label}
                       </span>
-                      <Lock className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" />
+                      <Lock className={`h-3.5 w-3.5 text-slate-300 dark:text-slate-600 ${collapsed ? 'lg:hidden' : ''}`} />
                     </div>
                   </LockedItemTooltip>
                 )
@@ -263,20 +282,22 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
+                  title={collapsed ? item.label : undefined}
                   className={`
                     group flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all
+                    ${collapsed ? 'lg:justify-center lg:px-0' : ''}
                     ${active
-                      ? 'bg-gradient-to-r from-sky-500/10 via-cyan-500/10 to-teal-500/10 text-sky-700 shadow-sm ring-1 ring-sky-500/20 dark:text-sky-300 dark:ring-sky-400/25'
-                      : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white'
+                      ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:ring-emerald-800/50'
+                      : 'text-slate-600 hover:bg-[#F5F2EF] hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white'
                     }
                   `}
                 >
-                  <span className={`mr-3 ${active ? 'text-sky-600 dark:text-sky-300' : 'text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200'}`}>
+                  <span className={`${collapsed ? 'mr-3 lg:mr-0' : 'mr-3'} ${active ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300'}`}>
                     {item.icon}
                   </span>
-                  <span className="flex-1 text-left">{item.label}</span>
+                  <span className={`flex-1 text-left ${collapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
                   {item.badge && (
-                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                    <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-rose-500 rounded-full ${collapsed ? 'lg:hidden' : ''}`}>
                       {item.badge}
                     </span>
                   )}
@@ -284,6 +305,32 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               )
             })}
           </nav>
+        </div>
+
+        {/* Bas de sidebar : aide et support */}
+        <div className="border-t border-[#F0EAE4] px-3 py-3 space-y-1.5 dark:border-slate-800/50">
+          <button
+            type="button"
+            title={collapsed ? 'Signaler un problème' : undefined}
+            className={`group flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-[#F5F2EF] hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}
+          >
+            <span className={`${collapsed ? 'mr-3 lg:mr-0' : 'mr-3'} text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300`}>
+              <Bug className="h-5 w-5" />
+            </span>
+            <span className={`flex-1 text-left ${collapsed ? 'lg:hidden' : ''}`}>Signaler un problème</span>
+          </button>
+
+          <button
+            type="button"
+            title={collapsed ? 'Contacter le support' : undefined}
+            className={`group flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-[#F5F2EF] hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white ${collapsed ? 'lg:justify-center lg:px-0' : ''}`}
+          >
+            <span className={`${collapsed ? 'mr-3 lg:mr-0' : 'mr-3'} text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300`}>
+              <LifeBuoy className="h-5 w-5" />
+            </span>
+            <span className={`flex-1 text-left ${collapsed ? 'lg:hidden' : ''}`}>Contacter le support</span>
+          </button>
+        </div>
         </div>
       </aside>
     </>

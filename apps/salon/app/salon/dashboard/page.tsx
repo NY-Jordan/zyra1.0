@@ -1,7 +1,5 @@
 'use client'
 import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@zyra/ui/components/card'
-import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
@@ -28,17 +26,50 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+const card = 'bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl'
+
 // ── Locked overlay ────────────────────────────────────────────────────────────
 
 function LockedOverlay() {
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[inherit] bg-white/60 dark:bg-slate-900/60 backdrop-blur-[2px]">
-      <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-full shadow-sm">
+      <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-[#F0EAE4] dark:border-slate-700 px-3 py-1.5 rounded-full shadow-sm">
         <Lock className="w-3.5 h-3.5 text-slate-400" />
         <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           Service + coiffeur requis
         </span>
       </div>
+    </div>
+  )
+}
+
+// ── KPI card ──────────────────────────────────────────────────────────────────
+
+function KpiCard({ icon, label, value, change, bg, iconColor }: {
+  icon: React.ReactNode; label: string; value: React.ReactNode; change?: string; bg: string; iconColor: string
+}) {
+  return (
+    <div className={`${bg} rounded-2xl p-4 flex items-center gap-3`}>
+      <div className={`w-10 h-10 rounded-xl bg-white/70 dark:bg-black/20 flex items-center justify-center ${iconColor} flex-shrink-0`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[19px] font-extrabold text-slate-800 dark:text-white leading-none truncate">{value}</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1 truncate">{label}</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Section header ────────────────────────────────────────────────────────────
+
+function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-4">
+      <div className="w-7 h-7 rounded-lg bg-[#F5F2EF] dark:bg-slate-700/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        {icon}
+      </div>
+      <h3 className="text-[13px] font-bold text-slate-800 dark:text-white">{title}</h3>
     </div>
   )
 }
@@ -81,29 +112,33 @@ export default function Dashboard() {
     {
       title: "Rendez-vous aujourd'hui",
       value: dashboardData.stats.appointmentsToday.toString(),
-      icon: <Calendar className="h-4 w-4" />,
-      change: `${dashboardData.stats.appointmentsToday > 0 ? '+' : ''}${dashboardData.stats.appointmentsToday}`,
+      icon: <Calendar className="h-5 w-5" />,
+      bg: 'bg-[#ECF6FE] dark:bg-sky-950/20',
+      iconColor: 'text-sky-600',
       locked: true,
     },
     {
-      title: "Revenus du mois",
-      value: `XAF ${dashboardData.stats.monthlyRevenue.toFixed(2)}`,
-      icon: <DollarSign className="h-4 w-4" />,
-      change: "Ce mois",
+      title: 'Revenus du mois',
+      value: `${dashboardData.stats.monthlyRevenue.toFixed(2)} XAF`,
+      icon: <DollarSign className="h-5 w-5" />,
+      bg: 'bg-[#EEF8F0] dark:bg-emerald-950/20',
+      iconColor: 'text-emerald-600',
       locked: true,
     },
     {
-      title: "Clients actifs",
+      title: 'Clients actifs',
       value: dashboardData.stats.activeClients.toString(),
-      icon: <Users className="h-4 w-4" />,
-      change: "Ce mois",
+      icon: <Users className="h-5 w-5" />,
+      bg: 'bg-[#F2EDFE] dark:bg-violet-950/20',
+      iconColor: 'text-violet-600',
       locked: true,
     },
     {
       title: "Taux d'occupation",
       value: `${Math.round(dashboardData.stats.occupancyRate)}%`,
-      icon: <TrendingUp className="h-4 w-4" />,
-      change: "Estimation",
+      icon: <TrendingUp className="h-5 w-5" />,
+      bg: 'bg-[#FEF1EC] dark:bg-rose-950/20',
+      iconColor: 'text-rose-500',
       locked: true,
     },
   ] : []
@@ -139,104 +174,97 @@ export default function Dashboard() {
           ]}
         />
 
-        <div className="space-y-6">
+        <div className="space-y-5">
 
           {/* Salon info card */}
           {salon && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Store className="h-5 w-5" />
-                    Salon connecté
-                  </CardTitle>
-                  {isReady ? (
-                    <a
-                      href={`${process.env.NEXT_PUBLIC_MARKETPLACE_URL}/salon/details/${salon.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Voir la page du salon
-                    </a>
-                  ) : (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 dark:text-slate-600 rounded-lg cursor-not-allowed select-none opacity-50">
-                      <Lock className="h-3.5 w-3.5" />
-                      Voir la page du salon
-                    </div>
-                  )}
+            <div className={`${card} p-5`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <Store className="w-[18px] h-[18px] text-white" />
+                  </div>
+                  <h3 className="text-[14px] font-extrabold text-slate-800 dark:text-white">Salon connecté</h3>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="flex items-center gap-3">
-                    <Store className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Nom</p>
-                      <p className="font-medium">{salon.name}</p>
+                {isReady ? (
+                  <a
+                    href={`${process.env.NEXT_PUBLIC_MARKETPLACE_URL}/salon/details/${salon.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 rounded-xl transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Voir la page du salon
+                  </a>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-bold text-slate-400 dark:text-slate-600 rounded-xl cursor-not-allowed select-none">
+                    <Lock className="h-3.5 w-3.5" />
+                    Voir la page du salon
+                  </div>
+                )}
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#F5F2EF] dark:bg-slate-700/50 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-shrink-0">
+                    <Store className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide">Nom</p>
+                    <p className="text-[13px] font-medium text-slate-700 dark:text-slate-300 truncate">{salon.name}</p>
+                  </div>
+                </div>
+                {salon.address && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-[#F5F2EF] dark:bg-slate-700/50 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-shrink-0">
+                      <MapPin className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide">Adresse</p>
+                      <p className="text-[13px] font-medium text-slate-700 dark:text-slate-300 truncate">{salon.address}</p>
                     </div>
                   </div>
-                  {salon.address && (
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Adresse</p>
-                        <p className="font-medium">{salon.address}</p>
-                      </div>
+                )}
+                {salon.phone && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-[#F5F2EF] dark:bg-slate-700/50 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-shrink-0">
+                      <Phone className="h-3.5 w-3.5" />
                     </div>
-                  )}
-                  {salon.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Téléphone</p>
-                        <p className="font-medium">{salon.phone}</p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide">Téléphone</p>
+                      <p className="text-[13px] font-medium text-slate-700 dark:text-slate-300 truncate">{salon.phone}</p>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid gap-5 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-5">
 
               {/* Stats cards */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
                 {isLoading
                   ? Array.from({ length: 4 }).map((_, i) => (
-                      <Card key={i}>
-                        <CardContent className="p-6">
-                          <div className="h-4 w-24 bg-slate-200 rounded animate-pulse mb-2" />
-                          <div className="h-7 w-16 bg-slate-200 rounded animate-pulse" />
-                        </CardContent>
-                      </Card>
+                      <div key={i} className={`${card} p-4`}>
+                        <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mb-2" />
+                        <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                      </div>
                     ))
                   : error
                   ? (
-                    <div className="col-span-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                      <p className="text-sm text-red-600 dark:text-red-400">Erreur lors du chargement des statistiques</p>
+                    <div className="col-span-4 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/50 rounded-2xl">
+                      <p className="text-[13px] text-rose-600 dark:text-rose-400">Erreur lors du chargement des statistiques</p>
                     </div>
                   )
                   : stats.map((stat, i) => (
                     <div key={i} className="relative">
-                      <Card className={!isReady && stat.locked ? 'opacity-50 select-none' : ''}>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between space-y-0 pb-2">
-                            <h3 className="text-sm font-medium text-muted-foreground">{stat.title}</h3>
-                            {stat.icon}
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-2xl font-bold">{stat.value}</p>
-                            <p className="text-xs text-muted-foreground">{stat.change}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <div className={!isReady && stat.locked ? 'opacity-50 select-none' : ''}>
+                        <KpiCard icon={stat.icon} label={stat.title} value={stat.value} bg={stat.bg} iconColor={stat.iconColor} />
+                      </div>
                       {!isReady && stat.locked && (
-                        <div className="absolute inset-0 flex items-center justify-center rounded-[inherit]">
-                          <Lock className="w-4 h-4 text-slate-300 dark:text-slate-600" />
+                        <div className="absolute inset-0 flex items-center justify-center rounded-2xl">
+                          <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                         </div>
                       )}
                     </div>
@@ -246,176 +274,173 @@ export default function Dashboard() {
 
               {/* Réservations récentes */}
               <div className="relative">
-                <Card className={!isReady ? 'opacity-50 select-none pointer-events-none' : ''}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      5 dernières réservations
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoading ? (
-                      <div className="space-y-4">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                          <div key={i} className="h-16 bg-slate-100 rounded animate-pulse" />
-                        ))}
-                      </div>
-                    ) : error ? (
-                      <p className="text-sm text-red-600">Erreur lors du chargement des réservations</p>
-                    ) : recentAppointments.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-                        <p className="text-sm text-muted-foreground">Aucune réservation</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {recentAppointments.map((apt, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 border dark:border-slate-700 rounded-lg">
-                            <div className="flex items-center gap-4 flex-1">
-                              <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-sm font-medium text-muted-foreground">{apt.date}</span>
-                                </div>
-                                <div className="flex items-center gap-2 pl-6">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium">{apt.time}</span>
-                                </div>
+                <div className={`${card} p-5 ${!isReady ? 'opacity-50 select-none pointer-events-none' : ''}`}>
+                  <SectionHeader icon={<Calendar className="h-3.5 w-3.5" />} title="5 dernières réservations" />
+                  {isLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="h-16 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl animate-pulse" />
+                      ))}
+                    </div>
+                  ) : error ? (
+                    <p className="text-[13px] text-rose-500">Erreur lors du chargement des réservations</p>
+                  ) : recentAppointments.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Calendar className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                      <p className="text-[13px] text-slate-400">Aucune réservation</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {recentAppointments.map((apt, i) => (
+                        <div key={i} className="flex items-center justify-between p-3.5 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <div className="flex flex-col gap-1 flex-shrink-0">
+                              <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
+                                <Calendar className="h-3 w-3" />
+                                <span className="text-[11px] font-medium">{apt.date}</span>
                               </div>
-                              <div>
-                                <p className="font-medium">{apt.client}</p>
-                                <p className="text-sm text-muted-foreground">{apt.service}</p>
+                              <div className="flex items-center gap-1.5 pl-[18px]">
+                                <Clock className="h-3 w-3 text-slate-400" />
+                                <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">{apt.time}</span>
                               </div>
                             </div>
-                            <div className="text-sm text-muted-foreground">{apt.duration}</div>
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 truncate">{apt.client}</p>
+                              <p className="text-[12px] text-slate-400 truncate">{apt.service}</p>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                          <div className="text-[11px] font-semibold text-slate-400 flex-shrink-0">{apt.duration}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {!isReady && <LockedOverlay />}
               </div>
             </div>
 
             {/* Right column */}
-            <div className="space-y-6">
+            <div className="space-y-5">
 
               {/* Lien de réservation */}
               <div className="relative">
-                <Card className={!isReady ? 'opacity-50 select-none pointer-events-none' : ''}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Share2 className="h-5 w-5" />
-                      Lien de réservation
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">
+                <div className={`${card} p-5 ${!isReady ? 'opacity-50 select-none pointer-events-none' : ''}`}>
+                  <SectionHeader icon={<Share2 className="h-3.5 w-3.5" />} title="Lien de réservation" />
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide block mb-1.5">
                         Votre lien de réservation
                       </label>
                       <div className="flex gap-2">
-                        <Input value={bookingLink} readOnly className="text-xs" placeholder="Aucun salon connecté" />
-                        <Button variant="outline" size="sm" onClick={handleCopyLink} disabled={!bookingLink} className="flex-shrink-0">
-                          {copied ? 'Copié!' : <Copy className="h-4 w-4" />}
-                        </Button>
+                        <Input value={bookingLink} readOnly className="text-[11px] h-9 rounded-xl border-[#E8E0D8] dark:border-slate-700" placeholder="Aucun salon connecté" />
+                        <button
+                          type="button"
+                          onClick={handleCopyLink}
+                          disabled={!bookingLink}
+                          className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-xl border border-[#E8E0D8] dark:border-slate-700 text-slate-500 hover:bg-[#F5F2EF] dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                        >
+                          {copied ? <span className="text-[10px] font-bold text-emerald-600">OK</span> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Actions</p>
-                      <div className="space-y-2">
-                        <Button variant="outline" className="w-full justify-start" onClick={() => window.open(bookingLink, '_blank')} disabled={!bookingLink}>
-                          <Eye className="h-4 w-4 mr-2" />
+                      <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Actions</p>
+                      <div className="space-y-1.5">
+                        <button
+                          type="button"
+                          onClick={() => window.open(bookingLink, '_blank')}
+                          disabled={!bookingLink}
+                          className="w-full flex items-center gap-2 h-9 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 text-[12px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-[#F5F2EF] dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
                           Prévisualiser
-                        </Button>
+                        </button>
                         {salon && bookingLink && (
                           <div className="w-full">
                             <QRCodeDialog bookingUrl={bookingLink} salonName={salon.name} />
                           </div>
                         )}
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-400"
+                        <button
+                          type="button"
                           onClick={handleWhatsAppShare}
                           disabled={!bookingLink}
+                          className="w-full flex items-center gap-2 h-9 px-3 rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/20 text-[12px] font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/40 disabled:opacity-40 transition-colors"
                         >
-                          <MessageCircle className="h-4 w-4 mr-2" />
+                          <MessageCircle className="h-3.5 w-3.5" />
                           Partager sur WhatsApp
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start" onClick={handleCopyLink} disabled={!bookingLink}>
-                          <Copy className="h-4 w-4 mr-2" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCopyLink}
+                          disabled={!bookingLink}
+                          className="w-full flex items-center gap-2 h-9 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 text-[12px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-[#F5F2EF] dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
                           {copied ? 'Lien copié!' : 'Copier le lien'}
-                        </Button>
+                        </button>
                       </div>
                     </div>
                     {salon && (
-                      <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                        <div className="flex items-start gap-2">
-                          <ExternalLink className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Partagez votre lien</p>
-                            <p className="text-xs text-blue-700 dark:text-blue-300">
-                              Vos clients peuvent réserver 24h/24 via ce lien. Partagez-le sur vos réseaux sociaux, votre site web ou par message.
-                            </p>
-                          </div>
+                      <div className="flex items-start gap-2.5 px-3.5 py-3 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl">
+                        <ExternalLink className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-[12px] font-bold text-slate-700 dark:text-slate-300">Partagez votre lien</p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                            Vos clients peuvent réserver 24h/24 via ce lien. Partagez-le sur vos réseaux sociaux, votre site web ou par message.
+                          </p>
                         </div>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
                 {!isReady && <LockedOverlay />}
               </div>
 
               {/* Statistiques de réservation */}
               <div className="relative">
-                <Card className={!isReady ? 'opacity-50 select-none pointer-events-none' : ''}>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Réservations</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {isLoading ? (
-                      <div className="space-y-3">
-                        {Array.from({ length: 2 }).map((_, i) => (
-                          <div key={i} className="flex items-center justify-between">
-                            <div className="h-4 w-20 bg-slate-200 rounded animate-pulse" />
-                            <div className="h-4 w-8 bg-slate-200 rounded animate-pulse" />
-                          </div>
-                        ))}
+                <div className={`${card} p-5 ${!isReady ? 'opacity-50 select-none pointer-events-none' : ''}`}>
+                  <h3 className="text-[13px] font-bold text-slate-800 dark:text-white mb-3">Réservations</h3>
+                  {isLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                          <div className="h-4 w-8 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between text-[13px]">
+                        <span className="text-slate-500 dark:text-slate-400">Cette semaine</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{dashboardData?.stats.reservationsThisWeek || 0}</span>
                       </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Cette semaine</span>
-                          <span className="font-medium">{dashboardData?.stats.reservationsThisWeek || 0}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Ce mois</span>
-                          <span className="font-medium">{dashboardData?.stats.reservationsThisMonth || 0}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Payés aujourd'hui</span>
-                          <span className="font-medium text-green-600">
-                            XAF {dashboardData
-                              ? dashboardData.recentReservations
-                                  .filter((res) => {
-                                    const first = res.people?.[0]
-                                    if (!first) return false
-                                    const d = first.scheduledAt.toDate()
-                                    const today = new Date()
-                                    return d >= new Date(today.getFullYear(), today.getMonth(), today.getDate())
-                                      && d < new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-                                      && res.isPaid
-                                  })
-                                  .reduce((s, r) => s + r.totalPrice, 0)
-                                  .toFixed(2)
-                              : '0.00'}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
+                      <div className="flex items-center justify-between text-[13px]">
+                        <span className="text-slate-500 dark:text-slate-400">Ce mois</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{dashboardData?.stats.reservationsThisMonth || 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[13px] pt-2 border-t border-[#F0EAE4] dark:border-slate-800/50">
+                        <span className="text-slate-500 dark:text-slate-400">Payés aujourd'hui</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          {dashboardData
+                            ? dashboardData.recentReservations
+                                .filter((res) => {
+                                  const first = res.people?.[0]
+                                  if (!first) return false
+                                  const d = first.scheduledAt.toDate()
+                                  const today = new Date()
+                                  return d >= new Date(today.getFullYear(), today.getMonth(), today.getDate())
+                                    && d < new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+                                    && res.isPaid
+                                })
+                                .reduce((s, r) => s + r.totalPrice, 0)
+                                .toFixed(2)
+                            : '0.00'} XAF
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 {!isReady && <LockedOverlay />}
 
                 {/* Setup prompt when not ready */}

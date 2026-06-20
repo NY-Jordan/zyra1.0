@@ -198,6 +198,25 @@ export default function CreateSalon() {
           endDate,
         })
       }
+
+      // Envoie l'email de bienvenue si la case est cochée et que le owner vient d'être créé
+      if (includeMail && !pendingOwnerExists && salonId) {
+        try {
+          await fetch('/api/email/welcome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ownerName: pendingOwnerData.name,
+              salonName: pendingSalonData.name,
+              email: pendingOwnerData.email,
+              password: pendingOwnerData.password,
+            }),
+          })
+        } catch {
+          // L'email est non-bloquant : on ne fait pas échouer la création
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['salons'] })
       toast.success("Salon et forfait créés avec succès")
       router.push(Routes.protected.salons.url)

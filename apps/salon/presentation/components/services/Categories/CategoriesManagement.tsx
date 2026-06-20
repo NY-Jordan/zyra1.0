@@ -2,20 +2,17 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@zyra/ui/components/card'
 import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
-import { Badge } from '@zyra/ui/components/badge'
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Search, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
   MoreHorizontal,
-  Eye,
   Users,
   Palette,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -178,155 +175,180 @@ export default function CategoriesManagement({ categories, services }: Categorie
     })
   }
 
+  const card = 'bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl'
+
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <CardTitle>Catégories de Services ({filteredCategories.total})</CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher une catégorie..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle Catégorie
-              </Button>
-            </div>
+      <div className={`${card} p-4 sm:p-5 space-y-5`}>
+        {/* En-tête */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-[16px] font-extrabold text-slate-800 dark:text-white tracking-tight">
+              Catégories de services
+            </h2>
+            <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
+              {filteredCategories.total} catégorie{filteredCategories.total > 1 ? 's' : ''}
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          {filteredCategories.categories.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b dark:border-slate-700">
-                    <th className="text-left py-3 px-4 font-medium">Catégorie</th>
-                    <th className="text-left py-3 px-4 font-medium">Description</th>
-                    <th className="text-left py-3 px-4 font-medium">Services</th>
-                    <th className="text-left py-3 px-4 font-medium">Statut</th>
-                    <th className="text-left py-3 px-4 font-medium">Date Création</th>
-                    <th className="text-right py-3 px-4 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCategories.categories.map((category) => {
-                    const servicesCount = getServicesCountByCategory(category.id)
-                    return (
-                      <tr key={category.id} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div>
-                              <p className="font-medium">{category.name}</p>
-                            </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Rechercher une catégorie..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 h-10 w-full sm:w-64 rounded-xl border-[#E8E0D8] dark:border-slate-700"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors flex-shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Nouvelle Catégorie</span>
+            </button>
+          </div>
+        </div>
+
+        {filteredCategories.categories.length > 0 ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCategories.categories.map((category) => {
+                const servicesCount = getServicesCountByCategory(category.id)
+                const isActive = category.isActive !== false
+                return (
+                  <div
+                    key={category.id}
+                    className={`${card} p-4 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-800/50 transition-all`}
+                  >
+                    <div className="space-y-3">
+                      {/* En-tête */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-9 h-9 rounded-xl bg-[#F5F2EF] dark:bg-slate-700/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                            <Palette className="h-4 w-4" />
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <p className="text-sm text-muted-foreground">
-                            {category.description || 'Aucune description'}
-                          </p>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            <span className={`text-sm ${servicesCount > 0 ? 'font-medium text-blue-600' : ''}`}>
-                              {servicesCount}
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-[14px] text-slate-800 dark:text-white truncate">
+                              {category.name}
+                            </h3>
+                            <span
+                              className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                isActive
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                              }`}
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                              {isActive ? 'Actif' : 'Inactif'}
                             </span>
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Badge variant={category.isActive !== false ? "default" : "secondary"}>
-                            {category.isActive !== false ? "Actif" : "Inactif"}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-sm text-muted-foreground">
-                            {category.createdAt 
-                              ? new Date(category.createdAt).toLocaleDateString('fr-FR')
-                              : 'N/A'
-                            }
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 rounded-xl text-slate-500 hover:bg-[#F5F2EF] dark:hover:bg-slate-800 flex-shrink-0"
+                              disabled={isToggling || isDeleting}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditClick(category)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleToggleActive(category)}>
+                              <RefreshCw className="w-4 h-4" />
+                              {isActive ? 'Désactiver' : 'Activer'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className={servicesCount > 0 ? 'text-gray-400 dark:text-slate-500' : 'text-destructive'}
+                              onClick={() => handleDeleteClick(category)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Supprimer
+                              {servicesCount > 0 && (
+                                <span className="ml-1 text-xs">
+                                  ({servicesCount} service{servicesCount > 1 ? 's' : ''})
+                                </span>
+                              )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[2.5em]">
+                        {category.description || 'Aucune description'}
+                      </p>
+
+                      {/* Services + date */}
+                      <div className="flex items-center justify-between py-1.5 px-3 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl">
+                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                          <Users className="h-3.5 w-3.5" />
+                          <span className={`text-[12px] font-semibold ${servicesCount > 0 ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+                            {servicesCount} service{servicesCount > 1 ? 's' : ''}
                           </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" disabled={isToggling || isDeleting}>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEditClick(category)}>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleToggleActive(category)}>
-                                  <RefreshCw className="w-4 h-4" />
-                                  {category.isActive !== false ? "Désactiver" : "Activer"}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  className={servicesCount > 0 ? "text-gray-400 dark:text-slate-500" : "text-destructive"}
-                                  onClick={() => handleDeleteClick(category)}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Supprimer
-                                  {servicesCount > 0 && (
-                                    <span className="ml-1 text-xs">
-                                      ({servicesCount} service{servicesCount > 1 ? 's' : ''})
-                                    </span>
-                                  )}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-
-              {/* Pagination - Afficher seulement si nécessaire */}
-              {filteredCategories.total > PAGE_SIZE && (
-                <div className="mt-4">
-                  <Pagination
-                    page={page}
-                    pageSize={PAGE_SIZE}
-                    total={filteredCategories.total}
-                    onPageChange={setPage}
-                  />
-                </div>
-              )}
+                        </div>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                          {category.createdAt
+                            ? new Date(category.createdAt).toLocaleDateString('fr-FR')
+                            : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <Palette className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
-                {searchTerm ? 'Aucune catégorie trouvée' : 'Aucune catégorie créée'}
-              </p>
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Créer votre première catégorie
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      <CreateCategoryModal 
+            {/* Pagination - Afficher seulement si nécessaire */}
+            {filteredCategories.total > PAGE_SIZE && (
+              <div className="pt-1">
+                <Pagination
+                  page={page}
+                  pageSize={PAGE_SIZE}
+                  total={filteredCategories.total}
+                  onPageChange={setPage}
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Palette className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+            <h3 className="text-[14px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+              {searchTerm ? 'Aucune catégorie trouvée' : 'Aucune catégorie créée'}
+            </h3>
+            <p className="text-[13px] text-slate-400 mb-4">
+              {searchTerm
+                ? 'Aucune catégorie ne correspond à votre recherche.'
+                : 'Commencez par créer votre première catégorie.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Créer votre première catégorie
+            </button>
+          </div>
+        )}
+      </div>
+
+      <CreateCategoryModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         existingCategories={categories}
       />
 
       {/* Nouveau modal de mise à jour */}
-      <UpdateCategoryModal 
+      <UpdateCategoryModal
         open={updateModal.open}
         onOpenChange={handleUpdateModalClose}
         category={updateModal.category}

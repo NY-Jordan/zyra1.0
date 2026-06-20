@@ -4,7 +4,6 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import { Label } from '@zyra/ui/components/label'
 import { Textarea } from '@zyra/ui/components/textarea'
@@ -12,9 +11,6 @@ import { RadioGroup, RadioGroupItem } from '@zyra/ui/components/radio-group'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from '@zyra/ui/components/dialog'
 import {
@@ -28,7 +24,7 @@ import {
 } from '@zyra/ui/components/form'
 import { toast } from 'sonner'
 import { useServiceCategories } from '@/usecases/useServiceCategories'
-import { Palette, Loader2 } from 'lucide-react'
+import { Palette, Loader2, X } from 'lucide-react'
 import { IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
 
 // Schema de validation avec Zod
@@ -115,25 +111,47 @@ export default function CreateCategoryModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md dark:bg-slate-900">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            Nouvelle Catégorie
-          </DialogTitle>
-          <DialogDescription>
-            Créez une nouvelle catégorie de services pour organiser votre offre.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-md p-0 overflow-hidden bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl gap-0 max-h-[88vh]"
+      >
+        <DialogTitle className="sr-only">Nouvelle Catégorie</DialogTitle>
+
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-[#F0EAE4] dark:border-slate-800/50">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                <Palette className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-[16px] font-extrabold text-slate-800 dark:text-white leading-tight">
+                  Nouvelle Catégorie
+                </h2>
+                <p className="text-[12px] text-slate-400 mt-0.5">
+                  Créez une nouvelle catégorie de services pour organiser votre offre.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-7 h-7 rounded-full bg-[#F5F2EF] dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
 
         <Form {...(form as any)}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="px-6 py-5 space-y-4 overflow-y-auto">
             <FormField
               control={form.control as any}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
+                  <FormLabel className="text-[12px] font-bold text-slate-600 dark:text-slate-300">
                     Nom de la catégorie <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
@@ -147,6 +165,7 @@ export default function CreateCategoryModal({
                           form.clearErrors('name')
                         }
                       }}
+                      className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700"
                     />
                   </FormControl>
                   <FormMessage />
@@ -159,15 +178,16 @@ export default function CreateCategoryModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (optionnel)</FormLabel>
+                  <FormLabel className="text-[12px] font-bold text-slate-600 dark:text-slate-300">Description (optionnel)</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Description de la catégorie..."
                       rows={3}
                       {...field}
+                      className="rounded-xl border-[#E8E0D8] dark:border-slate-700"
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-[11px]">
                     Une description courte pour expliquer cette catégorie
                   </FormDescription>
                   <FormMessage />
@@ -180,7 +200,7 @@ export default function CreateCategoryModal({
               name="isActive"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Statut</FormLabel>
+                  <FormLabel className="text-[12px] font-bold text-slate-600 dark:text-slate-300">Statut</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={(value) => field.onChange(value === 'true')}
@@ -189,19 +209,19 @@ export default function CreateCategoryModal({
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="true" id="active" />
-                        <Label htmlFor="active" className="text-sm font-normal cursor-pointer">
+                        <Label htmlFor="active" className="text-[13px] font-medium cursor-pointer">
                           Actif
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="false" id="inactive" />
-                        <Label htmlFor="inactive" className="text-sm font-normal cursor-pointer">
+                        <Label htmlFor="inactive" className="text-[13px] font-medium cursor-pointer">
                           Inactif
                         </Label>
                       </div>
                     </RadioGroup>
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-[11px]">
                     Les catégories inactives ne seront pas visibles pour la réservation
                   </FormDescription>
                   <FormMessage />
@@ -210,31 +230,37 @@ export default function CreateCategoryModal({
             />
 
             {createError && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+              <div className="p-3 text-[12px] text-destructive bg-destructive/10 rounded-xl">
                 Erreur: {createError.message || 'Une erreur est survenue'}
               </div>
             )}
+          </div>
 
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleClose}
-                disabled={isCreating}
-              >
-                Annuler
-              </Button>
-              <Button type="submit" disabled={isCreating || !form.formState.isValid}>
-                {isCreating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Création...
-                  </>
-                ) : (
-                  'Créer la catégorie'
-                )}
-              </Button>
-            </DialogFooter>
+          {/* Footer */}
+          <div className="flex justify-end gap-2 px-6 py-4 border-t border-[#F0EAE4] dark:border-slate-800/50 bg-[#FAF7F4] dark:bg-slate-800/30">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={isCreating}
+              className="h-9 px-5 rounded-xl text-[12px] font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-[#E8E0D8] dark:border-slate-700 hover:bg-[#F5F2EF] dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={isCreating || !form.formState.isValid}
+              className="flex items-center gap-1.5 h-9 px-5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Création...
+                </>
+              ) : (
+                'Créer la catégorie'
+              )}
+            </button>
+          </div>
           </form>
         </Form>
       </DialogContent>

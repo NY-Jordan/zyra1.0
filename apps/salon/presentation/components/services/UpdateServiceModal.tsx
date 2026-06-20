@@ -334,26 +334,45 @@ export default function UpdateServiceModal({
   }
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Edit className="h-5 w-5" />
-            Modifier le Service
-          </DialogTitle>
-          <DialogDescription>
-            Modifiez les informations du service "{service.name}".
-            {watchedName?.trim() !== service?.name && " Minimum 4 caractères requis pour valider le nouveau nom."}
-          </DialogDescription>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl gap-0"
+      >
+        <DialogHeader className="px-6 pt-6 pb-5 border-b border-[#F0EAE4] dark:border-slate-800/50 space-y-0">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                <Edit className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-[16px] font-extrabold text-slate-800 dark:text-white leading-tight">
+                  Modifier le Service
+                </DialogTitle>
+                <DialogDescription className="text-[12px] text-slate-400 dark:text-slate-500">
+                  Modifiez les informations du service "{service.name}".
+                  {watchedName?.trim() !== service?.name && " Minimum 4 caractères requis pour valider le nouveau nom."}
+                </DialogDescription>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label="Fermer"
+              className="w-7 h-7 rounded-full bg-[#F5F2EF] dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </DialogHeader>
         <Form {...(form as any)}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-6 py-5">
             {/* Nom du service avec validation */}
             <FormField
               control={form.control as any}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
+                  <FormLabel className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                     Nom du service <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
@@ -363,11 +382,11 @@ export default function UpdateServiceModal({
                         value={field.value}
                         onChange={handleNameChange}
                         disabled={isFormDisabled}
-                        className={`pr-10 ${
+                        className={`pr-10 h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700 ${
                           inputState === 'forbidden'
                             ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                             : inputState === 'valid'
-                              ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
                               : inputState === 'warning'
                                 ? 'border-orange-500'
                                 : ''
@@ -380,16 +399,16 @@ export default function UpdateServiceModal({
                         <ShieldAlert className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
                       )}
                       {inputState === 'valid' && (
-                        <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                        <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-500" />
                       )}
                       {inputState === 'warning' && (
                         <AlertTriangle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-orange-500" />
                       )}
                     </div>
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-[12px]">
                     {watchedName && watchedName.trim() !== service?.name && watchedName.trim().length < 4 && (
-                      <span className="text-gray-500 dark:text-slate-400">
+                      <span className="text-slate-400 dark:text-slate-500">
                         Tapez au moins 4 caractères pour déclencher la validation
                       </span>
                     )}
@@ -414,7 +433,7 @@ export default function UpdateServiceModal({
               />
             )}
 
-            <Separator />
+            <Separator className="bg-[#F0EAE4] dark:bg-slate-800/50" />
 
             {/* Reste du formulaire - désactivé si service interdit */}
             <div className={`space-y-4 ${analysisResult.isForbidden ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -424,12 +443,12 @@ export default function UpdateServiceModal({
                   name="categoryId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                         Catégorie <span className="text-destructive">*</span>
                       </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700">
                             <SelectValue placeholder="Sélectionner une catégorie" />
                           </SelectTrigger>
                         </FormControl>
@@ -451,7 +470,7 @@ export default function UpdateServiceModal({
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                         Prix (XAF) <span className="text-destructive">*</span>
                       </FormLabel>
                       <FormControl>
@@ -461,9 +480,10 @@ export default function UpdateServiceModal({
                           {...field}
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           disabled={isFormDisabled}
+                          className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700"
                         />
                       </FormControl>
-                      <FormDescription>Prix en francs CFA</FormDescription>
+                      <FormDescription className="text-[12px]">Prix en francs CFA</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -476,7 +496,7 @@ export default function UpdateServiceModal({
                   name="duration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                         Durée (minutes) <span className="text-destructive">*</span>
                       </FormLabel>
                       <FormControl>
@@ -486,9 +506,10 @@ export default function UpdateServiceModal({
                           {...field}
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           disabled={isFormDisabled}
+                          className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700"
                         />
                       </FormControl>
-                      <FormDescription>Durée en minutes</FormDescription>
+                      <FormDescription className="text-[12px]">Durée en minutes</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -500,7 +521,7 @@ export default function UpdateServiceModal({
                   name="image"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Image du service (optionnel)</FormLabel>
+                      <FormLabel className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Image du service (optionnel)</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           {/* Input file caché */}
@@ -512,18 +533,18 @@ export default function UpdateServiceModal({
                             disabled={isFormDisabled}
                             className="hidden"
                           />
-                          
+
                           {/* Bouton de sélection ou aperçu */}
                           {!imagePreview ? (
                             <label
                               htmlFor="service-image-update"
-                              className={`flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 dark:border-slate-600 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors ${
+                              className={`flex flex-col items-center justify-center w-full h-24 border-2 border-[#E8E0D8] dark:border-slate-700 border-dashed rounded-xl cursor-pointer bg-[#F8F4F0] dark:bg-slate-800/40 hover:bg-[#F5F2EF] dark:hover:bg-slate-800/70 transition-colors ${
                                 isFormDisabled ? 'opacity-50 cursor-not-allowed' : ''
                               }`}
                             >
                               <div className="flex flex-col items-center justify-center pt-2 pb-3">
-                                <Upload className="w-4 h-4 mb-1 text-gray-500 dark:text-slate-400" />
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                <Upload className="w-4 h-4 mb-1 text-slate-400 dark:text-slate-500" />
+                                <p className="text-[11px] text-slate-400 dark:text-slate-500">
                                   Cliquez pour choisir
                                 </p>
                               </div>
@@ -533,7 +554,7 @@ export default function UpdateServiceModal({
                               <img
                                 src={imagePreview}
                                 alt="Aperçu"
-                                className="w-full h-24 object-cover rounded-lg border"
+                                className="w-full h-24 object-cover rounded-xl border border-[#E8E0D8] dark:border-slate-700"
                               />
                               <Button
                                 type="button"
@@ -541,12 +562,12 @@ export default function UpdateServiceModal({
                                 size="sm"
                                 onClick={handleRemoveImage}
                                 disabled={isFormDisabled}
-                                className="absolute top-1 right-1 h-6 w-6 p-0"
+                                className="absolute top-1 right-1 h-6 w-6 p-0 rounded-full"
                               >
                                 <X className="h-3 w-3" />
                               </Button>
                               {hasImageChanged && (
-                                <div className="absolute bottom-1 left-1 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+                                <div className="absolute bottom-1 left-1 px-2 py-1 bg-emerald-500 text-white text-[10px] font-semibold rounded-full">
                                   Modifié
                                 </div>
                               )}
@@ -554,7 +575,7 @@ export default function UpdateServiceModal({
                           )}
                         </div>
                       </FormControl>
-                      <FormDescription>
+                      <FormDescription className="text-[12px]">
                         JPG, PNG, GIF ou WebP. Max 5MB.
                       </FormDescription>
                       <FormMessage />
@@ -565,8 +586,8 @@ export default function UpdateServiceModal({
 
                <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold">Suppléments</h3>
-                    <span className="text-sm text-muted-foreground">(optionnel)</span>
+                    <h3 className="text-[14px] font-bold text-slate-800 dark:text-white">Suppléments</h3>
+                    <span className="text-[12px] text-slate-400 dark:text-slate-500">(optionnel)</span>
                   </div>
                   <ServiceSupplementsManager
                     control={form.control as any}
@@ -575,12 +596,14 @@ export default function UpdateServiceModal({
                   />
                 </div>
 
+              <Separator className="bg-[#F0EAE4] dark:bg-slate-800/50" />
+
               <FormField
                 control={form.control as any}
                 name="isActive"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>Statut</FormLabel>
+                    <FormLabel className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Statut</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={(value) => field.onChange(value === 'true')}
@@ -589,20 +612,20 @@ export default function UpdateServiceModal({
                         className="flex items-center gap-6"
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="true" id="active-update" />
-                          <label htmlFor="active-update" className="text-sm font-normal cursor-pointer">
+                          <RadioGroupItem value="true" id="active-update" className="text-emerald-500 border-[#E8E0D8] dark:border-slate-700" />
+                          <label htmlFor="active-update" className="text-[13px] font-medium text-slate-600 dark:text-slate-300 cursor-pointer">
                             Actif
                           </label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="false" id="inactive-update" />
-                          <label htmlFor="inactive-update" className="text-sm font-normal cursor-pointer">
+                          <RadioGroupItem value="false" id="inactive-update" className="text-emerald-500 border-[#E8E0D8] dark:border-slate-700" />
+                          <label htmlFor="inactive-update" className="text-[13px] font-medium text-slate-600 dark:text-slate-300 cursor-pointer">
                             Inactif
                           </label>
                         </div>
                       </RadioGroup>
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-[12px]">
                       Les services inactifs ne seront pas visibles pour la réservation
                     </FormDescription>
                     <FormMessage />
@@ -613,27 +636,34 @@ export default function UpdateServiceModal({
 
             {/* Indicateur d'upload d'image */}
             {isUploadingImage && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+              <div className="px-3.5 py-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm text-blue-700 dark:text-blue-300">Upload de l'image en cours...</span>
+                  <Loader2 className="h-4 w-4 animate-spin text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-[12px] font-medium text-emerald-700 dark:text-emerald-300">Upload de l'image en cours...</span>
                 </div>
               </div>
             )}
 
             {updateError && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+              <div className="px-3.5 py-3 text-[12px] font-medium text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/50 rounded-xl">
                 Erreur: {updateError.message || 'Une erreur est survenue'}
               </div>
             )}
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleClose} disabled={isFormDisabled}>
+            <DialogFooter className="-mx-6 -mb-5 mt-2 px-6 py-4 border-t border-[#F0EAE4] dark:border-slate-800/50 bg-[#FAF7F4] dark:bg-slate-800/30 rounded-b-2xl">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleClose}
+                disabled={isFormDisabled}
+                className="h-9 px-4 rounded-xl text-[12px] font-semibold text-slate-500 dark:text-slate-400 hover:bg-[#F0EAE4] dark:hover:bg-slate-700"
+              >
                 Annuler
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitDisabled}
+                className="h-9 px-5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60"
               >
                 {isUpdating ? (
                   <>

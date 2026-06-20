@@ -2,10 +2,8 @@
 
 import React from 'react'
 import { useFieldArray, Control, useWatch } from 'react-hook-form'
-import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
 import { Plus, Trash2 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@zyra/ui/components/card'
 import { generateUniqueId } from '@zyra/conf/lib/config'
 import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 
@@ -44,46 +42,45 @@ export function ServiceSupplementsManager({
   }
 
   return (
-    <div className={`space-y-4 `}>
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">{title}</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddSupplement}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            {'Ajouter un supplément'}
-          </Button>
+        <h3 className="text-[14px] font-bold text-slate-800 dark:text-white">{title}</h3>
+        <button
+          type="button"
+          onClick={handleAddSupplement}
+          className="flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {'Ajouter un supplément'}
+        </button>
       </div>
 
       {fields.length === 0 && (
-        <Card className="border-dashed">
-          <CardContent className="p-6">
-            <div className="text-center text-muted-foreground">
-              <p>Aucun supplément ajouté</p>
-                <p className="text-sm mt-1">
-                  Cliquez sur "{'Ajouter un supplément'}" pour ajouter des suppléments
-                </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-[#F8F4F0] dark:bg-slate-800/40 border border-dashed border-[#E8E0D8] dark:border-slate-700 rounded-xl p-6">
+          <div className="text-center text-slate-400 dark:text-slate-500">
+            <p className="text-[13px] font-medium">Aucun supplément ajouté</p>
+            <p className="text-[12px] mt-1">
+              Cliquez sur "{'Ajouter un supplément'}" pour ajouter des suppléments
+            </p>
+          </div>
+        </div>
       )}
 
       {fields.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {fields.map((field, index) => (
-            <Card key={field.id} className="p-4">
-              <div className="flex items-center gap-3">
+            <div
+              key={field.id}
+              className="bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-xl p-3"
+            >
+              <div className="flex items-center gap-2.5">
                 <div className="flex-1">
                   <Input
                     {...control.register(`${fieldName}.${index}.name`, {
                       required: "Le nom du supplément est requis"
                     })}
                     placeholder="Nom du supplément"
-                    className="mb-2"
+                    className="h-9 rounded-lg border-[#E8E0D8] dark:border-slate-700"
                   />
                 </div>
                 <div className="w-24">
@@ -97,7 +94,7 @@ export function ServiceSupplementsManager({
                     placeholder="Prix"
                     min="0"
                     step="0.01"
-                    className="mb-2"
+                    className="h-9 rounded-lg border-[#E8E0D8] dark:border-slate-700"
                   />
                 </div>
                 <div className="w-20">
@@ -110,21 +107,19 @@ export function ServiceSupplementsManager({
                     type="number"
                     placeholder="Min"
                     min="0"
-                    className="mb-2"
+                    className="h-9 rounded-lg border-[#E8E0D8] dark:border-slate-700"
                   />
                 </div>
-                
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => handleRemoveSupplement(index)}
-                    className="flex-shrink-0"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSupplement(index)}
+                  className="h-9 w-9 flex-shrink-0 rounded-lg flex items-center justify-center text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
