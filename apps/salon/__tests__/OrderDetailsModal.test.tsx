@@ -2,7 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+// ─── Hoisted mocks ────────────────────────────────────────────────────────────
+const { mockHairDressers } = vi.hoisted(() => ({
+  mockHairDressers: { value: [] as any[] },
+}));
+
 // ─── Mocks ────────────────────────────────────────────────────────────────────
+vi.mock('@/usecases/useHairDressers', () => ({
+  useHairDressers: () => ({ hairDressers: mockHairDressers.value }),
+}));
+
 vi.mock('@zyra/ui/components/dialog', () => ({
   Dialog: ({ open, children }: any) => (open ? <div role="dialog">{children}</div> : null),
   DialogContent: ({ children }: any) => <div>{children}</div>,
@@ -60,6 +69,7 @@ const onOpenChange = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockHairDressers.value = [];
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -147,6 +157,45 @@ describe('OrderDetailsModal - Informations principales', () => {
   it('affiche le nom du coiffeur', () => {
     render(<OrderDetailsModal order={buildOrder({ hairDresserName: 'Sophie' })} open={true} onOpenChange={onOpenChange} />);
     expect(screen.getByText('Sophie')).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('OrderDetailsModal - Coiffeur (photo et spécialité)', () => {
+  it('affiche la photo du coiffeur si trouvé et qu\'il a une photo', () => {
+    mockHairDressers.value = [
+      { id: 'hd-1', name: 'Marc', speciality: 'Coupe homme', photo: 'https://example.com/marc.jpg' },
+    ];
+    render(<OrderDetailsModal order={buildOrder({ hairDresserId: 'hd-1', hairDresserName: 'Marc' })} open={true} onOpenChange={onOpenChange} />);
+
+    const img = screen.getByAltText('Marc') as HTMLImageElement;
+    expect(img).toBeInTheDocument();
+    expect(img.src).toBe('https://example.com/marc.jpg');
+  });
+
+  it('affiche la spécialité du coiffeur trouvé', () => {
+    mockHairDressers.value = [
+      { id: 'hd-1', name: 'Marc', speciality: 'Spécialiste couleur', photo: '' },
+    ];
+    render(<OrderDetailsModal order={buildOrder({ hairDresserId: 'hd-1', hairDresserName: 'Marc' })} open={true} onOpenChange={onOpenChange} />);
+
+    expect(screen.getByText('Spécialiste couleur')).toBeInTheDocument();
+  });
+
+  it('affiche un avatar avec l\'initiale si le coiffeur n\'a pas de photo', () => {
+    mockHairDressers.value = [{ id: 'hd-1', name: 'Marc', speciality: 'Coupe', photo: '' }];
+    render(<OrderDetailsModal order={buildOrder({ hairDresserId: 'hd-1', hairDresserName: 'Marc' })} open={true} onOpenChange={onOpenChange} />);
+
+    expect(screen.queryByAltText('Marc')).not.toBeInTheDocument();
+    expect(screen.getByText('M')).toBeInTheDocument();
+  });
+
+  it('affiche un avatar avec l\'initiale si le coiffeur n\'est pas trouvé dans la liste du salon', () => {
+    mockHairDressers.value = []; // coiffeur introuvable (ex: retiré du salon depuis)
+    render(<OrderDetailsModal order={buildOrder({ hairDresserId: 'hd-unknown', hairDresserName: 'Paul' })} open={true} onOpenChange={onOpenChange} />);
+
+    expect(screen.getByText('Paul')).toBeInTheDocument();
+    expect(screen.getByText('P')).toBeInTheDocument();
   });
 });
 

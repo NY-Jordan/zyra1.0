@@ -13,6 +13,7 @@ import {
   Calendar as CalendarIcon,
 } from 'lucide-react'
 import { useSalon } from '@/hooks/useSalon'
+import { useHairDressers } from '@/usecases/useHairDressers'
 import { useQuery } from '@tanstack/react-query'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
 import OrderCard from './OrderCard'
@@ -54,9 +55,11 @@ function KpiCard({ icon, label, value, bg, iconColor }: {
 
 export default function OrdersManagement() {
   const { salon } = useSalon()
+  const { hairDressers } = useHairDressers()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [paymentFilter, setPaymentFilter] = useState<string>('all')
+  const [hairDresserFilter, setHairDresserFilter] = useState<string>('all')
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false)
   const [dateFilterType, setDateFilterType] = useState<DateFilterType>('today')
   const [customDateStart, setCustomDateStart] = useState<Date>()
@@ -144,10 +147,13 @@ export default function OrdersManagement() {
           (paymentFilter === 'paid' && order.isPaid) ||
           (paymentFilter === 'unpaid' && !order.isPaid)
 
-        return matchesSearch && matchesStatus && matchesPayment
+        const matchesHairDresser =
+          hairDresserFilter === 'all' || order.hairDresserId === hairDresserFilter
+
+        return matchesSearch && matchesStatus && matchesPayment && matchesHairDresser
       })
       .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [orders, searchTerm, statusFilter, paymentFilter])
+  }, [orders, searchTerm, statusFilter, paymentFilter, hairDresserFilter])
 
   const card = 'bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl'
 
@@ -266,7 +272,7 @@ export default function OrdersManagement() {
         </div>
 
         {/* Recherche + filtres */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
@@ -299,6 +305,18 @@ export default function OrdersManagement() {
             <option value="paid">Payées</option>
             <option value="unpaid">Non payées</option>
           </select>
+
+          <select
+            aria-label="Filtrer par coiffeur"
+            value={hairDresserFilter}
+            onChange={(e) => setHairDresserFilter(e.target.value)}
+            className="h-10 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+          >
+            <option value="all">Tous les coiffeurs</option>
+            {hairDressers.map(hd => (
+              <option key={hd.id} value={hd.id}>{hd.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -313,11 +331,11 @@ export default function OrdersManagement() {
             <ShoppingBag className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
             <h3 className="text-[14px] font-bold text-slate-700 dark:text-slate-300 mb-1">Aucune commande</h3>
             <p className="text-[13px] text-slate-400 mb-4">
-              {searchTerm || statusFilter !== 'all' || paymentFilter !== 'all'
+              {searchTerm || statusFilter !== 'all' || paymentFilter !== 'all' || hairDresserFilter !== 'all'
                 ? 'Aucune commande ne correspond à vos filtres.'
                 : 'Commencez par créer votre première commande.'}
             </p>
-            {!searchTerm && statusFilter === 'all' && paymentFilter === 'all' && (
+            {!searchTerm && statusFilter === 'all' && paymentFilter === 'all' && hairDresserFilter === 'all' && (
               <button
                 type="button"
                 onClick={() => setIsNewOrderModalOpen(true)}

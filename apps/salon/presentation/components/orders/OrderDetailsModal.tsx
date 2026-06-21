@@ -10,8 +10,6 @@ import {
   User,
   Phone,
   Mail,
-  Scissors,
-  Users,
   Calendar,
   Banknote,
   Smartphone,
@@ -23,6 +21,7 @@ import {
   Receipt,
 } from 'lucide-react'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
+import { useHairDressers } from '@/usecases/useHairDressers'
 
 interface OrderDetailsModalProps {
   order: IOrder | null
@@ -71,6 +70,9 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 }
 
 export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsModalProps) {
+  const { hairDressers } = useHairDressers()
+  const hairdresser = hairDressers.find(hd => hd.id === order?.hairDresserId)
+
   if (!order) return null
 
   const getPaymentMethodIcon = (method: string) => {
@@ -182,7 +184,30 @@ export default function OrderDetailsModal({ order, open, onOpenChange }: OrderDe
               {order.clientEmail && (
                 <InfoRow icon={<Mail className="w-3.5 h-3.5" />} label="Email" value={order.clientEmail} />
               )}
-              <InfoRow icon={<Users className="w-3.5 h-3.5" />} label="Coiffeur" value={order.hairDresserName} />
+            </div>
+          </div>
+
+          {/* Coiffeur */}
+          <div className="space-y-2">
+            <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Coiffeur</h3>
+            <div className="flex items-center gap-3 px-3.5 py-2.5 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl">
+              {hairdresser?.photo ? (
+                <img
+                  src={hairdresser.photo}
+                  alt={order.hairDresserName}
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 text-white text-[14px] font-bold">
+                  {order.hairDresserName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 truncate">{order.hairDresserName}</p>
+                {hairdresser?.speciality && (
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{hairdresser.speciality}</p>
+                )}
+              </div>
             </div>
           </div>
 

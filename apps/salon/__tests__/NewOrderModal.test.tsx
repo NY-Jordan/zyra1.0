@@ -68,18 +68,19 @@ vi.mock('@/presentation/components/orders/ClientSearchModal', () => ({
 
 // ─── Import du composant (après les mocks) ────────────────────────────────────
 import NewOrderModal from '@/presentation/components/orders/NewOrderModal';
-import { fetchCollection, createDocument } from '@zyra/conf/lib/query';
+import { fetchCollection, createDocument, editDocument } from '@zyra/conf/lib/query';
 import { toast } from 'sonner';
 
 const mockFetchCollection = vi.mocked(fetchCollection);
 const mockCreateDocument = vi.mocked(createDocument);
+const mockEditDocument = vi.mocked(editDocument);
 
 const SERVICE_NO_SUPP = {
   id: 'service-base',
   name: 'Coupe homme',
   price: 5000,
   duration: 30,
-  categoryId: 'cat-1',
+  categoryId: 'cat-coupe',
   supplements: [],
 };
 
@@ -88,15 +89,32 @@ const SERVICE_WITH_SUPP = {
   name: 'Coupe + Soins',
   price: 8000,
   duration: 60,
-  categoryId: 'cat-1',
+  categoryId: 'cat-soins',
   supplements: [
     { id: 'supp-1', name: 'Shampoing', price: 1500, duration: 10 },
     { id: 'supp-2', name: 'Massage crânien', price: 2000, duration: 15 },
   ],
 };
 
-const HAIRDRESSER_1 = { id: 'hd-1', name: 'Marc', speciality: 'Coupe' };
-const HAIRDRESSER_2 = { id: 'hd-2', name: 'Sophie', speciality: 'Coloration' };
+// L'association coiffeur-salon stocke des IDs de CATÉGORIES de service dans
+// "salonServiceIds" (champ mal nommé), pas des IDs de service directs.
+// Qualifiés pour les deux catégories par défaut, afin que les flux existants
+// (sélection d'un service puis d'un coiffeur) fonctionnent sans configuration
+// supplémentaire. Le filtrage par qualification est testé séparément.
+const HAIRDRESSER_1 = {
+  id: 'hd-1',
+  name: 'Marc',
+  speciality: 'Coupe',
+  photo: '',
+  associationHairdresser: { salonServiceIds: ['cat-coupe', 'cat-soins'] },
+};
+const HAIRDRESSER_2 = {
+  id: 'hd-2',
+  name: 'Sophie',
+  speciality: 'Coloration',
+  photo: '',
+  associationHairdresser: { salonServiceIds: ['cat-coupe', 'cat-soins'] },
+};
 
 function setup({ withHairDressers = true } = {}) {
   mockSalon.value = {
@@ -125,10 +143,16 @@ async function goToStep1(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByText('Suivant'));
 }
 
-async function goToStep2(user: ReturnType<typeof userEvent.setup>, serviceId = 'service-base') {
+// Sélectionne d'abord le service (ce qui fait apparaître la liste des coiffeurs
+// qualifiés), puis le coiffeur, puis avance à l'étape paiement.
+async function goToStep2(
+  user: ReturnType<typeof userEvent.setup>,
+  serviceName = 'Coupe homme',
+  hairdresserName = 'Marc'
+) {
   await goToStep1(user);
-  await user.selectOptions(screen.getByLabelText('Coiffeur *'), 'hd-1');
-  await user.selectOptions(screen.getByLabelText('Service *'), serviceId);
+  await user.click(screen.getByRole('button', { name: new RegExp(serviceName) }));
+  await user.click(screen.getByRole('button', { name: new RegExp(hairdresserName) }));
   await user.click(screen.getByText('Suivant'));
 }
 
@@ -184,7 +208,7 @@ describe('NewOrderModal - Navigation entre étapes', () => {
     await goToStep1(user);
 
     expect(screen.getByText('Étape 2 sur 3')).toBeInTheDocument();
-    expect(screen.getByLabelText('Coiffeur *')).toBeInTheDocument();
+    expect(screen.getByText('Coupe homme', { exact: false })).toBeInTheDocument();
   });
 
   it('bloque le passage à l\'étape 3 si aucun coiffeur/service n\'est sélectionné', async () => {
@@ -221,24 +245,87 @@ describe('NewOrderModal - Navigation entre étapes', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-describe('NewOrderModal - Service, coiffeur et calcul du prix', () => {
-  it('liste les coiffeurs et services du salon', async () => {
+describe('NewOrderModal - Sélection du service puis du coiffeur', () => {
+  it('liste tous les services du salon avant toute sélection', async () => {
     const user = userEvent.setup();
     renderModal();
     await goToStep1(user);
 
-    expect(screen.getByText('Marc - Coupe')).toBeInTheDocument();
-    expect(screen.getByText('Sophie - Coloration')).toBeInTheDocument();
-    expect(screen.getByText('Coupe homme - 5,000 XAF')).toBeInTheDocument();
-    expect(screen.getByText('Coupe + Soins - 8,000 XAF')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Coupe homme/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Coupe \+ Soins/ })).toBeInTheDocument();
+    // Aucun coiffeur tant qu'aucun service n'est choisi
+    expect(screen.queryByText('Coiffeur *')).not.toBeInTheDocument();
   });
 
+  it('affiche la liste des coiffeurs qualifiés seulement après la sélection d\'un service', async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await goToStep1(user);
+
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
+
+    expect(screen.getByText('Coiffeur *')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Marc/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sophie/ })).toBeInTheDocument();
+  });
+
+  it('ne propose que les coiffeurs qualifiés pour le service sélectionné', async () => {
+    const user = userEvent.setup();
+    mockHairDressers.value = [
+      { id: 'hd-1', name: 'Marc', speciality: 'Coupe', photo: '', associationHairdresser: { salonServiceIds: ['cat-coupe'] } },
+      { id: 'hd-2', name: 'Sophie', speciality: 'Coloration', photo: '', associationHairdresser: { salonServiceIds: ['cat-soins'] } },
+    ];
+    renderModal();
+    await goToStep1(user);
+
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
+
+    expect(screen.getByRole('button', { name: /Marc/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Sophie/ })).not.toBeInTheDocument();
+  });
+
+  it('affiche un message si aucun coiffeur n\'est associé au service choisi', async () => {
+    const user = userEvent.setup();
+    mockHairDressers.value = [
+      { id: 'hd-1', name: 'Marc', speciality: 'Coupe', photo: '', associationHairdresser: { salonServiceIds: ['cat-soins'] } },
+    ];
+    renderModal();
+    await goToStep1(user);
+
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
+
+    expect(screen.getByText('Aucun coiffeur n\'est encore associé à ce service.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Marc/ })).not.toBeInTheDocument();
+  });
+
+  it('réinitialise le coiffeur sélectionné quand on change de service', async () => {
+    const user = userEvent.setup();
+    mockHairDressers.value = [
+      { id: 'hd-1', name: 'Marc', speciality: 'Coupe', photo: '', associationHairdresser: { salonServiceIds: ['cat-coupe'] } },
+      { id: 'hd-2', name: 'Sophie', speciality: 'Coloration', photo: '', associationHairdresser: { salonServiceIds: ['cat-soins'] } },
+    ];
+    renderModal();
+    await goToStep1(user);
+
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
+
+    await user.click(screen.getByRole('button', { name: /Coupe \+ Soins/ }));
+
+    // Marc n'est plus qualifié pour ce service, donc plus listé ; Sophie apparaît à sa place
+    expect(screen.queryByRole('button', { name: /Marc/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sophie/ })).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('NewOrderModal - Suppléments et calcul du prix', () => {
   it('affiche les suppléments et calcule le total quand on les sélectionne', async () => {
     const user = userEvent.setup();
     renderModal();
     await goToStep1(user);
-    await user.selectOptions(screen.getByLabelText('Coiffeur *'), 'hd-1');
-    await user.selectOptions(screen.getByLabelText('Service *'), 'service-supp');
+    await user.click(screen.getByRole('button', { name: /Coupe \+ Soins/ }));
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
 
     expect(screen.getByText('Shampoing')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Shampoing/ }));
@@ -250,11 +337,11 @@ describe('NewOrderModal - Service, coiffeur et calcul du prix', () => {
     const user = userEvent.setup();
     renderModal();
     await goToStep1(user);
-    await user.selectOptions(screen.getByLabelText('Coiffeur *'), 'hd-1');
-    await user.selectOptions(screen.getByLabelText('Service *'), 'service-supp');
+    await user.click(screen.getByRole('button', { name: /Coupe \+ Soins/ }));
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
     await user.click(screen.getByRole('button', { name: /Shampoing/ }));
 
-    await user.selectOptions(screen.getByLabelText('Service *'), 'service-base');
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
 
     expect(screen.queryByText('Shampoing')).not.toBeInTheDocument();
   });
@@ -319,6 +406,18 @@ describe('NewOrderModal - Création réussie (sans client régulier)', () => {
     await waitFor(() => expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['orders'] }));
   });
 
+  it('invalide aussi le cache des clients (liste + recherche d\'import) après création', async () => {
+    const user = userEvent.setup();
+    mockCreateDocument.mockResolvedValueOnce('order-id-1');
+    const { invalidateSpy } = renderModal();
+
+    await goToStep2(user);
+    await user.click(screen.getByText('Créer la commande'));
+
+    await waitFor(() => expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['clients'] }));
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['salon-clients'] });
+  });
+
   it('utilise la méthode de paiement Mobile Money quand elle est sélectionnée', async () => {
     const user = userEvent.setup();
     mockCreateDocument.mockResolvedValueOnce('order-id-1');
@@ -359,8 +458,8 @@ describe('NewOrderModal - Création réussie (sans client régulier)', () => {
     renderModal();
 
     await goToStep1(user);
-    await user.selectOptions(screen.getByLabelText('Coiffeur *'), 'hd-1');
-    await user.selectOptions(screen.getByLabelText('Service *'), 'service-supp');
+    await user.click(screen.getByRole('button', { name: /Coupe \+ Soins/ }));
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
     await user.click(screen.getByRole('button', { name: /Shampoing/ }));
     await user.click(screen.getByText('Suivant'));
     await user.type(screen.getByLabelText('Notes (optionnel)'), 'Client pressé');
@@ -381,11 +480,109 @@ describe('NewOrderModal - Création réussie (sans client régulier)', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-describe('NewOrderModal - Client régulier', () => {
-  it('crée un nouveau client et met à jour son historique si aucun client existant n\'est trouvé', async () => {
+describe('NewOrderModal - Import d\'un client existant', () => {
+  it('préremplit le formulaire et affiche le bandeau "client importé" après sélection', async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByText('Importer un client existant'));
+    expect(screen.getByTestId('client-search-modal')).toBeInTheDocument();
+
+    await user.click(screen.getByText('Choisir Client Existant'));
+
+    expect(screen.getByLabelText('Nom complet *')).toHaveValue('Client Existant');
+    expect(screen.getByLabelText('Téléphone *')).toHaveValue('+237611111111');
+    expect(screen.getByLabelText('Email (optionnel)')).toHaveValue('existant@test.com');
+    expect(screen.getByText('Client existant importé')).toBeInTheDocument();
+  });
+
+  it('grise (désactive) les champs client une fois un client importé', async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByText('Importer un client existant'));
+    await user.click(screen.getByText('Choisir Client Existant'));
+
+    expect(screen.getByLabelText('Nom complet *')).toBeDisabled();
+    expect(screen.getByLabelText('Téléphone *')).toBeDisabled();
+    expect(screen.getByLabelText('Email (optionnel)')).toBeDisabled();
+    // Le toggle "client régulier" n'a plus lieu d'être : le client existe déjà
+    expect(screen.queryByLabelText('Enregistrer comme client régulier')).not.toBeInTheDocument();
+  });
+
+  it('permet de retirer le client importé : champs réactivés et vidés', async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByText('Importer un client existant'));
+    await user.click(screen.getByText('Choisir Client Existant'));
+    await user.click(screen.getByText('Retirer'));
+
+    expect(screen.queryByText('Client existant importé')).not.toBeInTheDocument();
+    expect(screen.getByText('Importer un client existant')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nom complet *')).not.toBeDisabled();
+    expect(screen.getByLabelText('Nom complet *')).toHaveValue('');
+    expect(screen.getByLabelText('Téléphone *')).toHaveValue('');
+    expect(screen.getByLabelText('Email (optionnel)')).toHaveValue('');
+  });
+
+  it('utilise directement l\'ID du client importé, sans nouvelle recherche par nom/téléphone', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([{ id: 'client-existing', history: ['old-order'] }]); // relecture pour historique uniquement
+    mockCreateDocument.mockResolvedValueOnce('order-id-import');
+    renderModal();
+
+    await user.click(screen.getByText('Importer un client existant'));
+    await user.click(screen.getByText('Choisir Client Existant'));
+    await user.click(screen.getByText('Suivant'));
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
+    await user.click(screen.getByText('Suivant'));
+    await user.click(screen.getByText('Créer la commande'));
+
+    await waitFor(() =>
+      expect(mockCreateDocument).toHaveBeenCalledWith(
+        'orders',
+        expect.objectContaining({ clientId: 'client-existing' })
+      )
+    );
+    // Aucune recherche par nom/téléphone : un seul appel fetchCollection (relecture pour l'historique)
+    expect(mockFetchCollection).toHaveBeenCalledTimes(1);
+    expect(mockFetchCollection).toHaveBeenCalledWith('clients', expect.anything());
+    // Pas de création de document client : on réutilise le client importé
+    expect(mockCreateDocument).not.toHaveBeenCalledWith('clients', expect.anything());
+  });
+
+  it('incrémente (pousse dans l\'historique) le nombre de commandes du client importé', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([{ id: 'client-existing', history: ['old-order-1', 'old-order-2'] }]);
+    mockCreateDocument.mockResolvedValueOnce('order-id-new');
+    renderModal();
+
+    await user.click(screen.getByText('Importer un client existant'));
+    await user.click(screen.getByText('Choisir Client Existant'));
+    await user.click(screen.getByText('Suivant'));
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
+    await user.click(screen.getByText('Suivant'));
+    await user.click(screen.getByText('Créer la commande'));
+
+    await waitFor(() =>
+      expect(mockEditDocument).toHaveBeenCalledWith(
+        'clients',
+        'client-existing',
+        expect.objectContaining({ history: ['old-order-1', 'old-order-2', 'order-id-new'] })
+      )
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('NewOrderModal - Nouveau client (saisie manuelle)', () => {
+  it('crée un nouveau client quand "client régulier" est coché, sans recherche préalable', async () => {
     const user = userEvent.setup();
     mockFetchCollection
-      .mockResolvedValueOnce([]) // vérification existence -> aucun client trouvé
+      .mockResolvedValueOnce([]) // vérification de doublon par téléphone -> aucun client trouvé
       .mockResolvedValueOnce([{ id: 'new-client-id', history: [] }]); // relecture pour historique
     mockCreateDocument
       .mockResolvedValueOnce('new-client-id') // création du client
@@ -395,9 +592,13 @@ describe('NewOrderModal - Client régulier', () => {
     await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
     await user.type(screen.getByLabelText('Téléphone *'), '+237600000000');
     await user.click(screen.getByLabelText('Enregistrer comme client régulier'));
+
+    // Attend que la vérification de doublon (debounce 500ms) se résolve avant de continuer
+    await waitFor(() => expect(mockFetchCollection).toHaveBeenCalledTimes(1), { timeout: 1500 });
+
     await user.click(screen.getByText('Suivant'));
-    await user.selectOptions(screen.getByLabelText('Coiffeur *'), 'hd-1');
-    await user.selectOptions(screen.getByLabelText('Service *'), 'service-base');
+    await user.click(screen.getByRole('button', { name: /Coupe homme/ }));
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
     await user.click(screen.getByText('Suivant'));
     await user.click(screen.getByText('Créer la commande'));
 
@@ -413,47 +614,156 @@ describe('NewOrderModal - Client régulier', () => {
       'orders',
       expect.objectContaining({ clientId: 'new-client-id' })
     );
+    // Une seule recherche par téléphone (vérif. doublon) + une relecture pour l'historique
+    expect(mockFetchCollection).toHaveBeenCalledTimes(2);
   });
 
-  it('réutilise un client existant trouvé par nom et téléphone', async () => {
+  it('ne crée aucun client si "client régulier" n\'est pas coché', async () => {
     const user = userEvent.setup();
-    mockFetchCollection
-      .mockResolvedValueOnce([{ id: 'existing-client-id', history: ['old-order'] }])
-      .mockResolvedValueOnce([{ id: 'existing-client-id', history: ['old-order'] }]);
-    mockCreateDocument.mockResolvedValueOnce('order-id-3');
+    mockCreateDocument.mockResolvedValueOnce('order-id-no-client');
     renderModal();
 
-    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
-    await user.type(screen.getByLabelText('Téléphone *'), '+237600000000');
-    await user.click(screen.getByLabelText('Enregistrer comme client régulier'));
-    await user.click(screen.getByText('Suivant'));
-    await user.selectOptions(screen.getByLabelText('Coiffeur *'), 'hd-1');
-    await user.selectOptions(screen.getByLabelText('Service *'), 'service-base');
-    await user.click(screen.getByText('Suivant'));
+    await goToStep2(user);
     await user.click(screen.getByText('Créer la commande'));
 
     await waitFor(() =>
       expect(mockCreateDocument).toHaveBeenCalledWith(
         'orders',
-        expect.objectContaining({ clientId: 'existing-client-id' })
+        expect.objectContaining({ clientId: null })
       )
     );
-    expect(mockCreateDocument).toHaveBeenCalledTimes(1);
+    expect(mockCreateDocument).not.toHaveBeenCalledWith('clients', expect.anything());
+    expect(mockFetchCollection).not.toHaveBeenCalled();
   });
+});
 
-  it('préremplit le formulaire et active "client régulier" après import via le modal de recherche', async () => {
+// ─────────────────────────────────────────────────────────────────────────────
+describe('NewOrderModal - Détection de doublon (saisie manuelle)', () => {
+  it('signale un client existant même si "client régulier" n\'est PAS coché, sans bouton importer', async () => {
     const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([
+      { id: 'client-dup', name: 'Alice Martin', phone: '+237600000099', email: null, history: [] },
+    ]);
     renderModal();
 
-    await user.click(screen.getByText('Importer un client existant'));
-    expect(screen.getByTestId('client-search-modal')).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
+    await user.type(screen.getByLabelText('Téléphone *'), '+237600000099');
 
-    await user.click(screen.getByText('Choisir Client Existant'));
+    expect(
+      await screen.findByText('"Alice Martin" existe déjà avec ce numéro de téléphone.', {}, { timeout: 1500 })
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Importer ce client')).not.toBeInTheDocument();
+    expect(screen.queryByText('Client déjà existant')).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByLabelText('Nom complet *')).toHaveValue('Client Existant');
-    expect(screen.getByLabelText('Téléphone *')).toHaveValue('+237611111111');
-    expect(screen.getByLabelText('Email (optionnel)')).toHaveValue('existant@test.com');
-    expect(screen.getByLabelText('Enregistrer comme client régulier')).toBeChecked();
+  it('ne bloque pas le passage à l\'étape suivante quand "client régulier" n\'est pas coché', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([
+      { id: 'client-dup', name: 'Alice Martin', phone: '+237600000099', email: null, history: [] },
+    ]);
+    renderModal();
+
+    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
+    await user.type(screen.getByLabelText('Téléphone *'), '+237600000099');
+    await screen.findByText(/Alice Martin/, {}, { timeout: 1500 });
+
+    await user.click(screen.getByText('Suivant'));
+
+    expect(screen.getByText('Étape 2 sur 3')).toBeInTheDocument();
+  });
+
+  it('propose d\'importer un client existant si "client régulier" est coché', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([
+      { id: 'client-dup', name: 'Alice Martin', phone: '+237600000099', email: null, history: [] },
+    ]);
+    renderModal();
+
+    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
+    await user.type(screen.getByLabelText('Téléphone *'), '+237600000099');
+    await user.click(screen.getByLabelText('Enregistrer comme client régulier'));
+
+    expect(await screen.findByText('Client déjà existant', {}, { timeout: 1500 })).toBeInTheDocument();
+    expect(
+      screen.getByText('"Alice Martin" utilise déjà ce numéro de téléphone.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Importer ce client')).toBeInTheDocument();
+  });
+
+  it('bloque le passage à l\'étape suivante si la case est cochée et qu\'un doublon est détecté', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([
+      { id: 'client-dup', name: 'Alice Martin', phone: '+237600000099', email: null, history: [] },
+    ]);
+    renderModal();
+
+    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
+    await user.type(screen.getByLabelText('Téléphone *'), '+237600000099');
+    await user.click(screen.getByLabelText('Enregistrer comme client régulier'));
+    await screen.findByText('Client déjà existant', {}, { timeout: 1500 });
+
+    await user.click(screen.getByText('Suivant'));
+
+    expect(toast.error).toHaveBeenCalledWith(
+      '"Alice Martin" existe déjà avec ce numéro : importez-le ou décochez "client régulier"'
+    );
+    expect(screen.getByText('Étape 1 sur 3')).toBeInTheDocument();
+  });
+
+  it('décocher "client régulier" lève le blocage et bascule vers le signal informatif', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([
+      { id: 'client-dup', name: 'Alice Martin', phone: '+237600000099', email: null, history: [] },
+    ]);
+    renderModal();
+
+    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
+    await user.type(screen.getByLabelText('Téléphone *'), '+237600000099');
+    await user.click(screen.getByLabelText('Enregistrer comme client régulier'));
+    await screen.findByText('Client déjà existant', {}, { timeout: 1500 });
+
+    await user.click(screen.getByLabelText('Enregistrer comme client régulier')); // décoche
+
+    expect(screen.queryByText('Client déjà existant')).not.toBeInTheDocument();
+    expect(screen.queryByText('Importer ce client')).not.toBeInTheDocument();
+    expect(screen.getByText('"Alice Martin" existe déjà avec ce numéro de téléphone.')).toBeInTheDocument();
+
+    await user.click(screen.getByText('Suivant'));
+    expect(screen.getByText('Étape 2 sur 3')).toBeInTheDocument();
+  });
+
+  it('n\'affiche rien si aucun client n\'a ce numéro', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([]);
+    renderModal();
+
+    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
+    await user.type(screen.getByLabelText('Téléphone *'), '+237600000000');
+
+    await waitFor(() => expect(mockFetchCollection).toHaveBeenCalledTimes(1), { timeout: 1500 });
+    expect(screen.queryByText('Client déjà existant')).not.toBeInTheDocument();
+    expect(screen.queryByText(/existe déjà avec ce numéro/)).not.toBeInTheDocument();
+  });
+
+  it('importe le client suggéré au clic sur "Importer ce client"', async () => {
+    const user = userEvent.setup();
+    mockFetchCollection.mockResolvedValueOnce([
+      { id: 'client-dup', name: 'Alice Martin', phone: '+237600000099', email: 'alice@test.com', history: [] },
+    ]);
+    renderModal();
+
+    await user.type(screen.getByLabelText('Nom complet *'), 'Jean Dupont');
+    await user.type(screen.getByLabelText('Téléphone *'), '+237600000099');
+    await user.click(screen.getByLabelText('Enregistrer comme client régulier'));
+
+    await screen.findByText('Importer ce client', {}, { timeout: 1500 });
+    await user.click(screen.getByText('Importer ce client'));
+
+    expect(screen.getByText('Client existant importé')).toBeInTheDocument();
+    expect(screen.queryByText('Client déjà existant')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Nom complet *')).toHaveValue('Alice Martin');
+    expect(screen.getByLabelText('Téléphone *')).toHaveValue('+237600000099');
+    expect(screen.getByLabelText('Nom complet *')).toBeDisabled();
   });
 });
 

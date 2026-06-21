@@ -14,6 +14,15 @@ vi.mock('@/hooks/useSalon', () => ({
   useSalon: () => ({ salon: mockSalon.value }),
 }));
 
+vi.mock('@/usecases/useHairDressers', () => ({
+  useHairDressers: () => ({
+    hairDressers: [
+      { id: 'hd1', name: 'Marc', speciality: 'Coupe' },
+      { id: 'hd2', name: 'Sophie', speciality: 'Coloration' },
+    ],
+  }),
+}));
+
 vi.mock('@zyra/conf/lib/query', () => ({
   fetchCollection: vi.fn(),
 }));
@@ -325,6 +334,65 @@ describe('OrdersManagement - Filtres statut et paiement', () => {
     const cards = screen.getAllByTestId('order-card');
     expect(cards).toHaveLength(1);
     expect(cards[0]).toHaveTextContent('Paul Petit');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('OrdersManagement - Filtre coiffeur', () => {
+  it('liste tous les coiffeurs du salon dans le filtre', async () => {
+    await renderAndWait();
+
+    const hairDresserSelect = screen.getByLabelText('Filtrer par coiffeur');
+    expect(within(hairDresserSelect).getByText('Marc')).toBeInTheDocument();
+    expect(within(hairDresserSelect).getByText('Sophie')).toBeInTheDocument();
+  });
+
+  it('filtre les commandes par coiffeur sélectionné', async () => {
+    const user = userEvent.setup();
+    await renderAndWait();
+
+    const hairDresserSelect = screen.getByLabelText('Filtrer par coiffeur');
+    await user.selectOptions(hairDresserSelect, 'hd2');
+
+    const cards = screen.getAllByTestId('order-card');
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toHaveTextContent('Alice Martin');
+  });
+
+  it('affiche toutes les commandes de ce coiffeur si plusieurs lui sont associées', async () => {
+    const user = userEvent.setup();
+    await renderAndWait();
+
+    const hairDresserSelect = screen.getByLabelText('Filtrer par coiffeur');
+    await user.selectOptions(hairDresserSelect, 'hd1');
+
+    const cards = screen.getAllByTestId('order-card');
+    expect(cards).toHaveLength(2); // o1 et o3, tous deux assignés à Marc (hd1)
+  });
+
+  it('combine le filtre coiffeur avec la recherche', async () => {
+    const user = userEvent.setup();
+    await renderAndWait();
+
+    await user.type(screen.getByPlaceholderText(/rechercher par client/i), 'Paul');
+    const hairDresserSelect = screen.getByLabelText('Filtrer par coiffeur');
+    await user.selectOptions(hairDresserSelect, 'hd1');
+
+    const cards = screen.getAllByTestId('order-card');
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toHaveTextContent('Paul Petit');
+  });
+
+  it('revient à la liste complète quand on sélectionne "Tous les coiffeurs"', async () => {
+    const user = userEvent.setup();
+    await renderAndWait();
+
+    const hairDresserSelect = screen.getByLabelText('Filtrer par coiffeur');
+    await user.selectOptions(hairDresserSelect, 'hd2');
+    expect(screen.getAllByTestId('order-card')).toHaveLength(1);
+
+    await user.selectOptions(hairDresserSelect, 'all');
+    expect(screen.getAllByTestId('order-card')).toHaveLength(3);
   });
 });
 

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog,
@@ -23,6 +23,8 @@ import {
   X,
   UserPlus,
   Receipt,
+  UserCheck,
+  Info,
 } from 'lucide-react'
 import { fetchCollection, createDocument, editDocument } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
@@ -172,11 +174,13 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
   const queryClient = useQueryClient()
   const [isClientSearchOpen, setIsClientSearchOpen] = useState(false)
   const [step, setStep] = useState(0)
+  const [duplicateClient, setDuplicateClient] = useState<IClient | null>(null)
 
   const [formData, setFormData] = useState({
     clientName: '',
     clientPhone: '',
     clientEmail: '',
+    linkedClientId: null as string | null,
     serviceId: '',
     hairDresserId: '',
     supplements: [] as string[],
@@ -185,6 +189,29 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
     notes: '',
     saveAsRegularClient: false,
   })
+
+  // En saisie manuelle, on vérifie (avec un léger débounce) si un client existe déjà
+  // avec ce numéro — qu'on ait coché "client régulier" ou non, on signale toujours sa
+  // présence. Si en plus la case est cochée, l'étape suivante sera bloquée tant que ce
+  // doublon n'est pas résolu (import, décocher, ou changement de numéro).
+  useEffect(() => {
+    if (formData.linkedClientId || !formData.clientPhone || !salon?.id) {
+      setDuplicateClient(null)
+      return
+    }
+    const timeout = setTimeout(async () => {
+      try {
+        const matches = await fetchCollection('clients', [
+          where('salonId', '==', salon.id),
+          where('phone', '==', formData.clientPhone),
+        ]) as IClient[]
+        setDuplicateClient(matches[0] ?? null)
+      } catch {
+        setDuplicateClient(null)
+      }
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [formData.clientPhone, formData.linkedClientId, salon?.id])
 
   // Mutation pour créer la commande
   const createOrderMutation = useMutation({
@@ -227,30 +254,22 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
         clientId: null as string | null,
       }
 
-      if (data.saveAsRegularClient) {
-        const existingClients = await fetchCollection('clients', [
-          where('salonId', '==', salon.id),
-          where('phone', '==', data.clientPhone),
-          where('name', '==', data.clientName),
-        ])
-
-        let clientId: string
-        if (existingClients.length > 0) {
-          clientId = existingClients[0].id
-        } else {
-          const newClient: Omit<IClient, 'id'> = {
-            salonId: salon.id,
-            name: data.clientName,
-            phone: data.clientPhone,
-            email: data.clientEmail || null,
-            history: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }
-          clientId = await createDocument('clients', newClient)
+      if (data.linkedClientId) {
+        // Client importé via la recherche : on utilise directement son ID,
+        // pas de re-recherche par nom/téléphone (fragile en cas de doublons).
+        orderData.clientId = data.linkedClientId
+      } else if (data.saveAsRegularClient) {
+        // Saisie manuelle + "client régulier" coché : le client n'existe pas encore, on le crée.
+        const newClient: Omit<IClient, 'id'> = {
+          salonId: salon.id,
+          name: data.clientName,
+          phone: data.clientPhone,
+          email: data.clientEmail || null,
+          history: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }
-
-        orderData.clientId = clientId
+        orderData.clientId = await createDocument('clients', newClient)
       }
 
       const orderId = await createDocument('orders', orderData)
@@ -270,6 +289,10 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
+      // Un nouveau client a pu être créé, ou l'historique d'un client existant mis à jour :
+      // sans ça, la liste des clients (page Clients + recherche d'import) reste en cache obsolète.
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['salon-clients'] })
       toast.success('Commande créée avec succès!')
       handleClose()
     },
@@ -283,6 +306,7 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
       clientName: '',
       clientPhone: '',
       clientEmail: '',
+      linkedClientId: null,
       serviceId: '',
       hairDresserId: '',
       supplements: [],
@@ -291,12 +315,12 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
       notes: '',
       saveAsRegularClient: false,
     })
+    setDuplicateClient(null)
     setStep(0)
     onOpenChange(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = () => {
     if (!formData.clientName || !formData.clientPhone || !formData.serviceId || !formData.hairDresserId) {
       toast.error('Veuillez remplir tous les champs obligatoires')
       return
@@ -313,8 +337,20 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
     }))
   }
 
+  // Choisir un service réinitialise le coiffeur : il peut ne pas être qualifié pour le nouveau service
+  const handleServiceSelect = (serviceId: string) => {
+    setFormData(prev => ({ ...prev, serviceId, supplements: [], hairDresserId: '' }))
+  }
+
   const selectedService = salon?.services.find(s => s.id === formData.serviceId)
   const selectedHairDresser = hairDressers.find(h => h.id === formData.hairDresserId)
+
+  // Coiffeurs qualifiés pour le service sélectionné : l'association coiffeur-salon
+  // stocke des IDs de catégories de service (champ "salonServiceIds", malgré son nom),
+  // donc on compare à la catégorie du service, pas à son ID direct.
+  const qualifiedHairDressers = selectedService
+    ? hairDressers.filter(hd => hd.associationHairdresser?.salonServiceIds?.includes(selectedService.categoryId))
+    : []
   const servicePrice = selectedService?.price || 0
   const supplementsPrice = formData.supplements.reduce((acc, suppName) => {
     const supp = selectedService?.supplements?.find(s => s.name === suppName)
@@ -328,7 +364,20 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
       clientName: client.name,
       clientPhone: client.phone,
       clientEmail: client.email || '',
+      linkedClientId: client.id,
       saveAsRegularClient: true,
+    }))
+  }
+
+  // Désassocie le client importé : les champs redeviennent vides et modifiables
+  const handleRemoveImportedClient = () => {
+    setFormData(prev => ({
+      ...prev,
+      clientName: '',
+      clientPhone: '',
+      clientEmail: '',
+      linkedClientId: null,
+      saveAsRegularClient: false,
     }))
   }
 
@@ -338,6 +387,10 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
   const goNext = () => {
     if (step === 0 && !canProceedStep0) {
       toast.error('Renseignez au moins le nom et le téléphone du client')
+      return
+    }
+    if (step === 0 && formData.saveAsRegularClient && duplicateClient) {
+      toast.error(`"${duplicateClient.name}" existe déjà avec ce numéro : importez-le ou décochez "client régulier"`)
       return
     }
     if (step === 1 && !canProceedStep1) {
@@ -352,11 +405,13 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose() }}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-lg p-0 overflow-hidden bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl gap-0"
+        className="max-w-2xl p-0 overflow-hidden bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl gap-0"
       >
         <DialogTitle className="sr-only">Nouvelle commande</DialogTitle>
 
-        <form onSubmit={handleSubmit}>
+        {/* type="button" partout + preventDefault ici : évite qu'une soumission native
+            du <form> (ex. touche Entrée) ne crée la commande avant l'étape paiement */}
+        <form onSubmit={e => e.preventDefault()}>
           {/* Header */}
           <div className="px-6 pt-6 pb-5 border-b border-[#F0EAE4] dark:border-slate-800/50">
             <div className="flex items-center justify-between mb-5">
@@ -387,19 +442,37 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
           </div>
 
           {/* Body */}
-          <div className="px-6 py-5 space-y-4 max-h-[55vh] overflow-y-auto">
+          <div className="px-6 py-5 space-y-4 max-h-[68vh] overflow-y-auto">
 
             {/* ── Step 0 : Client ── */}
             {step === 0 && (
               <div className="space-y-4">
-                <button
-                  type="button"
-                  onClick={() => setIsClientSearchOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 text-[13px] font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Importer un client existant
-                </button>
+                {formData.linkedClientId ? (
+                  <div className="flex items-center justify-between px-3.5 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/50">
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span className="text-[12px] font-semibold text-emerald-700 dark:text-emerald-400">
+                        Client existant importé
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImportedClient}
+                      className="text-[11px] font-bold text-rose-500 hover:text-rose-600 hover:underline"
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsClientSearchOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 text-[13px] font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Importer un client existant
+                  </button>
+                )}
 
                 <div>
                   <FieldLabel htmlFor="clientName">Nom complet *</FieldLabel>
@@ -408,7 +481,8 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
                     value={formData.clientName}
                     onChange={e => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
                     placeholder="Ex: Jean Dupont"
-                    className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700"
+                    className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700 disabled:opacity-60 disabled:bg-[#F8F4F0] dark:disabled:bg-slate-800/40"
+                    disabled={!!formData.linkedClientId}
                     required
                   />
                 </div>
@@ -421,7 +495,8 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
                     value={formData.clientPhone}
                     onChange={e => setFormData(prev => ({ ...prev, clientPhone: e.target.value }))}
                     placeholder="Ex: +237 6XX XX XX XX"
-                    className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700"
+                    className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700 disabled:opacity-60 disabled:bg-[#F8F4F0] dark:disabled:bg-slate-800/40"
+                    disabled={!!formData.linkedClientId}
                     required
                   />
                 </div>
@@ -434,61 +509,137 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
                     value={formData.clientEmail}
                     onChange={e => setFormData(prev => ({ ...prev, clientEmail: e.target.value }))}
                     placeholder="Ex: jean@example.com"
-                    className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700"
+                    className="h-10 rounded-xl border-[#E8E0D8] dark:border-slate-700 disabled:opacity-60 disabled:bg-[#F8F4F0] dark:disabled:bg-slate-800/40"
+                    disabled={!!formData.linkedClientId}
                   />
                 </div>
 
-                <div className="flex items-center justify-between px-3.5 py-3 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl">
-                  <label htmlFor="saveAsRegularClient" className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
-                    Enregistrer comme client régulier
-                  </label>
-                  <Toggle
-                    id="saveAsRegularClient"
-                    checked={formData.saveAsRegularClient}
-                    onChange={() => setFormData(prev => ({ ...prev, saveAsRegularClient: !prev.saveAsRegularClient }))}
-                  />
-                </div>
+                {!formData.linkedClientId && (
+                  <div className="flex items-center justify-between px-3.5 py-3 bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl">
+                    <label htmlFor="saveAsRegularClient" className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+                      Enregistrer comme client régulier
+                    </label>
+                    <Toggle
+                      id="saveAsRegularClient"
+                      checked={formData.saveAsRegularClient}
+                      onChange={() => setFormData(prev => ({ ...prev, saveAsRegularClient: !prev.saveAsRegularClient }))}
+                    />
+                  </div>
+                )}
+
+                {duplicateClient && (
+                  formData.saveAsRegularClient ? (
+                    // Case cochée + doublon détecté : on bloque l'étape suivante (cf. goNext)
+                    // tant que ce n'est pas résolu (import, décocher, ou autre numéro).
+                    <div className="space-y-1.5 px-3.5 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[12px] font-semibold text-amber-800 dark:text-amber-300">Client déjà existant</p>
+                          <p className="text-[11px] text-amber-700 dark:text-amber-400 truncate">
+                            "{duplicateClient.name}" utilise déjà ce numéro de téléphone.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleImportClient(duplicateClient)}
+                          className="flex-shrink-0 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                        >
+                          Importer ce client
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-amber-600/80 dark:text-amber-500/70">
+                        Importez ce client ou décochez "client régulier" pour continuer sans l'importer.
+                      </p>
+                    </div>
+                  ) : (
+                    // Case non cochée : simple signal informatif, rien à résoudre, pas de blocage.
+                    <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-800/50">
+                      <Info className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 flex-shrink-0" />
+                      <p className="text-[11px] text-sky-700 dark:text-sky-400">
+                        "{duplicateClient.name}" existe déjà avec ce numéro de téléphone.
+                      </p>
+                    </div>
+                  )
+                )}
               </div>
             )}
 
             {/* ── Step 1 : Service & coiffeur ── */}
             {step === 1 && (
               <div className="space-y-4">
+                {/* Sélection du service en premier, avec image */}
                 <div>
-                  <FieldLabel htmlFor="hairDresser">Coiffeur *</FieldLabel>
-                  <select
-                    id="hairDresser"
-                    value={formData.hairDresserId}
-                    onChange={e => setFormData(prev => ({ ...prev, hairDresserId: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                    required
-                  >
-                    <option value="">-- Choisir un coiffeur --</option>
-                    {hairDressers.map(hd => (
-                      <option key={hd.id} value={hd.id}>
-                        {hd.name} - {hd.speciality}
-                      </option>
-                    ))}
-                  </select>
+                  <FieldLabel>Service *</FieldLabel>
+                  {!salon?.services.length ? (
+                    <p className="text-[12px] text-slate-400">Aucun service configuré pour ce salon.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {salon.services.map(service => (
+                        <SelectableRow
+                          key={service.id}
+                          selected={formData.serviceId === service.id}
+                          onClick={() => handleServiceSelect(service.id)}
+                          icon={
+                            service.imageUrl ? (
+                              <img
+                                src={service.imageUrl}
+                                alt={service.name}
+                                className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-[#F5F2EF] dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <Scissors className="w-4 h-4 text-slate-400" />
+                              </div>
+                            )
+                          }
+                          label={service.name}
+                          meta={
+                            <span className="text-[12px] font-semibold text-slate-500 dark:text-slate-400">
+                              {service.price.toLocaleString()} XAF
+                            </span>
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <FieldLabel htmlFor="service">Service *</FieldLabel>
-                  <select
-                    id="service"
-                    value={formData.serviceId}
-                    onChange={e => setFormData(prev => ({ ...prev, serviceId: e.target.value, supplements: [] }))}
-                    className="w-full h-10 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                    required
-                  >
-                    <option value="">-- Choisir un service --</option>
-                    {salon?.services.map(service => (
-                      <option key={service.id} value={service.id}>
-                        {service.name} - {service.price.toLocaleString()} XAF
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Coiffeur : dépend du service choisi, filtré sur ceux qualifiés pour ce service */}
+                {selectedService && (
+                  <div>
+                    <FieldLabel>Coiffeur *</FieldLabel>
+                    {qualifiedHairDressers.length === 0 ? (
+                      <div className="px-3.5 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 text-[12px] text-amber-700 dark:text-amber-400">
+                        Aucun coiffeur n'est encore associé à ce service.
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                        {qualifiedHairDressers.map(hd => (
+                          <SelectableRow
+                            key={hd.id}
+                            selected={formData.hairDresserId === hd.id}
+                            onClick={() => setFormData(prev => ({ ...prev, hairDresserId: hd.id }))}
+                            icon={
+                              hd.photo ? (
+                                <img
+                                  src={hd.photo}
+                                  alt={hd.name}
+                                  className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 text-white text-[12px] font-bold">
+                                  {hd.name.charAt(0).toUpperCase()}
+                                </div>
+                              )
+                            }
+                            label={hd.name}
+                            meta={<span className="text-[11px] text-slate-400">{hd.speciality}</span>}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {selectedService?.supplements && selectedService.supplements.length > 0 && (
                   <div>
@@ -633,7 +784,8 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
               </button>
             ) : (
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 disabled={createOrderMutation.isPending}
                 className="flex items-center gap-1.5 h-9 px-5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 transition-colors"
               >
