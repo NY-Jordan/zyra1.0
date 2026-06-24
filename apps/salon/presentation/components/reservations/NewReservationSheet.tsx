@@ -1,250 +1,159 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@zyra/ui/components/dialog'
-import { Button } from '@zyra/ui/components/button'
-import { Input } from '@zyra/ui/components/input'
-import { Label } from '@zyra/ui/components/label'
-import { Textarea } from '@zyra/ui/components/textarea'
-import { Card, CardContent } from '@zyra/ui/components/card'
-import { Badge } from '@zyra/ui/components/badge'
-import { Calendar as DateCalendar } from '@zyra/ui/components/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@zyra/ui/components/popover'
-import {
-  ArrowLeft,
-  ArrowRight,
-  Calendar,
-  Check,
-  Loader2,
-  Plus,
-  Scissors,
-  User,
-  Users,
-} from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
+import { Calendar, Check, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
 import { Timestamp, where } from 'firebase/firestore'
 import { createDocument, editDocument, fetchCollection } from '@zyra/conf/lib/query'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
-import useSalon from '@/hooks/useSalon'
+import { useSalon } from '@/hooks/useSalon'
 import { useHairDressers } from '@/usecases/useHairDressers'
 import ClientSearchModal from '../orders/ClientSearchModal'
 import { toast } from 'sonner'
-import { DAYS_OF_WEEK } from '@zyra/conf/lib/utils'
+
+import {
+  filterByHairdresserHours,
+  filterPassedHours,
+  generateTimeSlots,
+} from './helpers/timeSlots'
+import { PersonBooking, PersonSubStep, emptyPerson } from './types'
+import { Stepper } from './ui/ReservationWizardPrimitives'
+import { ServiceStep } from './steps/ServiceStep'
+import { HairdresserStep } from './steps/HairdresserStep'
+import { DateTimeStep } from './steps/DateTimeStep'
+import { PersonConfirmStep } from './steps/PersonConfirmStep'
+import { ClientInfoStep } from './steps/ClientInfoStep'
+import { FinalisationStep } from './steps/FinalisationStep'
+
+// ── Props ─────────────────────────────────────────────────────────────────────
 
 interface NewReservationSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-type ReservationMode = 'single' | 'multiple'
-
-interface ReservationClientForm {
-  linkedClientId: string | null
-  clientName: string
-  clientPhone: string
-  clientEmail: string
-  saveAsRegularClient: boolean
-}
-
-interface ReservationWizardData {
-  mode: ReservationMode
-  serviceId: string
-  hairDresserId: string
-  scheduledDate: string
-  scheduledTimes: string[]
-  clients: ReservationClientForm[]
-  supplements: string[]
-  notes: string
-}
-
-const initialClient: ReservationClientForm = {
-  linkedClientId: null,
-  clientName: '',
-  clientPhone: '',
-  clientEmail: '',
-  saveAsRegularClient: false,
-}
-
-const initialFormData: ReservationWizardData = {
-  mode: 'single',
-  serviceId: '',
-  hairDresserId: '',
-  scheduledDate: '',
-  scheduledTimes: [''],
-  clients: [{ ...initialClient }],
-  supplements: [],
-  notes: '',
-}
-
-const steps = [
-  'Type et prestation',
-  'Client(s)',
-  'Coiffeur',
-  'Horaires',
-  'Bilan',
-] as const
-
-const toMinutes = (hhmm: string) => {
-  const [hour, minute] = hhmm.split(':').map(Number)
-  return hour * 60 + minute
-}
-
-const minutesToHHMM = (value: number) => {
-  const hours = Math.floor(value / 60)
-  const minutes = value % 60
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-}
-
-const dateToInputValue = (date: Date) => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-const inputValueToDate = (value: string) => {
-  if (!value) return undefined
-  const date = new Date(`${value}T00:00:00`)
-  return Number.isNaN(date.getTime()) ? undefined : date
-}
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function NewReservationSheet({ open, onOpenChange }: NewReservationSheetProps) {
   const { salon } = useSalon()
   const { hairDressers } = useHairDressers()
   const queryClient = useQueryClient()
 
-  const [formData, setFormData] = useState<ReservationWizardData>(initialFormData)
-  const [step, setStep] = useState(0)
+  // ── Wizard state ─────────────────────────────────────────────────────────────
+  // Pipeline: Phase 0 (Prestation) → Phase 1 (Clients) → Phase 2 (Finalisation)
+  // Phase 0 sub-steps per person: service → hairdresser → datetime → confirm recap
+
+  const [phase, setPhase] = useState(0)
+  const [personSubStep, setPersonSubStep] = useState<PersonSubStep>('service')
+  const [currentPersonIndex, setCurrentPersonIndex] = useState(0)
+  const [showPersonConfirm, setShowPersonConfirm] = useState(false)
+  const [bookings, setBookings] = useState<PersonBooking[]>([emptyPerson()])
+
+  const [currentClientIndex, setCurrentClientIndex] = useState(0)
+  const [clientSearchTarget, setClientSearchTarget] = useState(0)
   const [isClientSearchOpen, setIsClientSearchOpen] = useState(false)
-  const [activeClientIndex, setActiveClientIndex] = useState(0)
+
+  const [duplicateClient, setDuplicateClient] = useState<IClient | null>(null)
+
+  const [paymentMethod, setPaymentMethod] = useState<reservationPaymentMethodEnum>(reservationPaymentMethodEnum.cash)
+  const [isPaid, setIsPaid] = useState(false)
+  const [initialStatus, setInitialStatus] = useState<reservationStatusEnum>(reservationStatusEnum.pending)
+  const [notes, setNotes] = useState('')
+
+  // ── Derived data ──────────────────────────────────────────────────────────────
+
+  const currentBooking = bookings[currentPersonIndex] ?? emptyPerson()
 
   const activeHairDressers = useMemo(
-    () => hairDressers.filter((hairdresser) => hairdresser.associationHairdresser?.active === true),
+    () => hairDressers.filter(hd => hd.associationHairdresser?.active === true),
     [hairDressers],
   )
 
-  const selectedHairdresser = useMemo(
-    () => activeHairDressers.find((hairdresser) => hairdresser.id === formData.hairDresserId),
-    [activeHairDressers, formData.hairDresserId],
-  )
-
-  const availableServices = useMemo(() => {
-    if (!salon?.services) return []
-    if (!selectedHairdresser) return salon.services
-
-    const allowedServiceIds = selectedHairdresser.associationHairdresser?.salonServiceIds ?? []
-    if (!allowedServiceIds.length) return []
-
-    return salon.services.filter((service) => allowedServiceIds.includes(service.id))
-  }, [salon?.services, selectedHairdresser])
-
   const selectedService = useMemo(
-    () => salon?.services.find((service) => service.id === formData.serviceId),
-    [salon?.services, formData.serviceId],
+    () => salon?.services.find(s => s.id === currentBooking.serviceId),
+    [salon?.services, currentBooking.serviceId],
   )
 
-  const selectedSupplements = selectedService?.supplements?.filter((supplement) =>
-    formData.supplements.includes(supplement.name),
-  ) ?? []
+  const qualifiedHairDressers = useMemo(() => {
+    if (!selectedService) return activeHairDressers
+    return activeHairDressers.filter(hd =>
+      hd.associationHairdresser?.salonServiceIds?.includes(selectedService.categoryId),
+    )
+  }, [activeHairDressers, selectedService])
 
-  const supplementsPrice = selectedSupplements.reduce((total, supplement) => total + supplement.price, 0)
-  const supplementsDuration = selectedSupplements.reduce((total, supplement) => total + supplement.duration, 0)
-  const servicePrice = selectedService?.price ?? 0
-  const serviceDuration = selectedService?.duration ?? 0
-  const totalPrice = servicePrice + supplementsPrice
-  const totalDuration = serviceDuration + supplementsDuration
+  const selectedHairdresser = useMemo(
+    () => activeHairDressers.find(hd => hd.id === currentBooking.hairdresserId),
+    [activeHairDressers, currentBooking.hairdresserId],
+  )
 
-  const scheduleDayKey = useMemo(() => {
-    if (!formData.scheduledDate) return ''
-    const selectedDate = new Date(`${formData.scheduledDate}T00:00:00`)
-    const dayIndex = selectedDate.getDay()
-    const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-    return dayMap[dayIndex] ?? ''
-  }, [formData.scheduledDate])
+  const totalDuration = useMemo(() => {
+    if (!selectedService) return 0
+    const suppDur = selectedService.supplements
+      ?.filter(s => currentBooking.supplementNames.includes(s.name))
+      .reduce((a, s) => a + s.duration, 0) ?? 0
+    return selectedService.duration + suppDur
+  }, [selectedService, currentBooking.supplementNames])
 
-  const selectedWorkingHours = useMemo(() => {
-    const baseHours = selectedHairdresser?.associationHairdresser?.workingHours ?? salon?.openingHours ?? []
-    return baseHours.find((workingHour) => workingHour.day === scheduleDayKey && workingHour.openDay)
-  }, [selectedHairdresser, salon?.openingHours, scheduleDayKey])
+  const totalPriceForPerson = useMemo(() => {
+    if (!selectedService) return 0
+    const suppPrice = selectedService.supplements
+      ?.filter(s => currentBooking.supplementNames.includes(s.name))
+      .reduce((a, s) => a + s.price, 0) ?? 0
+    return selectedService.price + suppPrice
+  }, [selectedService, currentBooking.supplementNames])
 
-  const availableTimeSlots = useMemo(() => {
-    if (!selectedWorkingHours || totalDuration <= 0) return []
+  const hairdresserWorkingHours = useMemo(
+    () => selectedHairdresser?.associationHairdresser?.workingHours ?? salon?.openingHours ?? [],
+    [selectedHairdresser, salon?.openingHours],
+  )
 
-    const startMinute = toMinutes(selectedWorkingHours.open)
-    const endMinute = toMinutes(selectedWorkingHours.close)
-    const slots: string[] = []
-
-    for (let cursor = startMinute; cursor + totalDuration <= endMinute; cursor += 30) {
-      slots.push(minutesToHHMM(cursor))
-    }
-
+  const availableSlots = useMemo(() => {
+    if (!currentBooking.date) return []
+    const dayName = currentBooking.date.toLocaleDateString('en-EN', { weekday: 'long' }).toLowerCase()
+    const schedule = hairdresserWorkingHours.find(h => h.day.toLowerCase() === dayName)
+    if (!schedule?.openDay) return []
+    let slots = generateTimeSlots(schedule.open, schedule.close)
+    slots = filterByHairdresserHours(slots, currentBooking.date, hairdresserWorkingHours)
+    slots = filterPassedHours(slots, currentBooking.date)
     return slots
-  }, [selectedWorkingHours, totalDuration])
+  }, [currentBooking.date, hairdresserWorkingHours])
 
-  const hasTimeConflict = useMemo(() => {
-    if (!formData.scheduledTimes.length || totalDuration <= 0) return false
+  const totalSummaryPrice = useMemo(() =>
+    bookings.reduce((sum, booking) => {
+      const svc = salon?.services.find(s => s.id === booking.serviceId)
+      if (!svc) return sum
+      const suppPrice = svc.supplements?.filter(s => booking.supplementNames.includes(s.name)).reduce((a, s) => a + s.price, 0) ?? 0
+      return sum + svc.price + suppPrice
+    }, 0),
+    [bookings, salon?.services],
+  )
 
-    const normalized = formData.scheduledTimes.filter(Boolean)
-    if (normalized.length !== formData.scheduledTimes.length) return false
-
-    const sortedTimes = normalized
-      .map((time) => toMinutes(time))
-      .sort((a, b) => a - b)
-
-    for (let index = 1; index < sortedTimes.length; index += 1) {
-      if (sortedTimes[index] < sortedTimes[index - 1] + totalDuration) {
-        return true
-      }
-    }
-
-    return false
-  }, [formData.scheduledTimes, totalDuration])
+  // ── Mutation ──────────────────────────────────────────────────────────────────
 
   const createReservationMutation = useMutation({
-    mutationFn: async (data: ReservationWizardData) => {
-      if (!salon?.id) {
-        throw new Error('Salon non trouvé')
-      }
+    mutationFn: async () => {
+      if (!salon?.id) throw new Error('Salon non trouvé')
 
-      const service = salon.services.find((item) => item.id === data.serviceId)
-      if (!service) {
-        throw new Error('Service non trouvé')
-      }
+      const people: IReservationPerson[] = bookings.map((booking, index) => {
+        const service = salon.services.find(s => s.id === booking.serviceId)
+        if (!service) throw new Error(`Service manquant pour la personne ${index + 1}`)
+        const hairdresser = activeHairDressers.find(hd => hd.id === booking.hairdresserId)
+        if (!hairdresser) throw new Error(`Coiffeur manquant pour la personne ${index + 1}`)
+        if (!booking.date || !booking.time) throw new Error(`Date/heure manquante pour la personne ${index + 1}`)
 
-      if (!data.scheduledDate || data.scheduledTimes.some((time) => !time)) {
-        throw new Error('Date ou heure de réservation manquante')
-      }
+        const suppDetails = service.supplements?.filter(s => booking.supplementNames.includes(s.name)) ?? []
+        const suppTotalPrice = suppDetails.reduce((a, s) => a + s.price, 0)
+        const suppTotalDuration = suppDetails.reduce((a, s) => a + s.duration, 0)
+        const personDuration = service.duration + suppTotalDuration
+        const personPrice = service.price + suppTotalPrice
 
-      if (data.clients.length !== data.scheduledTimes.length) {
-        throw new Error('Le nombre de clients et d\'horaires ne correspond pas')
-      }
-
-      const selectedHairDresser = activeHairDressers.find((item) => item.id === data.hairDresserId)
-      if (!selectedHairDresser) {
-        throw new Error('Coiffeur non trouvé')
-      }
-
-      const supplementDetails = service.supplements?.filter((supplement) =>
-        data.supplements.includes(supplement.name),
-      ) ?? []
-
-      const people: IReservationPerson[] = data.clients.map((client, index) => {
-        const scheduledAt = new Date(`${data.scheduledDate}T${data.scheduledTimes[index]}`)
-        if (Number.isNaN(scheduledAt.getTime())) {
-          throw new Error('Date de réservation invalide')
-        }
+        const scheduledAt = new Date(booking.date)
+        const [h = 0, m = 0] = booking.time.split(':').map(Number)
+        scheduledAt.setHours(h, m, 0, 0)
+        const endsAt = new Date(scheduledAt.getTime() + personDuration * 60 * 1000)
 
         return {
           personNumber: index + 1,
@@ -252,96 +161,75 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
           serviceName: service.name,
           serviceDuration: service.duration,
           servicePrice: service.price,
-          hairdresserId: selectedHairDresser.id,
-          hairdresserName: selectedHairDresser.name,
-          supplements: supplementDetails,
-          supplementsTotalPrice: supplementDetails.reduce((total, supplement) => total + supplement.price, 0),
-          supplementsTotalDuration: supplementDetails.reduce((total, supplement) => total + supplement.duration, 0),
-          totalPrice: service.price + supplementDetails.reduce((total, supplement) => total + supplement.price, 0),
-          totalDuration: service.duration + supplementDetails.reduce((total, supplement) => total + supplement.duration, 0),
+          hairdresserId: hairdresser.id,
+          hairdresserName: hairdresser.name,
+          supplements: suppDetails,
+          supplementsTotalPrice: suppTotalPrice,
+          supplementsTotalDuration: suppTotalDuration,
+          totalPrice: personPrice,
+          totalDuration: personDuration,
           scheduledAt: Timestamp.fromDate(scheduledAt),
-          endsAt: Timestamp.fromDate(new Date(scheduledAt.getTime() + totalDuration * 60 * 1000)),
+          endsAt: Timestamp.fromDate(endsAt),
         }
       })
 
-      const sortedByStart = [...people].sort((a, b) => a.scheduledAt.seconds - b.scheduledAt.seconds)
-      const firstClient = data.clients[0]
+      const sorted = [...people].sort((a, b) => a.scheduledAt.seconds - b.scheduledAt.seconds)
+      const firstBooking = bookings[0]!
       const reservationNumber = String(Math.floor(Math.random() * 90000) + 10000)
+      const totalPrice = people.reduce((sum, p) => sum + p.totalPrice, 0)
+      const isSingle = bookings.length === 1
 
       const reservationId = await createDocument('reservations', {
         salonId: salon.id,
         reservationNumber,
         createdAt: Timestamp.now(),
-        clientName: data.mode === 'single'
-          ? firstClient.clientName
-          : `${firstClient.clientName} +${Math.max(0, data.clients.length - 1)}`,
-        clientPhone: firstClient.clientPhone,
-        clientEmail: firstClient.clientEmail || null,
+        clientName: isSingle ? firstBooking.clientName : `${firstBooking.clientName} +${bookings.length - 1}`,
+        clientPhone: firstBooking.clientPhone,
+        clientEmail: firstBooking.clientEmail || null,
         userId: null,
         isGuest: true,
-        status: reservationStatusEnum.pending,
-        notes: data.notes || '',
-        isPaid: false,
-        paymentMethod: reservationPaymentMethodEnum.cash,
-        isSingleReservation: data.mode === 'single',
-        totalPrice: people.reduce((sum, person) => sum + person.totalPrice, 0),
+        status: initialStatus,
+        notes: notes || '',
+        isPaid,
+        paymentMethod,
+        isSingleReservation: isSingle,
+        totalPrice,
         people,
-        earliestScheduledAt: sortedByStart[0]?.scheduledAt,
-        latestEndsAt: sortedByStart.reduce((latest, person) => {
-          if (!latest) return person.endsAt
-          return person.endsAt.seconds > latest.seconds ? person.endsAt : latest
-        }, sortedByStart[0]?.endsAt),
+        earliestScheduledAt: sorted[0]?.scheduledAt,
+        latestEndsAt: sorted.at(-1)?.endsAt,
       })
 
       const resolvedClientIds: string[] = []
-
-      for (const clientData of data.clients) {
-        let clientId = clientData.linkedClientId
-
-        if (!clientId && clientData.saveAsRegularClient) {
-          const existingClients = await fetchCollection('clients', [
+      for (const booking of bookings) {
+        let clientId = booking.linkedClientId
+        if (!clientId && booking.saveAsRegularClient) {
+          const existing = await fetchCollection('clients', [
             where('salonId', '==', salon.id),
-            where('phone', '==', clientData.clientPhone),
-            where('name', '==', clientData.clientName),
+            where('phone', '==', booking.clientPhone),
           ]) as IClient[]
-
-          if (existingClients.length > 0) {
-            clientId = existingClients[0].id
-          } else {
-            clientId = await createDocument('clients', {
-              salonId: salon.id,
-              name: clientData.clientName,
-              phone: clientData.clientPhone,
-              email: clientData.clientEmail || null,
-              history: [],
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            })
-          }
+          clientId = existing.length > 0
+            ? existing[0].id
+            : await createDocument('clients', {
+                salonId: salon.id,
+                name: booking.clientName,
+                phone: booking.clientPhone,
+                email: booking.clientEmail || null,
+                history: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              })
         }
-
-        if (clientId) {
-          resolvedClientIds.push(clientId)
-        }
+        if (clientId) resolvedClientIds.push(clientId)
       }
 
-      const uniqueClientIds = [...new Set(resolvedClientIds)]
-
-      for (const clientId of uniqueClientIds) {
-        const clients = await fetchCollection('clients', [
-          where('id', '==', clientId),
-        ]) as IClient[]
-
+      for (const clientId of [...new Set(resolvedClientIds)]) {
+        const clients = await fetchCollection('clients', [where('id', '==', clientId)]) as IClient[]
         if (clients.length > 0) {
           const client = clients[0]
           const history = Array.isArray(client.history) ? client.history : []
-          const nextHistory = history.includes(reservationId) ? history : [...history, reservationId]
-
-          await editDocument('clients', clientId, {
-            ...client,
-            history: nextHistory,
-            updatedAt: new Date().toISOString(),
-          })
+          if (!history.includes(reservationId)) {
+            await editDocument('clients', clientId, { ...client, history: [...history, reservationId], updatedAt: new Date().toISOString() })
+          }
         }
       }
 
@@ -355,629 +243,291 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
       handleClose()
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la création de la réservation')
+      toast.error(error.message || 'Erreur lors de la création')
     },
   })
 
+  // ── Handlers ──────────────────────────────────────────────────────────────────
+
   const handleClose = () => {
-    setFormData(initialFormData)
-    setStep(0)
-    setActiveClientIndex(0)
+    setPhase(0); setPersonSubStep('service'); setCurrentPersonIndex(0)
+    setShowPersonConfirm(false); setBookings([emptyPerson()]); setCurrentClientIndex(0)
+    setDuplicateClient(null)
+    setPaymentMethod(reservationPaymentMethodEnum.cash); setIsPaid(false)
+    setInitialStatus(reservationStatusEnum.pending); setNotes('')
     onOpenChange(false)
   }
 
-  const handleModalOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      handleClose()
-      return
-    }
+  const updateCurrentBooking = (updates: Partial<PersonBooking>) =>
+    setBookings(prev => prev.map((b, i) => i === currentPersonIndex ? { ...b, ...updates } : b))
 
-    onOpenChange(nextOpen)
+  const handleAddPerson = () => {
+    setBookings(prev => [...prev, emptyPerson()])
+    setCurrentPersonIndex(bookings.length)
+    setPersonSubStep('service')
+    setShowPersonConfirm(false)
   }
 
-  const handleSupplementToggle = (supplementName: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      supplements: prev.supplements.includes(supplementName)
-        ? prev.supplements.filter((item) => item !== supplementName)
-        : [...prev.supplements, supplementName],
-    }))
+  const handleRemovePerson = (index: number) => {
+    if (bookings.length <= 1) return
+    const next = bookings.filter((_, i) => i !== index)
+    setBookings(next)
+    if (currentPersonIndex >= next.length) setCurrentPersonIndex(next.length - 1)
   }
 
   const handleImportClient = (client: IClient) => {
-    setFormData((prev) => ({
-      ...prev,
-      clients: prev.clients.map((current, index) => (
-        index === activeClientIndex
-          ? {
-              ...current,
-              linkedClientId: client.id,
-              clientName: client.name,
-              clientPhone: client.phone,
-              clientEmail: client.email || '',
-              saveAsRegularClient: true,
-            }
-          : current
-      )),
-    }))
+    setBookings(prev => prev.map((b, i) => i === clientSearchTarget ? {
+      ...b,
+      clientName: client.name, clientPhone: client.phone,
+      clientEmail: client.email || '', linkedClientId: client.id, saveAsRegularClient: true,
+    } : b))
   }
 
-  const setClientField = (index: number, field: keyof ReservationClientForm, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      clients: prev.clients.map((client, currentIndex) => {
-        if (currentIndex !== index) return client
+  // ── Navigation ────────────────────────────────────────────────────────────────
 
-        const nextClient = { ...client, [field]: value }
-        if (field === 'clientName' || field === 'clientPhone' || field === 'clientEmail') {
-          nextClient.linkedClientId = null
-        }
-        return nextClient
-      }),
-    }))
-  }
-
-  const handleModeChange = (mode: ReservationMode) => {
-    setFormData((prev) => {
-      const nextClients = mode === 'single'
-        ? [prev.clients[0] ?? { ...initialClient }]
-        : prev.clients.length >= 2
-          ? prev.clients
-          : [prev.clients[0] ?? { ...initialClient }, { ...initialClient }]
-
-      const nextTimes = mode === 'single'
-        ? [prev.scheduledTimes[0] ?? '']
-        : nextClients.map((_, index) => prev.scheduledTimes[index] ?? '')
-
-      return {
-        ...prev,
-        mode,
-        clients: nextClients,
-        scheduledTimes: nextTimes,
+  const goNext = () => {
+    if (phase === 0 && !showPersonConfirm) {
+      if (personSubStep === 'service') {
+        if (!currentBooking.serviceId) { toast.error('Sélectionnez un service'); return }
+        setPersonSubStep('hairdresser')
+      } else if (personSubStep === 'hairdresser') {
+        if (!currentBooking.hairdresserId) { toast.error('Sélectionnez un coiffeur'); return }
+        setPersonSubStep('datetime')
+      } else if (personSubStep === 'datetime') {
+        if (!currentBooking.date || !currentBooking.time) { toast.error('Sélectionnez une date et un créneau'); return }
+        setShowPersonConfirm(true)
       }
-    })
-  }
-
-  const addClient = () => {
-    setFormData((prev) => ({
-      ...prev,
-      clients: [...prev.clients, { ...initialClient }],
-      scheduledTimes: [...prev.scheduledTimes, ''],
-      mode: 'multiple',
-    }))
-  }
-
-  const removeClient = (index: number) => {
-    setFormData((prev) => {
-      if (prev.clients.length <= 2) return prev
-      return {
-        ...prev,
-        clients: prev.clients.filter((_, currentIndex) => currentIndex !== index),
-        scheduledTimes: prev.scheduledTimes.filter((_, currentIndex) => currentIndex !== index),
-      }
-    })
-  }
-
-  const setScheduledTime = (index: number, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      scheduledTimes: prev.scheduledTimes.map((time, currentIndex) => (currentIndex === index ? value : time)),
-    }))
-  }
-
-  const isStepValid = (stepIndex: number) => {
-    if (stepIndex === 0) {
-      return Boolean(formData.serviceId)
+      return
     }
-
-    if (stepIndex === 1) {
-      return formData.clients.every((client) => client.clientName.trim() && client.clientPhone.trim())
+    if (phase === 0 && showPersonConfirm) {
+      setPhase(1); setCurrentClientIndex(0); return
     }
-
-    if (stepIndex === 2) {
-      return Boolean(formData.hairDresserId)
-    }
-
-    if (stepIndex === 3) {
-      const allTimesFilled = formData.scheduledDate && formData.scheduledTimes.every((time) => Boolean(time))
-      const allTimesAllowed = formData.scheduledTimes.every((time) => availableTimeSlots.includes(time))
-      return Boolean(allTimesFilled && allTimesAllowed && !hasTimeConflict)
-    }
-
-    return true
-  }
-
-  const nextStep = () => {
-    if (!isStepValid(step)) {
-      if (step === 3 && hasTimeConflict) {
-        toast.error('Les horaires choisis se chevauchent pour ce coiffeur')
+    if (phase === 1) {
+      const b = bookings[currentClientIndex]
+      if (!b?.clientName || !b?.clientPhone) { toast.error('Nom et téléphone requis'); return }
+      if (b.saveAsRegularClient && duplicateClient) {
+        toast.error(`"${duplicateClient.name}" existe déjà avec ce numéro : importez-le ou décochez "client régulier"`)
         return
       }
-      toast.error('Veuillez compléter les informations requises avant de continuer')
-      return
+      setDuplicateClient(null)
+      if (currentClientIndex < bookings.length - 1) { setCurrentClientIndex(c => c + 1); return }
+      setPhase(2)
     }
-
-    setStep((prev) => Math.min(prev + 1, steps.length - 1))
   }
 
-  const previousStep = () => {
-    setStep((prev) => Math.max(prev - 1, 0))
+  const goBack = () => {
+    if (phase === 2) { setPhase(1); setCurrentClientIndex(bookings.length - 1); return }
+    if (phase === 1) {
+      if (currentClientIndex > 0) { setCurrentClientIndex(c => c - 1); return }
+      setPhase(0); setShowPersonConfirm(true); return
+    }
+    if (showPersonConfirm) { setShowPersonConfirm(false); return }
+    if (personSubStep === 'datetime') { setPersonSubStep('hairdresser'); return }
+    if (personSubStep === 'hairdresser') { setPersonSubStep('service'); return }
+    if (personSubStep === 'service' && currentPersonIndex > 0) {
+      setCurrentPersonIndex(currentPersonIndex - 1); setShowPersonConfirm(true)
+    }
   }
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  // ── Sub-step label ────────────────────────────────────────────────────────────
 
-    if (!isStepValid(0) || !isStepValid(1) || !isStepValid(2) || !isStepValid(3)) {
-      toast.error('Le formulaire est incomplet ou contient des horaires invalides')
-      return
+  const subStepLabel = (() => {
+    if (phase === 1) return `Client ${currentClientIndex + 1} / ${bookings.length}`
+    if (phase === 2) return 'Paiement & confirmation'
+    if (showPersonConfirm) return `${bookings.length} personne${bookings.length > 1 ? 's' : ''} — récapitulatif`
+    const labels: Record<PersonSubStep, string> = {
+      service: 'Service & suppléments',
+      hairdresser: 'Coiffeur',
+      datetime: 'Date & horaire',
     }
+    return `Personne ${currentPersonIndex + 1} · ${labels[personSubStep]}`
+  })()
 
-    if (!selectedHairdresser) {
-      toast.error('Veuillez sélectionner un coiffeur valide')
-      return
-    }
+  const showBackButton = phase > 0 || personSubStep !== 'service' || showPersonConfirm || currentPersonIndex > 0
 
-    if (!selectedWorkingHours) {
-      toast.error('Le coiffeur n\'est pas disponible ce jour')
-      return
-    }
-
-    if (!availableServices.some((service) => service.id === formData.serviceId)) {
-      toast.error('Ce service n\'est pas disponible pour le coiffeur choisi')
-      return
-    }
-
-    if (hasTimeConflict) {
-      toast.error('Les horaires choisis se chevauchent pour ce coiffeur')
-      return
-    }
-
-    if (step < steps.length - 1) {
-      toast.error('Veuillez atteindre l\'étape bilan pour valider')
-      return
-    }
-
-    createReservationMutation.mutate(formData)
-  }
+  // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleModalOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[94vh] overflow-y-auto dark:bg-slate-900">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              Nouvelle réservation
-            </DialogTitle>
-            <DialogDescription>
-              Formulaire multi-étapes pour réservation personnelle ou multiple
-            </DialogDescription>
-          </DialogHeader>
+      <Dialog open={open} onOpenChange={o => { if (!o) handleClose() }}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-3xl w-full p-0 overflow-hidden bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl gap-0"
+        >
+          <DialogTitle className="sr-only">Nouvelle réservation</DialogTitle>
+          <form onSubmit={e => e.preventDefault()}>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mt-2">
-            {steps.map((stepLabel, index) => (
-              <button
-                key={stepLabel}
-                type="button"
-                className={`text-left p-2 rounded-md border ${index === step ? 'border-primary bg-primary/5' : 'border-border'}`}
-                onClick={() => {
-                  const canJump = index <= step || Array.from({ length: index }).every((_, i) => isStepValid(i))
-                  if (canJump) setStep(index)
-                }}
-              >
-                <div className="text-xs text-muted-foreground">Etape {index + 1}</div>
-                <div className="text-sm font-medium">{stepLabel}</div>
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-            {step === 0 && (
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label>Type de réservation</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleModeChange('single')}
-                        className={`p-3 rounded-md border text-left ${formData.mode === 'single' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                      >
-                        <div className="font-medium">Réservation personnelle</div>
-                        <div className="text-sm text-muted-foreground">1 client, 1 créneau</div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleModeChange('multiple')}
-                        className={`p-3 rounded-md border text-left ${formData.mode === 'multiple' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                      >
-                        <div className="font-medium">Réservation multiple</div>
-                        <div className="text-sm text-muted-foreground">Plusieurs clients, même prestation</div>
-                      </button>
-                    </div>
+            {/* Header */}
+            <div className="px-8 pt-7 pb-5 border-b border-[#F0EAE4] dark:border-slate-800/50">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                    <Calendar className="w-5 h-5 text-white" />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="serviceId">Service *</Label>
-                    <select
-                      id="serviceId"
-                      value={formData.serviceId}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, serviceId: e.target.value, supplements: [] }))}
-                      className="w-full px-3 py-2 border dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                      required
-                    >
-                      <option value="">-- Choisir un service --</option>
-                      {availableServices.map((service) => (
-                        <option key={service.id} value={service.id}>
-                          {service.name} - {service.price.toLocaleString()} XAF
-                        </option>
-                      ))}
-                    </select>
-                    {!availableServices.length && (
-                      <p className="text-sm text-muted-foreground">
-                        Aucun service disponible pour le coiffeur choisi. Sélectionne d'abord un coiffeur ou ajuste l'association services/coiffeur.
-                      </p>
-                    )}
+                  <div>
+                    <h2 className="text-[16px] font-extrabold text-slate-800 dark:text-white leading-tight">
+                      Nouvelle réservation
+                    </h2>
+                    <p className="text-[12px] text-slate-400 dark:text-slate-500">{subStepLabel}</p>
                   </div>
-
-                  {selectedService?.supplements && selectedService.supplements.length > 0 && (
-                    <div className="space-y-2">
-                      <Label>Suppléments</Label>
-                      <div className="space-y-2">
-                        {selectedService.supplements.map((supplement) => (
-                          <label
-                            key={supplement.name}
-                            className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-muted/40"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.supplements.includes(supplement.name)}
-                              onChange={() => handleSupplementToggle(supplement.name)}
-                              className="h-4 w-4"
-                            />
-                            <span className="flex-1">{supplement.name}</span>
-                            <span className="text-sm text-muted-foreground">+{supplement.duration} min</span>
-                            <span className="font-medium">{supplement.price.toLocaleString()} XAF</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {step === 1 && (
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Clients
-                    </h3>
-                    {formData.mode === 'multiple' && (
-                      <Button type="button" variant="outline" onClick={addClient}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Ajouter un client
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
-                    {formData.clients.map((client, index) => (
-                      <Card key={`client-${index}`}>
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="font-medium">Client {index + 1}</div>
-                            <div className="flex items-center gap-2">
-                              {client.linkedClientId && <Badge variant="outline">Importé</Badge>}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setActiveClientIndex(index)
-                                  setIsClientSearchOpen(true)
-                                }}
-                              >
-                                <User className="h-4 w-4 mr-2" />
-                                Rechercher
-                              </Button>
-                              {formData.mode === 'multiple' && formData.clients.length > 2 && (
-                                <Button type="button" variant="outline" size="sm" onClick={() => removeClient(index)}>
-                                  Retirer
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div className="space-y-2">
-                              <Label>Nom complet *</Label>
-                              <Input
-                                value={client.clientName}
-                                onChange={(e) => setClientField(index, 'clientName', e.target.value)}
-                                placeholder="Ex: Jean Dupont"
-                                required
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Téléphone *</Label>
-                              <Input
-                                type="tel"
-                                value={client.clientPhone}
-                                onChange={(e) => setClientField(index, 'clientPhone', e.target.value)}
-                                placeholder="Ex: +237 6XX XX XX XX"
-                                required
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Email</Label>
-                              <Input
-                                type="email"
-                                value={client.clientEmail}
-                                onChange={(e) => setClientField(index, 'clientEmail', e.target.value)}
-                                placeholder="Ex: jean@example.com"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <input
-                              id={`saveAsRegularClient-${index}`}
-                              type="checkbox"
-                              checked={client.saveAsRegularClient}
-                              onChange={(e) => setClientField(index, 'saveAsRegularClient', e.target.checked)}
-                              className="h-4 w-4"
-                            />
-                            <Label htmlFor={`saveAsRegularClient-${index}`} className="cursor-pointer">
-                              Enregistrer comme client régulier
-                            </Label>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {step === 2 && (
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Scissors className="h-4 w-4" />
-                    Coiffeur assigné
-                  </h3>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="hairDresserId">Coiffeur *</Label>
-                    <select
-                      id="hairDresserId"
-                      value={formData.hairDresserId}
-                      onChange={(e) => {
-                        const nextHairDresserId = e.target.value
-                        const nextHairdresser = activeHairDressers.find((item) => item.id === nextHairDresserId)
-                        const nextServiceIds = nextHairdresser?.associationHairdresser?.salonServiceIds ?? []
-                        setFormData((prev) => ({
-                          ...prev,
-                          hairDresserId: nextHairDresserId,
-                          serviceId: nextServiceIds.includes(prev.serviceId) ? prev.serviceId : '',
-                          supplements: nextServiceIds.includes(prev.serviceId) ? prev.supplements : [],
-                          scheduledDate: '',
-                          scheduledTimes: prev.scheduledTimes.map(() => ''),
-                        }))
-                      }}
-                      className="w-full px-3 py-2 border dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                      required
-                    >
-                      <option value="">-- Choisir un coiffeur --</option>
-                      {activeHairDressers.map((hairdresser) => (
-                        <option key={hairdresser.id} value={hairdresser.id}>
-                          {hairdresser.name} - {hairdresser.speciality}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {selectedHairdresser && (
-                    <div className="rounded-md border p-3 space-y-2">
-                      <div className="font-medium">Horaires de travail</div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                        {DAYS_OF_WEEK.map((day) => {
-                          const wh = selectedHairdresser.associationHairdresser?.workingHours?.find((item) => item.day === day.key)
-                          return (
-                            <div key={day.key} className="flex justify-between border rounded px-2 py-1">
-                              <span>{day.label}</span>
-                              <span>{wh?.openDay ? `${wh.open} - ${wh.close}` : 'Fermé'}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {step === 3 && (
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Date et horaires
-                  </h3>
-
-                  <div className="space-y-2">
-                    <Label>Date *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          {formData.scheduledDate
-                            ? inputValueToDate(formData.scheduledDate)?.toLocaleDateString('fr-FR', {
-                                day: '2-digit',
-                                month: 'long',
-                                year: 'numeric',
-                              })
-                            : 'Sélectionner une date'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <DateCalendar
-                          mode="single"
-                          selected={inputValueToDate(formData.scheduledDate)}
-                          onSelect={(date) => {
-                            if (!date) return
-                            const nextDate = dateToInputValue(date)
-                            setFormData((prev) => ({
-                              ...prev,
-                              scheduledDate: nextDate,
-                              scheduledTimes: prev.scheduledTimes.map(() => ''),
-                            }))
-                          }}
-                          disabled={(date) => {
-                            const today = new Date()
-                            today.setHours(0, 0, 0, 0)
-                            return date < today
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {formData.scheduledDate && !selectedWorkingHours && (
-                    <p className="text-sm text-destructive">
-                      Le coiffeur est fermé ce jour. Choisis une autre date.
-                    </p>
-                  )}
-
-                  {selectedWorkingHours && (
-                    <div className="rounded-md border p-3 text-sm">
-                      Disponibilité du jour: {selectedWorkingHours.open} - {selectedWorkingHours.close}
-                    </div>
-                  )}
-
-                  {formData.clients.map((client, index) => (
-                    <div key={`slot-${index}`} className="space-y-2">
-                      <Label>Horaire client {index + 1} ({client.clientName || 'Sans nom'}) *</Label>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                        {availableTimeSlots.map((slot) => (
-                          <button
-                            key={`${index}-${slot}`}
-                            type="button"
-                            onClick={() => setScheduledTime(index, slot)}
-                            className={`px-2 py-2 border rounded-md text-sm ${formData.scheduledTimes[index] === slot ? 'border-primary bg-primary/10' : 'border-border'}`}
-                          >
-                            {slot}
-                          </button>
-                        ))}
-                      </div>
-                      {!availableTimeSlots.length && (
-                        <p className="text-sm text-muted-foreground">
-                          Aucun créneau disponible pour cette date et cette durée.
-                        </p>
-                      )}
-                    </div>
-                  ))}
-
-                  {hasTimeConflict && (
-                    <p className="text-sm text-destructive">
-                      Les horaires choisis se chevauchent. Sélectionne des créneaux séparés.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {step === 4 && (
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Bilan avant validation
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="space-y-1">
-                      <div><span className="font-medium">Type:</span> {formData.mode === 'single' ? 'Personnelle' : 'Multiple'}</div>
-                      <div><span className="font-medium">Service:</span> {selectedService?.name || '-'}</div>
-                      <div><span className="font-medium">Coiffeur:</span> {selectedHairdresser?.name || '-'}</div>
-                      <div><span className="font-medium">Date:</span> {inputValueToDate(formData.scheduledDate)?.toLocaleDateString('fr-FR') || '-'}</div>
-                    </div>
-                    <div className="space-y-1">
-                      <div><span className="font-medium">Durée unitaire:</span> {totalDuration} min</div>
-                      <div><span className="font-medium">Prix unitaire:</span> {totalPrice.toLocaleString()} XAF</div>
-                      <div><span className="font-medium">Nombre de clients:</span> {formData.clients.length}</div>
-                      <div><span className="font-medium">Total:</span> {(totalPrice * formData.clients.length).toLocaleString()} XAF</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Clients et horaires</Label>
-                    {formData.clients.map((client, index) => (
-                      <div key={`summary-${index}`} className="flex items-center justify-between border rounded px-3 py-2 text-sm">
-                        <div>
-                          <div className="font-medium">{client.clientName}</div>
-                          <div className="text-muted-foreground">{client.clientPhone}</div>
-                        </div>
-                        <Badge variant="outline">{formData.scheduledTimes[index] || '--:--'}</Badge>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-                      placeholder="Informations complémentaires"
-                      rows={4}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="flex gap-3 justify-between pb-1">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={previousStep}
-                disabled={step === 0 || createReservationMutation.isPending}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
-              </Button>
-
-              <div className="flex items-center gap-2">
-                {step < steps.length - 1 && (
-                  <Button type="button" onClick={nextStep} disabled={createReservationMutation.isPending}>
-                    Suivant
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
-
-                {step === steps.length - 1 && (
-                  <Button type="submit" disabled={createReservationMutation.isPending}>
-                    {createReservationMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Créer la réservation
-                  </Button>
-                )}
-
-                <Button type="button" variant="outline" onClick={handleClose} disabled={createReservationMutation.isPending}>
-                  Annuler
-                </Button>
+                </div>
+                <button
+                  type="button" onClick={handleClose} aria-label="Fermer"
+                  className="w-7 h-7 rounded-full bg-[#F5F2EF] dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
+              <Stepper current={phase} />
             </div>
 
-            <div className="pt-1 border-t text-xs text-muted-foreground">
-              Etape {step + 1} / {steps.length} · {totalDuration} min · {totalPrice.toLocaleString()} XAF par client
+            {/* Body — step content */}
+            <div className="px-8 py-6 space-y-4 max-h-[66vh] overflow-y-auto">
+
+              {/* ── Phase 0 · Prestation ── */}
+              {phase === 0 && !showPersonConfirm && personSubStep === 'service' && (
+                <ServiceStep
+                  services={salon?.services ?? []}
+                  selectedServiceId={currentBooking.serviceId}
+                  supplementNames={currentBooking.supplementNames}
+                  selectedService={selectedService}
+                  totalDuration={totalDuration}
+                  totalPrice={totalPriceForPerson}
+                  onServiceSelect={id => updateCurrentBooking({ serviceId: id, supplementNames: [], hairdresserId: '', date: null, time: null })}
+                  onSupplementToggle={name => updateCurrentBooking({
+                    supplementNames: currentBooking.supplementNames.includes(name)
+                      ? currentBooking.supplementNames.filter(n => n !== name)
+                      : [...currentBooking.supplementNames, name],
+                    time: null,
+                  })}
+                />
+              )}
+
+              {phase === 0 && !showPersonConfirm && personSubStep === 'hairdresser' && (
+                <HairdresserStep
+                  personIndex={currentPersonIndex}
+                  qualifiedHairDressers={qualifiedHairDressers}
+                  selectedId={currentBooking.hairdresserId}
+                  onSelect={id => updateCurrentBooking({ hairdresserId: id, date: null, time: null })}
+                />
+              )}
+
+              {phase === 0 && !showPersonConfirm && personSubStep === 'datetime' && (
+                <DateTimeStep
+                  date={currentBooking.date}
+                  time={currentBooking.time}
+                  availableSlots={availableSlots}
+                  totalDuration={totalDuration}
+                  hairdresserId={currentBooking.hairdresserId}
+                  hairdresserWorkingHours={hairdresserWorkingHours}
+                  onDateChange={date => updateCurrentBooking({ date, time: null })}
+                  onTimeChange={time => updateCurrentBooking({ time })}
+                />
+              )}
+
+              {phase === 0 && showPersonConfirm && (
+                <PersonConfirmStep
+                  bookings={bookings}
+                  services={salon?.services ?? []}
+                  hairDressers={activeHairDressers}
+                  onAddPerson={handleAddPerson}
+                  onRemovePerson={handleRemovePerson}
+                />
+              )}
+
+              {/* ── Phase 1 · Clients ── */}
+              {phase === 1 && (() => {
+                const b = bookings[currentClientIndex]!
+                const svc = salon?.services.find(s => s.id === b.serviceId)
+                const hd = activeHairDressers.find(h => h.id === b.hairdresserId)
+                return (
+                  <ClientInfoStep
+                    currentIndex={currentClientIndex}
+                    totalCount={bookings.length}
+                    booking={b}
+                    serviceName={svc?.name}
+                    hairdresserName={hd?.name}
+                    salonId={salon?.id ?? null}
+                    duplicateClient={duplicateClient}
+                    onUpdate={updates => setBookings(prev => prev.map((bk, i) => i === currentClientIndex ? { ...bk, ...updates } : bk))}
+                    onOpenSearch={() => { setClientSearchTarget(currentClientIndex); setIsClientSearchOpen(true) }}
+                    onRemoveImported={() => setBookings(prev => prev.map((bk, i) => i === currentClientIndex
+                      ? { ...bk, clientName: '', clientPhone: '', clientEmail: '', linkedClientId: null, saveAsRegularClient: false }
+                      : bk
+                    ))}
+                    onDuplicateChange={setDuplicateClient}
+                    onImportDuplicate={client => {
+                      setBookings(prev => prev.map((bk, i) => i === currentClientIndex ? {
+                        ...bk,
+                        clientName: client.name, clientPhone: client.phone,
+                        clientEmail: client.email || '', linkedClientId: client.id, saveAsRegularClient: true,
+                      } : bk))
+                      setDuplicateClient(null)
+                    }}
+                  />
+                )
+              })()}
+
+              {/* ── Phase 2 · Finalisation ── */}
+              {phase === 2 && (
+                <FinalisationStep
+                  bookings={bookings}
+                  services={salon?.services ?? []}
+                  hairDressers={activeHairDressers}
+                  paymentMethod={paymentMethod}
+                  isPaid={isPaid}
+                  initialStatus={initialStatus}
+                  notes={notes}
+                  totalPrice={totalSummaryPrice}
+                  onPaymentMethodChange={setPaymentMethod}
+                  onIsPaidToggle={() => setIsPaid(v => !v)}
+                  onStatusChange={setInitialStatus}
+                  onNotesChange={setNotes}
+                />
+              )}
             </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between px-8 py-4 border-t border-[#F0EAE4] dark:border-slate-800/50 bg-[#FAF7F4] dark:bg-slate-800/30">
+              {showBackButton ? (
+                <button
+                  type="button" onClick={goBack} disabled={createReservationMutation.isPending}
+                  className="flex items-center gap-1.5 h-9 px-4 rounded-xl text-[12px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-[#F0EAE4] dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  Précédent
+                </button>
+              ) : (
+                <button
+                  type="button" onClick={handleClose} disabled={createReservationMutation.isPending}
+                  className="h-9 px-4 rounded-xl text-[12px] font-semibold text-slate-500 dark:text-slate-400 hover:bg-[#F0EAE4] dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+              )}
+
+              {phase < 2 ? (
+                <button
+                  type="button" onClick={goNext}
+                  className="flex items-center gap-1.5 h-9 px-5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+                >
+                  {phase === 0 && showPersonConfirm ? 'Infos clients' : 'Suivant'}
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <button
+                  type="button" onClick={() => createReservationMutation.mutate()}
+                  disabled={createReservationMutation.isPending}
+                  className="flex items-center gap-1.5 h-9 px-5 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 transition-colors"
+                >
+                  {createReservationMutation.isPending
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Création...</>
+                    : <><Check className="w-3.5 h-3.5" />Créer la réservation</>
+                  }
+                </button>
+              )}
+            </div>
+
           </form>
         </DialogContent>
       </Dialog>

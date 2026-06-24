@@ -199,24 +199,22 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
 
   return (
     <>
-      <Card className={`hover:shadow-md transition-shadow ${!hasHairdresser ? 'border-orange-200' : ''}`}>
-        <CardContent className="p-6">
-          {/* Alerte si pas de coiffeur - Logo simple */}
-          {!hasHairdresser && (
-            <div className="mb-4 flex items-center justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-orange-100 dark:bg-orange-900/30 rounded-full blur-sm"></div>
-                <UserX className="h-6 w-6 text-orange-600 relative" />
-              </div>
-            </div>
-          )}
-
+      <Card className={`hover:shadow-md transition-shadow ${!hasHairdresser ? 'border-orange-200 dark:border-orange-900/50' : ''}`}>
+        <CardContent className="p-5">
           <div className="flex items-start justify-between gap-4">
-            {/* Informations principales - Simplifié */}
+            {/* Informations principales */}
             <div className="flex-1 space-y-3">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Réservation #{reservation.reservationNumber}</h3>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <h3 className="font-semibold text-base">#{reservation.reservationNumber}</h3>
+                    {!hasHairdresser && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
+                        <UserX className="h-3 w-3" />
+                        Sans coiffeur
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     {getStatusBadge(reservation.status)}
                     {reservation.isPaid ? (

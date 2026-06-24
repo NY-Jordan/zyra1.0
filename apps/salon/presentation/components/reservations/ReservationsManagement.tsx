@@ -81,58 +81,95 @@ export default function ReservationsManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Page header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Réservations</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{stats.total} réservation{stats.total !== 1 ? 's' : ''} au total</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowConfirmModal(true)}
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+          >
+            <CheckCircle className="h-4 w-4" />
+            Confirmer
+          </Button>
+          <Button
+            onClick={() => setShowCalendarModal(true)}
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+          >
+            <Calendar className="h-4 w-4" />
+            Calendrier
+          </Button>
+          <Button
+            onClick={() => setShowNewReservationSheet(true)}
+            size="sm"
+            className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+          >
+            <Plus className="h-4 w-4" />
+            Nouvelle
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-sky-100 p-2.5 dark:bg-sky-950/50">
-                <Calendar className="h-6 w-6 text-sky-600 dark:text-sky-300" />
+              <div className="rounded-lg bg-sky-100 p-2 dark:bg-sky-950/50">
+                <Calendar className="h-5 w-5 text-sky-600 dark:text-sky-300" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-amber-100 p-2.5 dark:bg-amber-950/50">
-                <Clock className="h-6 w-6 text-amber-600 dark:text-amber-300" />
+              <div className="rounded-lg bg-amber-100 p-2 dark:bg-amber-950/50">
+                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-300" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">En attente</p>
-                <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">{stats.pending}</p>
+                <p className="text-xs text-muted-foreground">En attente</p>
+                <p className="text-xl font-bold text-amber-600 dark:text-amber-300">{stats.pending}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-emerald-100 p-2.5 dark:bg-emerald-950/50">
-                <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-300" />
+              <div className="rounded-lg bg-emerald-100 p-2 dark:bg-emerald-950/50">
+                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Confirmées</p>
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{stats.confirmed}</p>
+                <p className="text-xs text-muted-foreground">Confirmées</p>
+                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-300">{stats.confirmed}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-violet-100 p-2.5 dark:bg-violet-950/50">
-                <DollarSign className="h-6 w-6 text-violet-600 dark:text-violet-300" />
+              <div className="rounded-lg bg-violet-100 p-2 dark:bg-violet-950/50">
+                <DollarSign className="h-5 w-5 text-violet-600 dark:text-violet-300" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Revenus</p>
-                <p className="text-2xl font-bold text-violet-600 dark:text-violet-300">
+                <p className="text-xs text-muted-foreground">Revenus</p>
+                <p className="text-xl font-bold text-violet-600 dark:text-violet-300">
                   {stats.totalRevenue.toLocaleString()} XAF
                 </p>
               </div>
@@ -141,70 +178,39 @@ export default function ReservationsManagement() {
         </Card>
       </div>
 
-      <div className="flex justify-start gap-4">
-        <Button
-          onClick={() => setShowNewReservationSheet(true)}
-          size="lg"
-          className="bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle réservation
-        </Button>
-        <Button
-          onClick={() => setShowConfirmModal(true)}
-          className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400"
-          size="lg"
-        >
-          <CheckCircle className="h-4 w-4 mr-2" />
-          Confirmer une réservation
-        </Button>
-        <Button
-          onClick={() => setShowCalendarModal(true)}
-          className="bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-400"
-          size="lg"
-          variant="default"
-        >
-          <Calendar className="h-4 w-4 mr-2" />
-          Voir le calendrier
-        </Button>
-      </div>
-
       <Card className="border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/65">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <CardTitle className="text-slate-900 dark:text-slate-100">Réservations ({reservations.length} sur {totalReservations})</CardTitle>
-            <div className="flex items-center gap-2 flex-wrap">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-medium text-slate-900 dark:text-slate-100">
+                Liste <span className="text-muted-foreground font-normal text-sm">({reservations.length}/{totalReservations})</span>
+              </CardTitle>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Nom, téléphone, service..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-64 border-slate-200 bg-white/80 pl-10 dark:border-slate-700 dark:bg-slate-900/70"
+                  className="w-56 border-slate-200 bg-white/80 pl-9 text-sm dark:border-slate-700 dark:bg-slate-900/70"
                 />
               </div>
-
-              <div className="relative">
-                <Input
-                  placeholder="N° de réservation (5 chiffres)"
-                  value={reservationNumberFilter}
-                  onChange={(e) => {
-                    const value = e.target.value.slice(0, 5)
-                    setReservationNumberFilter(value)
-                    // Réinitialiser la page seulement quand on atteint 5 chiffres
-                    if (value.length === 5) {
-                      setCurrentPage(1)
-                    }
-                  }}
-                  maxLength={5}
-                  className="w-40 border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-900/70"
-                />
-              </div>
-              
-              <select 
-                value={statusFilter} 
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Input
+                placeholder="N° réservation"
+                value={reservationNumberFilter}
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, 5)
+                  setReservationNumberFilter(value)
+                  if (value.length === 5) setCurrentPage(1)
+                }}
+                maxLength={5}
+                className="w-32 border-slate-200 bg-white/80 text-sm dark:border-slate-700 dark:bg-slate-900/70"
+              />
+              <select
+                value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                className="rounded-md border border-slate-200 bg-white/80 px-2.5 py-1.5 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
               >
                 <option value="all">Tous les statuts</option>
                 <option value={reservationStatusEnum.pending}>En attente</option>
@@ -212,23 +218,21 @@ export default function ReservationsManagement() {
                 <option value={reservationStatusEnum.completed}>Terminées</option>
                 <option value={reservationStatusEnum.canceled}>Annulées</option>
               </select>
-
-              <select 
-                value={paymentFilter === 'all' ? 'all' : paymentFilter.toString()} 
+              <select
+                value={paymentFilter === 'all' ? 'all' : paymentFilter.toString()}
                 onChange={(e) => setPaymentFilter(e.target.value === 'all' ? 'all' : e.target.value === 'true')}
-                className="rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                className="rounded-md border border-slate-200 bg-white/80 px-2.5 py-1.5 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
               >
-                <option value="all">Tous les paiements</option>
+                <option value="all">Paiement</option>
                 <option value="true">Payées</option>
                 <option value="false">Non payées</option>
               </select>
-
-              <select 
-                value={dateFilter} 
+              <select
+                value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value as any)}
-                className="rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                className="rounded-md border border-slate-200 bg-white/80 px-2.5 py-1.5 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
               >
-                <option value="all">Toutes les dates</option>
+                <option value="all">Période</option>
                 <option value="today">Aujourd'hui</option>
                 <option value="week">Cette semaine</option>
                 <option value="month">Ce mois</option>
