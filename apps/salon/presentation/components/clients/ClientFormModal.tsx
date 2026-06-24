@@ -16,6 +16,7 @@ import {
 import { useSalon } from '@/hooks/useSalon'
 import { useCreateClient, useUpdateClient } from '@/usecases/clientsUseCases'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
+import { getPhonePrefix } from '@/utils/phonePrefix'
 
 interface ClientFormModalProps {
   open: boolean
@@ -36,6 +37,8 @@ export default function ClientFormModal({ open, onOpenChange, client }: ClientFo
   const createClientMutation = useCreateClient()
   const updateClientMutation = useUpdateClient()
 
+  const phonePrefix = getPhonePrefix(salon?.country ?? '')
+
   const [formData, setFormData] = useState({
     name: client?.name || '',
     phone: client?.phone || '',
@@ -46,7 +49,7 @@ export default function ClientFormModal({ open, onOpenChange, client }: ClientFo
     if (client) {
       setFormData({ name: client.name, phone: client.phone, email: client.email || '' })
     } else {
-      setFormData({ name: '', phone: '', email: '' })
+      setFormData({ name: '', phone: phonePrefix, email: '' })
     }
   }, [client, open])
 

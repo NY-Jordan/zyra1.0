@@ -24,6 +24,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  History,
 } from 'lucide-react'
 import { useSalon } from '@/hooks/useSalon'
 import { useQuery } from '@tanstack/react-query'
@@ -31,6 +32,7 @@ import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import ClientFormModal from './ClientFormModal'
+import { ClientActivitySheet } from './ClientActivitySheet'
 import { useDeleteClient } from '@/usecases/clientsUseCases'
 
 const ITEMS_PER_PAGE = 9
@@ -55,10 +57,11 @@ function KpiCard({ icon, label, value, bg, iconColor }: {
 
 // ── Client card ───────────────────────────────────────────────────────────────
 
-function ClientCard({ client, onEdit, onDelete }: {
+function ClientCard({ client, onEdit, onDelete, onViewActivity }: {
   client: IClient
   onEdit: () => void
   onDelete: () => void
+  onViewActivity: () => void
 }) {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -66,7 +69,11 @@ function ClientCard({ client, onEdit, onDelete }: {
   return (
     <div className="bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl p-4 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-800/50 transition-all">
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={onViewActivity}
+          className="flex items-center gap-3 min-w-0 text-left hover:opacity-80 transition-opacity"
+        >
           <div className="w-11 h-11 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0">
             {client.name.charAt(0).toUpperCase()}
           </div>
@@ -74,8 +81,16 @@ function ClientCard({ client, onEdit, onDelete }: {
             <p className="text-[14px] font-bold text-slate-800 dark:text-white truncate">{client.name}</p>
             <p className="text-[11px] text-slate-400 dark:text-slate-500">Depuis le {formatDate(client.createdAt)}</p>
           </div>
-        </div>
+        </button>
         <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onViewActivity}
+            aria-label="Voir l'activité"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-sky-50 hover:text-sky-600 dark:hover:bg-sky-950/20 dark:hover:text-sky-400 transition-colors"
+          >
+            <History className="h-3.5 w-3.5" />
+          </button>
           <button
             type="button"
             onClick={onEdit}
@@ -124,6 +139,7 @@ export default function ClientsManagement() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<IClient | null>(null)
   const [clientToDelete, setClientToDelete] = useState<IClient | null>(null)
+  const [activityClient, setActivityClient] = useState<IClient | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
   const deleteClientMutation = useDeleteClient()
@@ -273,6 +289,7 @@ export default function ClientsManagement() {
                 client={client}
                 onEdit={() => handleEditClient(client)}
                 onDelete={() => setClientToDelete(client)}
+                onViewActivity={() => setActivityClient(client)}
               />
             ))}
           </div>
@@ -307,6 +324,14 @@ export default function ClientsManagement() {
           )}
         </>
       )}
+
+      {/* Historique d'activité */}
+      <ClientActivitySheet
+        client={activityClient}
+        salonId={salon?.id}
+        open={!!activityClient}
+        onOpenChange={o => { if (!o) setActivityClient(null) }}
+      />
 
       {/* Modal formulaire */}
       <ClientFormModal

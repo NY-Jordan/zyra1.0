@@ -30,6 +30,7 @@ import { fetchCollection, createDocument, editDocument } from '@zyra/conf/lib/qu
 import { where } from 'firebase/firestore'
 import { useSalon } from '@/hooks/useSalon'
 import { toast } from 'sonner'
+import { getPhonePrefix } from '@/utils/phonePrefix'
 import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 import { useHairDressers } from '@/usecases/useHairDressers'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
@@ -176,9 +177,11 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
   const [step, setStep] = useState(0)
   const [duplicateClient, setDuplicateClient] = useState<IClient | null>(null)
 
+  const phonePrefix = getPhonePrefix(salon?.country ?? '')
+
   const [formData, setFormData] = useState({
     clientName: '',
-    clientPhone: '',
+    clientPhone: phonePrefix,
     clientEmail: '',
     linkedClientId: null as string | null,
     serviceId: '',
@@ -280,7 +283,7 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
           const existingHistory = client[0].history || []
           await editDocument('clients', orderData.clientId, {
             ...client[0],
-            history: [...existingHistory, orderId],
+            history: [...existingHistory, { id: orderId, type: 'order' }],
             updatedAt: new Date().toISOString(),
           })
         }
@@ -304,7 +307,7 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
   const handleClose = () => {
     setFormData({
       clientName: '',
-      clientPhone: '',
+      clientPhone: phonePrefix,
       clientEmail: '',
       linkedClientId: null,
       serviceId: '',

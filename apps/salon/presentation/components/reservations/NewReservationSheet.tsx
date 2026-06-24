@@ -1,14 +1,14 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
 import { Calendar, Check, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
 import { Timestamp, where } from 'firebase/firestore'
 import { createDocument, editDocument, fetchCollection } from '@zyra/conf/lib/query'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import { IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
+import { IReservation, IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
 import { useSalon } from '@/hooks/useSalon'
 import { useHairDressers } from '@/usecases/useHairDressers'
 import ClientSearchModal from '../orders/ClientSearchModal'
@@ -18,8 +18,10 @@ import {
   filterByHairdresserHours,
   filterPassedHours,
   generateTimeSlots,
+  getOccupiedSlots,
 } from './helpers/timeSlots'
 import { PersonBooking, PersonSubStep, emptyPerson } from './types'
+import { getPhonePrefix } from '@/utils/phonePrefix'
 import { Stepper } from './ui/ReservationWizardPrimitives'
 import { ServiceStep } from './steps/ServiceStep'
 import { HairdresserStep } from './steps/HairdresserStep'
@@ -42,6 +44,9 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
   const { hairDressers } = useHairDressers()
   const queryClient = useQueryClient()
 
+  const phonePrefix = getPhonePrefix(salon?.country ?? '')
+  const makeEmptyPerson = () => ({ ...emptyPerson(), clientPhone: phonePrefix })
+
   // ── Wizard state ─────────────────────────────────────────────────────────────
   // Pipeline: Phase 0 (Prestation) → Phase 1 (Clients) → Phase 2 (Finalisation)
   // Phase 0 sub-steps per person: service → hairdresser → datetime → confirm recap
@@ -50,7 +55,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
   const [personSubStep, setPersonSubStep] = useState<PersonSubStep>('service')
   const [currentPersonIndex, setCurrentPersonIndex] = useState(0)
   const [showPersonConfirm, setShowPersonConfirm] = useState(false)
-  const [bookings, setBookings] = useState<PersonBooking[]>([emptyPerson()])
+  const [bookings, setBookings] = useState<PersonBooking[]>([makeEmptyPerson()])
 
   const [currentClientIndex, setCurrentClientIndex] = useState(0)
   const [clientSearchTarget, setClientSearchTarget] = useState(0)
@@ -110,16 +115,49 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
     [selectedHairdresser, salon?.openingHours],
   )
 
+  // Fetch existing reservations for the selected hairdresser on the selected date
+  const { data: hairdresserDayReservations = [], isFetching: isFetchingSlots } = useQuery({
+    queryKey: ['hd-day-reservations-new', salon?.id, currentBooking.hairdresserId, currentBooking.date?.toISOString().slice(0, 10)],
+    queryFn: async () => {
+      if (!salon?.id || !currentBooking.hairdresserId || !currentBooking.date) return []
+      const startOfDay = new Date(currentBooking.date); startOfDay.setHours(0, 0, 0, 0)
+      const endOfDay = new Date(currentBooking.date); endOfDay.setHours(23, 59, 59, 999)
+      const all = await fetchCollection('reservations', [
+        where('salonId', '==', salon.id),
+      ]) as IReservation[]
+      return all.filter(res =>
+        res.status !== reservationStatusEnum.canceled &&
+        res.people.some(p => {
+          if (p.hairdresserId !== currentBooking.hairdresserId) return false
+          const d = p.scheduledAt.toDate()
+          return d >= startOfDay && d <= endOfDay
+        }),
+      )
+    },
+    enabled: !!salon?.id && !!currentBooking.hairdresserId && !!currentBooking.date,
+  })
+
   const availableSlots = useMemo(() => {
     if (!currentBooking.date) return []
     const dayName = currentBooking.date.toLocaleDateString('en-EN', { weekday: 'long' }).toLowerCase()
     const schedule = hairdresserWorkingHours.find(h => h.day.toLowerCase() === dayName)
     if (!schedule?.openDay) return []
+
+    const blockedSet = new Set<string>()
+    hairdresserDayReservations.forEach(res =>
+      res.people.forEach(p => {
+        if (p.hairdresserId !== currentBooking.hairdresserId) return
+        const d = p.scheduledAt.toDate()
+        const start = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+        getOccupiedSlots(start, p.totalDuration).forEach(s => blockedSet.add(s))
+      }),
+    )
+
     let slots = generateTimeSlots(schedule.open, schedule.close)
     slots = filterByHairdresserHours(slots, currentBooking.date, hairdresserWorkingHours)
     slots = filterPassedHours(slots, currentBooking.date)
-    return slots
-  }, [currentBooking.date, hairdresserWorkingHours])
+    return slots.filter(s => !blockedSet.has(s))
+  }, [currentBooking.date, currentBooking.hairdresserId, hairdresserWorkingHours, hairdresserDayReservations])
 
   const totalSummaryPrice = useMemo(() =>
     bookings.reduce((sum, booking) => {
@@ -227,8 +265,15 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
         if (clients.length > 0) {
           const client = clients[0]
           const history = Array.isArray(client.history) ? client.history : []
-          if (!history.includes(reservationId)) {
-            await editDocument('clients', clientId, { ...client, history: [...history, reservationId], updatedAt: new Date().toISOString() })
+          const alreadyLinked = history.some(entry =>
+            typeof entry === 'string' ? entry === reservationId : entry.id === reservationId
+          )
+          if (!alreadyLinked) {
+            await editDocument('clients', clientId, {
+              ...client,
+              history: [...history, { id: reservationId, type: 'reservation' }],
+              updatedAt: new Date().toISOString(),
+            })
           }
         }
       }
@@ -251,7 +296,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
 
   const handleClose = () => {
     setPhase(0); setPersonSubStep('service'); setCurrentPersonIndex(0)
-    setShowPersonConfirm(false); setBookings([emptyPerson()]); setCurrentClientIndex(0)
+    setShowPersonConfirm(false); setBookings([makeEmptyPerson()]); setCurrentClientIndex(0)
     setDuplicateClient(null)
     setPaymentMethod(reservationPaymentMethodEnum.cash); setIsPaid(false)
     setInitialStatus(reservationStatusEnum.pending); setNotes('')
@@ -262,7 +307,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
     setBookings(prev => prev.map((b, i) => i === currentPersonIndex ? { ...b, ...updates } : b))
 
   const handleAddPerson = () => {
-    setBookings(prev => [...prev, emptyPerson()])
+    setBookings(prev => [...prev, makeEmptyPerson()])
     setCurrentPersonIndex(bookings.length)
     setPersonSubStep('service')
     setShowPersonConfirm(false)
@@ -420,6 +465,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
                   totalDuration={totalDuration}
                   hairdresserId={currentBooking.hairdresserId}
                   hairdresserWorkingHours={hairdresserWorkingHours}
+                  isLoadingSlots={isFetchingSlots}
                   onDateChange={date => updateCurrentBooking({ date, time: null })}
                   onTimeChange={time => updateCurrentBooking({ time })}
                 />
@@ -448,6 +494,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
                     serviceName={svc?.name}
                     hairdresserName={hd?.name}
                     salonId={salon?.id ?? null}
+                    phonePrefix={phonePrefix}
                     duplicateClient={duplicateClient}
                     onUpdate={updates => setBookings(prev => prev.map((bk, i) => i === currentClientIndex ? { ...bk, ...updates } : bk))}
                     onOpenSearch={() => { setClientSearchTarget(currentClientIndex); setIsClientSearchOpen(true) }}

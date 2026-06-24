@@ -16,6 +16,7 @@ interface ClientInfoStepProps {
   serviceName: string | undefined
   hairdresserName: string | undefined
   salonId: string | null
+  phonePrefix: string
   duplicateClient: IClient | null
   onUpdate: (updates: Partial<PersonBooking>) => void
   onOpenSearch: () => void
@@ -31,6 +32,7 @@ export function ClientInfoStep({
   serviceName,
   hairdresserName,
   salonId,
+  phonePrefix,
   duplicateClient,
   onUpdate,
   onOpenSearch,

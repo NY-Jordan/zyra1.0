@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar, Clock, Loader2 } from 'lucide-react'
 import { Calendar as DateCalendar } from '@zyra/ui/components/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@zyra/ui/components/popover'
 import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
@@ -16,6 +16,7 @@ interface DateTimeStepProps {
   totalDuration: number
   hairdresserId: string
   hairdresserWorkingHours: OpeningHour[]
+  isLoadingSlots?: boolean
   onDateChange: (date: Date) => void
   onTimeChange: (time: string | null) => void
 }
@@ -33,6 +34,7 @@ export function DateTimeStep({
   totalDuration,
   hairdresserId,
   hairdresserWorkingHours,
+  isLoadingSlots = false,
   onDateChange,
   onTimeChange,
 }: DateTimeStepProps) {
@@ -79,7 +81,12 @@ export function DateTimeStep({
       {date && (
         <div>
           <FieldLabel>Créneau * · durée totale : {totalDuration} min</FieldLabel>
-          {availableSlots.length === 0 ? (
+          {isLoadingSlots ? (
+            <div className="flex items-center gap-2 py-3 text-[12px] text-slate-400 dark:text-slate-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Vérification des disponibilités…
+            </div>
+          ) : availableSlots.length === 0 ? (
             <p className="text-[12px] text-amber-600 dark:text-amber-400">
               Aucun créneau disponible pour ce coiffeur à cette date.
             </p>

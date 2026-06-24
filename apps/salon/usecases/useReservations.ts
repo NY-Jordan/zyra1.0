@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchCollectionPaginate, fetchCollection, editDocument } from '@zyra/conf/lib/query'
-import { where } from 'firebase/firestore'
+import { Timestamp, where } from 'firebase/firestore'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 
@@ -141,13 +141,14 @@ export const useUpdateReservationStatus = () => {
     mutationFn: async ({
       reservationId,
       currentStatus,
-      newStatus
+      newStatus,
+      additionalData = {},
     }: {
       reservationId: string
       currentStatus: reservationStatusEnum
       newStatus: reservationStatusEnum
+      additionalData?: Record<string, unknown>
     }) => {
-      // Valider la transition de statut
       if (!isValidStatusTransition(currentStatus, newStatus)) {
         throw new Error(
           `Transition invalide : ${currentStatus} → ${newStatus}. ` +
@@ -155,10 +156,10 @@ export const useUpdateReservationStatus = () => {
         )
       }
 
-      // Mettre à jour le document
       await editDocument('reservations', reservationId, {
         status: newStatus,
-        updatedAt: new Date()
+        ...additionalData,
+        updatedAt: new Date(),
       })
 
       return { reservationId, newStatus }
@@ -199,6 +200,64 @@ export const useUpdateReservationPayment = () => {
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
     }
+  })
+}
+
+/**
+ * Hook pour modifier le coiffeur (et le créneau) d'une personne dans une réservation
+ */
+export const useUpdatePersonHairdresser = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      reservation,
+      personIndex,
+      hairdresserId,
+      hairdresserName,
+      date,
+      time,
+    }: {
+      reservation: IReservation
+      personIndex: number
+      hairdresserId: string
+      hairdresserName: string
+      date: Date
+      time: string
+    }) => {
+      const person = reservation.people[personIndex]
+      if (!person) throw new Error('Personne non trouvée')
+
+      const scheduledAt = new Date(date)
+      const [h = 0, m = 0] = time.split(':').map(Number)
+      scheduledAt.setHours(h, m, 0, 0)
+      const endsAt = new Date(scheduledAt.getTime() + person.totalDuration * 60 * 1000)
+
+      const updatedPeople = reservation.people.map((p, i) =>
+        i === personIndex
+          ? {
+              ...p,
+              hairdresserId,
+              hairdresserName,
+              scheduledAt: Timestamp.fromDate(scheduledAt),
+              endsAt: Timestamp.fromDate(endsAt),
+            }
+          : p,
+      )
+
+      await editDocument('reservations', reservation.id, {
+        people: updatedPeople,
+        updatedAt: new Date(),
+      })
+
+      return { personIndex, updatedPeople, scheduledAt, endsAt }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
+      queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] })
+    },
   })
 }
 

@@ -49,6 +49,20 @@ export const filterPassedHours = (slots: string[], date: Date): string[] => {
   })
 }
 
+// Returns all 30-min slots strictly during a service (start inclusive, end exclusive).
+// Used to block already-booked slots — does NOT include the end time so back-to-back services are allowed.
+export const getOccupiedSlots = (start: string, durationMin: number): string[] => {
+  if (durationMin <= 0) return [start]
+  const occupied: string[] = []
+  let cur = timeToMin(start)
+  const end = cur + durationMin
+  while (cur < end) {
+    occupied.push(minToTime(cur))
+    cur += 30
+  }
+  return occupied
+}
+
 export const getBlockedSlots = (start: string, durationMin: number): string[] => {
   if (durationMin <= 0) return [start]
   const blocked = [start]
