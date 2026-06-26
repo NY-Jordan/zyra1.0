@@ -18,6 +18,7 @@ import {
   UserCheck,
   ChevronLeft,
   ChevronRight,
+  Activity,
   Bug,
   LifeBuoy,
 } from 'lucide-react'
@@ -193,6 +194,12 @@ const sidebarItems: SidebarItem[] = [
     label: 'Clients',
     href: '/salon/clients',
     icon: <User2 className="h-5 w-5" />,
+    requiresBookingAccess: true,
+  },
+  {
+    label: 'Activités',
+    href: '/activities',
+    icon: <Activity className="h-5 w-5" />,
     requiresBookingAccess: true,
   },
   {

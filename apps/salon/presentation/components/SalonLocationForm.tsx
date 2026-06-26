@@ -14,6 +14,7 @@ import { X, MapPin, Navigation } from 'lucide-react';
 import { editDocument } from '@zyra/conf/lib/query';
 import { useSalon } from '@/hooks/useSalon';
 import { toast } from 'sonner';
+import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases';
 
 interface Location {
   lat: number;
@@ -145,6 +146,15 @@ export default function SalonLocationForm({
         location_lat: locationData.latitude,
         location_lng: locationData.longitude,
         progress: 80 // Passer le pourcentage à 80%
+      });
+      await logActivity({
+        salonId: salon.id,
+        ...getCurrentActor(),
+        type: 'salon_location_updated',
+        action: 'updated',
+        resourceId: salon.id,
+        resourceType: 'salon',
+        resourceLabel: locationData.address,
       });
       // Rafraîchir les données du salon
       await refetch();

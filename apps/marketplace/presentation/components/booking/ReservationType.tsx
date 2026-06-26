@@ -1,96 +1,66 @@
 'use client'
 
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@zyra/ui/components/card'
-import { Button } from '@zyra/ui/components/button'
-import { Users, User } from 'lucide-react'
+import { Users, User, Check } from 'lucide-react'
 
 interface ReservationTypeProps {
   selectedType: 'single' | 'multiple' | null
   onSelectType: (type: 'single' | 'multiple') => void
 }
 
-export default function ReservationType({
-  selectedType,
-  onSelectType,
-}: ReservationTypeProps) {
+export default function ReservationType({ selectedType, onSelectType }: ReservationTypeProps) {
+  const options = [
+    {
+      type: 'single' as const,
+      icon: User,
+      title: 'Réservation personnelle',
+      desc: 'Un créneau pour moi-même',
+      color: 'emerald',
+    },
+    {
+      type: 'multiple' as const,
+      icon: Users,
+      title: 'Réservations multiples',
+      desc: 'Plusieurs personnes en même temps',
+      color: 'sky',
+    },
+  ]
+
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">Type de réservation</h2>
-        <p className="text-gray-600">Choisissez si vous réservez pour vous-même ou plusieurs personnes</p>
+    <div className="space-y-5">
+      <div className="space-y-1">
+        <h2 className="text-[18px] font-extrabold text-slate-800">Type de réservation</h2>
+        <p className="text-[13px] text-slate-500">Choisissez si vous réservez seul ou en groupe</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Single Reservation */}
-        <Card
-          className={`cursor-pointer transition-all ${
-            selectedType === 'single'
-              ? 'border-blue-600 bg-blue-50 shadow-md'
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => onSelectType('single')}
-        >
-          <CardHeader>
-            <div className="flex items-center justify-center mb-4">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <User className="h-8 w-8 text-blue-600" />
-              </div>
-            </div>
-            <CardTitle className="text-center text-lg">Réservation personnelle</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600 text-sm">
-              Je réserve un créneau pour moi-même
-            </p>
-            <Button
-              className={`w-full mt-6 ${
-                selectedType === 'single'
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'border border-gray-300'
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {options.map(({ type, icon: Icon, title, desc, color }) => {
+          const isSelected = selectedType === type
+          return (
+            <button
+              key={type}
+              onClick={() => onSelectType(type)}
+              className={`relative text-left p-5 rounded-2xl border-2 transition-all ${
+                isSelected
+                  ? 'border-emerald-400 bg-emerald-50 shadow-sm'
+                  : 'border-[#F0EAE4] bg-white hover:border-emerald-200'
               }`}
-              variant={selectedType === 'single' ? 'default' : 'outline'}
-              onClick={() => onSelectType('single')}
             >
-              {selectedType === 'single' ? '✓ Sélectionné' : 'Choisir'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Multiple Reservations */}
-        <Card
-          className={`cursor-pointer transition-all ${
-            selectedType === 'multiple'
-              ? 'border-blue-600 bg-blue-50 shadow-md'
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => onSelectType('multiple')}
-        >
-          <CardHeader>
-            <div className="flex items-center justify-center mb-4">
-              <div className="p-3 bg-green-100 rounded-full">
-                <Users className="h-8 w-8 text-green-600" />
+              {isSelected && (
+                <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-white" />
+                </div>
+              )}
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 ${
+                isSelected ? 'bg-emerald-100' : 'bg-[#F8F4F0]'
+              }`}>
+                <Icon className={`h-5 w-5 ${isSelected ? 'text-emerald-600' : 'text-slate-500'}`} />
               </div>
-            </div>
-            <CardTitle className="text-center text-lg">Réservations multiples</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600 text-sm">
-              Je réserve plusieurs créneaux pour d'autres personnes
-            </p>
-            <Button
-              className={`w-full mt-6 ${
-                selectedType === 'multiple'
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'border border-gray-300'
-              }`}
-              variant={selectedType === 'multiple' ? 'default' : 'outline'}
-              onClick={() => onSelectType('multiple')}
-            >
-              {selectedType === 'multiple' ? '✓ Sélectionné' : 'Choisir'}
-            </Button>
-          </CardContent>
-        </Card>
+              <p className="text-[14px] font-bold text-slate-800">{title}</p>
+              <p className="text-[12px] text-slate-500 mt-0.5">{desc}</p>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

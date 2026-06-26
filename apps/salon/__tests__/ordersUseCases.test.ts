@@ -13,6 +13,16 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+vi.mock('@/usecases/notificationsUseCases', () => ({
+  logActivity: vi.fn().mockResolvedValue(undefined),
+  createNotification: vi.fn().mockResolvedValue(undefined),
+  getCurrentActor: vi.fn().mockReturnValue({ actorId: 'user-1', actorName: 'Test User' }),
+}));
+
+vi.mock('@/hooks/useSalon', () => ({
+  useSalon: vi.fn().mockReturnValue({ salonId: 'salon-1', salon: { id: 'salon-1', name: 'Test Salon' } }),
+}));
+
 // ─── Imports (après les mocks) ────────────────────────────────────────────────
 import { editDocument, deleteDocument } from '@zyra/conf/lib/query';
 import { toast } from 'sonner';
@@ -49,7 +59,7 @@ describe('useMarkOrderAsPaid', () => {
     const { result } = renderHook(() => useMarkOrderAsPaid(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-1');
+      result.current.mutate({ orderId: 'order-1' });
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -67,7 +77,7 @@ describe('useMarkOrderAsPaid', () => {
     const { result } = renderHook(() => useMarkOrderAsPaid(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-1');
+      result.current.mutate({ orderId: 'order-1' });
     });
 
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Commande marquée comme payée'));
@@ -79,7 +89,7 @@ describe('useMarkOrderAsPaid', () => {
     const { result } = renderHook(() => useMarkOrderAsPaid(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-1');
+      result.current.mutate({ orderId: 'order-1' });
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -92,7 +102,7 @@ describe('useMarkOrderAsPaid', () => {
     const { result } = renderHook(() => useMarkOrderAsPaid(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-1');
+      result.current.mutate({ orderId: 'order-1' });
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -108,7 +118,7 @@ describe('useCancelOrder', () => {
     const { result } = renderHook(() => useCancelOrder(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-2');
+      result.current.mutate({ orderId: 'order-2' });
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -125,7 +135,7 @@ describe('useCancelOrder', () => {
     const { result } = renderHook(() => useCancelOrder(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-2');
+      result.current.mutate({ orderId: 'order-2' });
     });
 
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Commande annulée'));
@@ -137,7 +147,7 @@ describe('useCancelOrder', () => {
     const { result } = renderHook(() => useCancelOrder(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-2');
+      result.current.mutate({ orderId: 'order-2' });
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -210,7 +220,7 @@ describe('useDeleteOrder', () => {
     const { result } = renderHook(() => useDeleteOrder(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-4');
+      result.current.mutate({ orderId: 'order-4' });
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -223,7 +233,7 @@ describe('useDeleteOrder', () => {
     const { result } = renderHook(() => useDeleteOrder(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-4');
+      result.current.mutate({ orderId: 'order-4' });
     });
 
     await waitFor(() =>
@@ -237,7 +247,7 @@ describe('useDeleteOrder', () => {
     const { result } = renderHook(() => useDeleteOrder(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-4');
+      result.current.mutate({ orderId: 'order-4' });
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -250,7 +260,7 @@ describe('useDeleteOrder', () => {
     const { result } = renderHook(() => useDeleteOrder(), { wrapper });
 
     act(() => {
-      result.current.mutate('order-4');
+      result.current.mutate({ orderId: 'order-4' });
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));

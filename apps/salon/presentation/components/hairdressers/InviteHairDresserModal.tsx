@@ -29,6 +29,7 @@ import { fetchCollection, createDocument } from '@zyra/conf/lib/query'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { toast } from 'sonner'
 import useSalon from '@/hooks/useSalon'
+import { logActivity, createNotification, getCurrentActor } from '@/usecases/notificationsUseCases'
 import {
   SearchHairDresserForm,
   ServiceSelectionForm,
@@ -94,10 +95,31 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 jours
       }
-      return await createDocument('hair_dresser_invitations', invitation)
+      const invitationId = await createDocument('hair_dresser_invitations', invitation)
+      await Promise.all([
+        logActivity({
+          salonId: salon.id,
+          ...getCurrentActor(),
+          type: 'hairdresser_invitation_created',
+          action: 'invited',
+          resourceId: data.hairDresser.id,
+          resourceType: 'invitation',
+          resourceLabel: data.hairDresser.name,
+        }),
+        createNotification({
+          salonId: salon.id,
+          type: 'hairdresser_invitation_created',
+          title: 'Invitation coiffeur envoyée',
+          body: data.hairDresser.name,
+          resourceId: data.hairDresser.id,
+          resourceType: 'invitation',
+        }),
+      ])
+      return invitationId
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salon-hairdressers'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
       toast.success('Invitation envoyée avec succès!')
       handleClose()
     },

@@ -13,58 +13,31 @@ interface StepIndicatorProps {
 
 export default function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
   return (
-    <div className="w-full py-6">
-      <div className="flex items-center justify-between">
+    <div className="w-full py-2">
+      <div className="flex items-center">
         {steps.map((step, index) => (
           <React.Fragment key={step.number}>
-            {/* Step */}
-            <div className="flex flex-col items-center flex-1">
-              <div className="flex items-center w-full">
-                {/* Circle */}
-                <div
-                  className={`
-                    relative z-10 flex items-center justify-center w-10 h-10 rounded-full font-semibold
-                    ${
-                      currentStep > step.number
-                        ? 'bg-blue-600 text-white'
-                        : currentStep === step.number
-                        ? 'bg-blue-600 text-white ring-4 ring-blue-100'
-                        : 'bg-gray-200 text-gray-500'
-                    }
-                  `}
-                >
-                  {currentStep > step.number ? (
-                    <Check className="h-5 w-5" />
-                  ) : (
-                    step.number
-                  )}
-                </div>
-
-                {/* Line */}
-                {index < steps.length - 1 && (
-                  <div className="flex-1 h-1 mx-2">
-                    <div
-                      className={`h-full ${
-                        currentStep > step.number
-                          ? 'bg-blue-600'
-                          : 'bg-gray-200'
-                      }`}
-                    />
-                  </div>
-                )}
+            <div className="flex flex-col items-center flex-shrink-0">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold transition-all ${
+                currentStep > step.number
+                  ? 'bg-emerald-500 text-white'
+                  : currentStep === step.number
+                  ? 'bg-emerald-500 text-white ring-4 ring-emerald-100'
+                  : 'bg-[#F0EAE4] text-slate-400'
+              }`}>
+                {currentStep > step.number ? <Check className="h-3.5 w-3.5" /> : step.number}
               </div>
-
-              {/* Label */}
-              <span
-                className={`mt-2 text-xs md:text-sm font-medium ${
-                  currentStep >= step.number
-                    ? 'text-blue-600'
-                    : 'text-gray-500'
-                }`}
-              >
+              <span className={`mt-1 text-[10px] font-semibold hidden sm:block ${
+                currentStep >= step.number ? 'text-emerald-600' : 'text-slate-400'
+              }`}>
                 {step.title}
               </span>
             </div>
+            {index < steps.length - 1 && (
+              <div className={`flex-1 h-0.5 mx-2 rounded-full transition-all ${
+                currentStep > step.number ? 'bg-emerald-400' : 'bg-[#F0EAE4]'
+              }`} />
+            )}
           </React.Fragment>
         ))}
       </div>

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
 import { Calendar, Check, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
 import { Timestamp, where } from 'firebase/firestore'
 import { createDocument, editDocument, fetchCollection } from '@zyra/conf/lib/query'
+import { logActivity, createNotification } from '@/usecases/notificationsUseCases'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { IReservation, IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
@@ -237,6 +238,28 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
         latestEndsAt: sorted.at(-1)?.endsAt,
       })
 
+      await Promise.all([
+        logActivity({
+          salonId: salon.id,
+          type: 'reservation_created',
+          actorId: 'system',
+          actorName: 'Système',
+          action: 'created',
+          resourceId: reservationId,
+          resourceType: 'reservation',
+          resourceLabel: `Réservation de ${isSingle ? firstBooking.clientName : `${firstBooking.clientName} +${bookings.length - 1}`}`,
+          metadata: { montant: `${totalPrice} XAF`, personnes: bookings.length },
+        }),
+        createNotification({
+          salonId: salon.id,
+          type: 'reservation_created',
+          title: 'Nouvelle réservation',
+          body: `${isSingle ? firstBooking.clientName : `${firstBooking.clientName} +${bookings.length - 1}`} · ${totalPrice} XAF`,
+          resourceId: reservationId,
+          resourceType: 'reservation',
+        }),
+      ])
+
       const resolvedClientIds: string[] = []
       for (const booking of bookings) {
         let clientId = booking.linkedClientId
@@ -284,6 +307,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
       toast.success('Réservation créée avec succès')
       handleClose()
     },

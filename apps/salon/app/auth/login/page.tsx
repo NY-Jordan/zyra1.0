@@ -1,257 +1,178 @@
 'use client'
-import { Button } from "@zyra/ui/components/button";
-import { Input } from "@zyra/ui/components/input";
-import { Alert, AlertDescription } from "@zyra/ui/components/alert";
-import { useForm, FieldValues } from "react-hook-form";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { Mail, Lock, ArrowRight, LogIn, AlertCircle } from "lucide-react";
-import { ownerAuthService } from "@/services/ownerAuthService";
-import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@zyra/conf/lib/firebase";
+
+import { useForm, FieldValues } from 'react-hook-form'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { Mail, Lock, ArrowRight, AlertCircle, Scissors } from 'lucide-react'
+import { ownerAuthService } from '@/services/ownerAuthService'
+import { useRouter } from 'next/navigation'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '@zyra/conf/lib/firebase'
 
 export default function Login() {
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
-  const [isLoading, setIsLoading] = useState(false);
-  const [connectionError, setConnectionError] = useState('');
-  const [formError, setFormError] = useState('');
-  const router = useRouter();
+  const { register, handleSubmit, formState: { errors } } = useForm()
+  const [isLoading, setIsLoading] = useState(false)
+  const [connectionError, setConnectionError] = useState('')
+  const router = useRouter()
 
-  // Rediriger les utilisateurs déjà connectés vers setup
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        router.replace('/salon/setup');
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
-
+    const unsub = onAuthStateChanged(auth, user => {
+      if (user) router.replace('/salon/setup')
+    })
+    return unsub
+  }, [router])
 
   const handleAuth = async (data: FieldValues) => {
-    setFormError('');
-    setConnectionError('');
-    setIsLoading(true);
+    setConnectionError('')
+    setIsLoading(true)
     try {
-      const { email, password } = data;
-      await ownerAuthService.login(email, password);
-      // Clear any stored salon so owner always lands on setup to pick their salon
-      if (typeof window !== 'undefined') localStorage.removeItem('salonId');
-      toast.success("Connexion réussie");
-      window.location.href = `/salon/setup`;
+      await ownerAuthService.login(data.email, data.password)
+      if (typeof window !== 'undefined') localStorage.removeItem('salonId')
+      toast.success('Connexion réussie')
+      window.location.href = '/salon/setup'
     } catch (error: any) {
-      setConnectionError(error.message || "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer.");
+      setConnectionError(error.message || 'Une erreur est survenue. Vérifiez votre connexion internet.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex bg-zinc-100 dark:bg-slate-950">
-      {/* Colonne de gauche - Branding avec image de fond */}
-      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-        {/* Image de fond avec effet blur */}
-        <div className="absolute inset-0">
-          <Image 
-            src="/images/salon-background.jpg" 
-            alt="Salon de beauté"
-            fill
-            sizes="50vw"
-            priority
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-zinc-900/70 backdrop-blur-sm"></div>
-        </div>
-        {/* Contenu de la colonne de gauche */}
-        <div className="relative h-full flex flex-col justify-between text-white z-10">
-          <div className="p-12">
-            <div className="text-2xl font-bold text-white">Zyra</div>
-          </div>
-          <div className="p-12 space-y-6">
-            <h1 className="text-4xl font-bold text-white">Gérez votre salon de beauté avec simplicité.</h1>
-            <p className="text-lg text-zinc-200">
-              Planification, gestion des clients et facturation - tout ce dont vous avez besoin en un seul endroit.
-            </p>
-            <div className="pt-8 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-zinc-800/80 p-2 rounded-full">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span className="text-lg text-zinc-100">Réservations en ligne 24/7</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="bg-zinc-800/80 p-2 rounded-full">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span className="text-lg text-zinc-100">Gestion complète des clients</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="bg-zinc-800/80 p-2 rounded-full">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span className="text-lg text-zinc-100">Analyses et statistiques détaillées</span>
-              </div>
+    <div className="min-h-screen bg-[#F8F4F0] dark:bg-[#0F1318] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-[400px]">
+
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-md shadow-emerald-500/30">
+              <Scissors className="h-5 w-5 text-white" />
             </div>
-          </div>
-          <div className="p-12">
-            <p className="text-sm text-zinc-300">
-              © {new Date().getFullYear()} Zyra. Tous droits réservés.
-            </p>
+            <span className="text-[22px] font-extrabold text-slate-800 dark:text-white tracking-tight">Zyra</span>
           </div>
         </div>
-      </div>
 
-      {/* Colonne de droite - Formulaire */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white dark:bg-slate-900">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="mb-2 flex justify-center">
-              <div className="h-12 w-12 rounded-full bg-zinc-800 dark:bg-slate-700 flex items-center justify-center text-white">
-                <LogIn size={24} />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-zinc-800 dark:text-white">Connexion</h2>
-            <p className="text-zinc-600 dark:text-slate-400 mt-2">Bienvenue ! Connectez-vous à votre compte.</p>
+        {/* Card */}
+        <div className="bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl p-8 shadow-sm">
+
+          {/* Header */}
+          <div className="mb-7">
+            <h1 className="text-[20px] font-extrabold text-slate-800 dark:text-white">Connexion</h1>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">
+              Accédez à votre tableau de bord
+            </p>
           </div>
-          
-          <form onSubmit={handleSubmit(handleAuth)} className="space-y-5">
-            {/* Affichage des erreurs */}
-            {connectionError && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertCircle className="h-4 w-4 text-red-500" />
-                <AlertDescription className="text-red-700">
-                  {connectionError}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {formError && (
-              <Alert className="border-amber-200 bg-amber-50">
-                <AlertCircle className="h-4 w-4 text-amber-500" />
-                <AlertDescription className="text-amber-700">
-                  {formError}
-                </AlertDescription>
-              </Alert>
-            )}
 
+          {/* Connection error */}
+          {connectionError && (
+            <div className="flex items-start gap-2.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-400 rounded-xl px-4 py-3 mb-5 text-[13px]">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <p>{connectionError}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(handleAuth)} className="space-y-4">
+
+            {/* Email */}
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-slate-300">
+              <label className="text-[12px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                 Adresse e-mail
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-slate-400 h-5 w-5" />
-                <Input
-                  id="email"
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <input
                   type="email"
                   placeholder="exemple@domaine.com"
-                  className="pl-10 py-5 bg-white dark:bg-slate-800 border-zinc-300 dark:border-slate-600 text-zinc-800 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-slate-500 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
-                  {...register("email", {
+                  className={`w-full h-11 pl-10 pr-4 text-[14px] rounded-xl border bg-[#FAFAF9] dark:bg-slate-800/50 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 dark:focus:border-emerald-500 ${
+                    errors.email
+                      ? 'border-rose-300 dark:border-rose-700'
+                      : 'border-[#E8E0D8] dark:border-slate-700'
+                  }`}
+                  {...register('email', {
                     required: "L'adresse e-mail est requise",
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: "L'adresse e-mail est invalide"
-                    }
+                      message: "L'adresse e-mail est invalide",
+                    },
                   })}
                 />
               </div>
-              {errors?.email && (
-                <p className="text-xs text-red-500 mt-1">
+              {errors.email && (
+                <p className="text-[11px] text-rose-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
                   {errors.email.message as string}
                 </p>
               )}
             </div>
 
+            {/* Password */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-slate-300">
+                <label className="text-[12px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                   Mot de passe
                 </label>
                 <button
                   type="button"
                   onClick={() => router.push('/auth/forgot-password')}
-                  className="text-sm text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white hover:underline"
+                  className="text-[12px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
                 >
-                  Mot de passe oublié ?
+                  Oublié ?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-slate-400 h-5 w-5" />
-                <Input
-                  id="password"
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <input
                   type="password"
                   placeholder="••••••••"
-                  className="pl-10 py-5 bg-white dark:bg-slate-800 border-zinc-300 dark:border-slate-600 text-zinc-800 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-slate-500 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
-                  {...register("password", {
-                    required: "Le mot de passe est requis",
-                    minLength: {
-                      value: 6,
-                      message: "Le mot de passe doit contenir au moins 6 caractères"
-                    }
+                  className={`w-full h-11 pl-10 pr-4 text-[14px] rounded-xl border bg-[#FAFAF9] dark:bg-slate-800/50 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 dark:focus:border-emerald-500 ${
+                    errors.password
+                      ? 'border-rose-300 dark:border-rose-700'
+                      : 'border-[#E8E0D8] dark:border-slate-700'
+                  }`}
+                  {...register('password', {
+                    required: 'Le mot de passe est requis',
+                    minLength: { value: 6, message: 'Le mot de passe doit contenir au moins 6 caractères' },
                   })}
                 />
               </div>
-              {errors?.password && (
-                <p className="text-xs text-red-500 mt-1">
+              {errors.password && (
+                <p className="text-[11px] text-rose-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
                   {errors.password.message as string}
                 </p>
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="remember"
-                className="rounded bg-white dark:bg-slate-800 border-zinc-300 dark:border-slate-600 text-zinc-800 dark:text-white"
-              />
-              <label
-                htmlFor="remember"
-                className="text-sm text-zinc-600 dark:text-slate-400 leading-none"
+            {/* Submit */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-[14px] font-bold transition-colors shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"
               >
-                Se souvenir de moi
-              </label>
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Connexion…
+                  </span>
+                ) : (
+                  <>
+                    Se connecter
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
             </div>
-
-            <Button
-              type="submit"
-              className="w-full py-6 bg-zinc-800 hover:bg-zinc-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white"
-              disabled={isLoading}
-            >
-              {isLoading ? "Connexion en cours..." : "Se connecter"}
-              {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
-            </Button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-200 dark:border-slate-700"></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <p className="text-xs text-zinc-500 dark:text-slate-500 max-w-sm mx-auto">
-              En vous connectant, vous acceptez nos{" "}
-              <Link href="/legal/terms" className="text-zinc-700 dark:text-slate-300 hover:underline">
-                conditions d'utilisation
-              </Link>{" "}
-              et notre{" "}
-              <Link href="/legal/privacy" className="text-zinc-700 dark:text-slate-300 hover:underline">
-                politique de confidentialité
-              </Link>.
-            </p>
-          </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-[11px] text-slate-400 dark:text-slate-600 mt-6">
+          © {new Date().getFullYear()} Zyra · Tous droits réservés
+        </p>
       </div>
     </div>
-  );
+  )
 }

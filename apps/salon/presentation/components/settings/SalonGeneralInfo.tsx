@@ -10,6 +10,7 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
+import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
 
 interface SalonFormData {
   name: string
@@ -64,6 +65,15 @@ export default function SalonGeneralInfo({ salon, onUpdate }: SalonGeneralInfoPr
         category: data.category
       })
 
+      await logActivity({
+        salonId: salon.id,
+        ...getCurrentActor(),
+        type: 'salon_info_updated',
+        action: 'updated',
+        resourceId: salon.id,
+        resourceType: 'salon',
+        resourceLabel: data.name,
+      })
       toast.success('Informations mises à jour avec succès')
       setIsEditing(false)
       onUpdate()

@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon, OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
 import { DAYS_OF_WEEK } from '@zyra/conf/lib/utils'
+import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
 
 interface SalonOpeningHoursProps {
   salon: ISalon
@@ -39,6 +40,16 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
         s.day === slot.day ? { ...s, openDay: !s.openDay } : s
       )
       await editDocument("salons", salon.id, { openingHours: updatedSlots })
+      await logActivity({
+        salonId: salon.id,
+        ...getCurrentActor(),
+        type: 'salon_hours_updated',
+        action: slot.openDay ? 'closed' : 'opened',
+        resourceId: salon.id,
+        resourceType: 'salon',
+        resourceLabel: slot.day,
+        metadata: { statut: slot.openDay ? 'Fermé' : 'Ouvert' },
+      })
       toast.success(
         slot.openDay
           ? "Jour fermé avec succès"
@@ -63,6 +74,16 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
           : slot
       )
       await editDocument("salons", salon.id, { openingHours: updatedSlots })
+      await logActivity({
+        salonId: salon.id,
+        ...getCurrentActor(),
+        type: 'salon_hours_updated',
+        action: 'updated',
+        resourceId: salon.id,
+        resourceType: 'salon',
+        resourceLabel: editingSlot.day,
+        metadata: { heures: `${editOpen} - ${editClose}` },
+      })
       toast.success("Horaires mis à jour avec succès")
       setIsEditing(false)
       setEditingSlot(null)

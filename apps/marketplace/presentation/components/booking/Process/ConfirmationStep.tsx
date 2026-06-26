@@ -1,7 +1,5 @@
 import React from 'react'
-import { Button } from '@zyra/ui/components/button'
-import { Card, CardContent } from '@zyra/ui/components/card'
-import { ArrowRight, Plus, Trash2, User } from 'lucide-react'
+import { Plus, Trash2, User, Check, Clock, Calendar } from 'lucide-react'
 import { Booking } from '../../../../app/booking/[id]/types'
 
 interface ConfirmationStepProps {
@@ -22,124 +20,101 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   onDeleteBooking,
 }) => {
   return (
-    <div className="space-y-6">
-      {/* Titre et description */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Résumé de vos réservations</h2>
-        <p className="text-gray-600 mt-1">Vous avez {multipleBookings.length} réservation(s)</p>
+    <div className="space-y-5">
+      <div className="space-y-1">
+        <h2 className="text-[18px] font-extrabold text-slate-800">Résumé des réservations</h2>
+        <p className="text-[13px] text-slate-500">{multipleBookings.length} réservation{multipleBookings.length > 1 ? 's' : ''} au total</p>
       </div>
 
-      {/* Résumé des réservations */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {multipleBookings.map((booking, idx) => (
-          <Card
+          <div
             key={idx}
-            className={`cursor-pointer transition-all ${
-              idx === currentPersonIndex
-                ? 'border-blue-500 bg-blue-50 shadow-lg'
-                : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-            }`}
             onClick={() => onSelectBooking?.(idx)}
+            className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+              idx === currentPersonIndex
+                ? 'border-emerald-400 bg-emerald-50'
+                : 'border-[#F0EAE4] bg-white hover:border-emerald-200'
+            }`}
           >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="h-4 w-4 text-blue-600" />
-                    <h3 className="font-semibold text-lg">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  booking.service ? 'bg-emerald-100' : 'bg-[#F0EAE4]'
+                }`}>
+                  {booking.service
+                    ? <Check className="h-4 w-4 text-emerald-600" />
+                    : <User className="h-4 w-4 text-slate-400" />
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[14px] font-bold text-slate-800">
                       Personne {booking.personNumber || idx + 1}
-                    </h3>
+                    </p>
                     {booking.service && (
-                      <span className="ml-auto text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
-                        ✓ Complète
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        Complète
                       </span>
                     )}
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
-                    <div>
-                      <p className="text-gray-500 text-xs">Service</p>
-                      <p className="font-medium text-gray-900">
-                        {booking.service?.name || 'Non sélectionné'}
-                      </p>
+                  {booking.service && (
+                    <div className="flex items-center gap-3 mt-1 text-[12px] text-slate-500">
+                      <span className="font-medium text-slate-700">{booking.service.name}</span>
+                      {booking.date && (
+                        <>
+                          <span className="text-slate-300">·</span>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{booking.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                          </div>
+                        </>
+                      )}
+                      {booking.time && (
+                        <>
+                          <span className="text-slate-300">·</span>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{booking.time}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    
-                    {booking.hairdresser && (
-                      <div>
-                        <p className="text-gray-500 text-xs">Coiffeur</p>
-                        <p className="font-medium text-gray-900">
-                          {'N\'importe qui'}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {booking.date && (
-                      <div>
-                        <p className="text-gray-500 text-xs">Date</p>
-                        <p className="font-medium text-gray-900">
-                          {booking.date.toLocaleDateString('fr-FR', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {booking.time && (
-                      <div>
-                        <p className="text-gray-500 text-xs">Heure</p>
-                        <p className="font-medium text-gray-900">{booking.time}</p>
-                      </div>
-                    )}
-                    
-                    {booking.supplements && booking.supplements.length > 0 && (
-                      <div className="col-span-2">
-                        <p className="text-gray-500 text-xs">Suppléments</p>
-                        <p className="font-medium text-gray-900">
-                          {booking.supplements.length} ajout(s)
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  )}
+                  {!booking.service && (
+                    <p className="text-[12px] text-slate-400 mt-0.5">Service non sélectionné</p>
+                  )}
                 </div>
-
-                {/* Bouton supprimer */}
-                {multipleBookings.length > 1 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDeleteBooking?.(idx)
-                    }}
-                    className="ml-4 p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                    title="Supprimer cette réservation"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
-            </CardContent>
-          </Card>
+
+              {multipleBookings.length > 1 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDeleteBooking?.(idx) }}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-50 transition-colors flex-shrink-0"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Boutons d'action */}
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
-        <Button
+      <div className="space-y-2 pt-2">
+        <button
           onClick={onAddPerson}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full h-11 rounded-2xl border-2 border-dashed border-[#E8E0D8] text-[13px] font-semibold text-slate-500 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4" />
           Ajouter une personne
-        </Button>
-        
-        <Button
+        </button>
+
+        <button
           onClick={onFinalize}
-          className="w-full bg-green-600 hover:bg-green-700"
+          className="w-full h-11 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-[13px] font-bold transition-colors shadow-sm shadow-emerald-500/20"
         >
           Finaliser les réservations
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
+        </button>
       </div>
     </div>
   )

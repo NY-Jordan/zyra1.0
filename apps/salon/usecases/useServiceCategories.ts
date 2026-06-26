@@ -2,21 +2,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { editDocument } from '@zyra/conf/lib/query'
 import { useSalon } from '@/hooks/useSalon'
 import { IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
-
+import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
 
 export function useServiceCategories() {
   const { salon } = useSalon()
   const queryClient = useQueryClient()
   const salonId = salon?.id
-  // Les catégories viennent directement du salon
   const categories = salon?.serviceCategories || []
 
   const createMutation = useMutation({
-    mutationFn: async (data: { 
-      name: string
-      description?: string
-      isActive?: boolean
-    }) => {
+    mutationFn: async (data: { name: string; description?: string; isActive?: boolean }) => {
       if (!salon || !salonId) throw new Error('Aucun salon sélectionné')
       const newCategory: IServiceCategory = {
         id: crypto.randomUUID(),
@@ -26,93 +21,90 @@ export function useServiceCategories() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-
-      const updatedCategories = [...categories, newCategory]
-      // Mettre à jour le salon
-      return editDocument('salons', salonId, {
-        serviceCategories: updatedCategories,
+      await editDocument('salons', salonId, {
+        serviceCategories: [...categories, newCategory],
         updatedAt: new Date().toISOString(),
       })
+      await logActivity({
+        salonId,
+        ...getCurrentActor(),
+        type: 'category_created',
+        action: 'created',
+        resourceId: newCategory.id,
+        resourceType: 'category',
+        resourceLabel: newCategory.name,
+      })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['salon'] })
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['salon'] }); queryClient.invalidateQueries({ queryKey: ['activities'] }) },
   })
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { 
-      id: string
-      data: Partial<IServiceCategory>
-    }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<IServiceCategory> }) => {
       if (!salon || !salonId) throw new Error('Aucun salon sélectionné')
-
-      const updatedCategories = categories.map(category => 
-        category.id === id
-          ? {
-              ...category,
-              ...data,
-              updatedAt: new Date().toISOString() 
-            }
-          : category
+      const updatedCategories = categories.map(c =>
+        c.id === id ? { ...c, ...data, updatedAt: new Date().toISOString() } : c
       )
-      // Mettre à jour le salon
-      return editDocument('salons', salonId, {
-        serviceCategories: updatedCategories,
-        updatedAt: new Date().toISOString(),
+      await editDocument('salons', salonId, { serviceCategories: updatedCategories, updatedAt: new Date().toISOString() })
+      const cat = categories.find(c => c.id === id)
+      await logActivity({
+        salonId,
+        ...getCurrentActor(),
+        type: 'category_updated',
+        action: 'updated',
+        resourceId: id,
+        resourceType: 'category',
+        resourceLabel: (data.name ?? cat?.name) ?? 'Catégorie',
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['salon'] })
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['salon'] }); queryClient.invalidateQueries({ queryKey: ['activities'] }) },
   })
 
   const toggleActiveMutation = useMutation({
     mutationFn: async (category: IServiceCategory) => {
       if (!salon || !salonId) throw new Error('Aucun salon sélectionné')
-
-      // Inverser le statut de la catégorie
-      const updatedCategories = categories.map(cat =>
-        cat.id === category.id
-          ? {
-              ...cat,
-              isActive: !cat.isActive,
-              updatedAt: new Date().toISOString()
-            }
-          : cat
+      const newActive = !category.isActive
+      const updatedCategories = categories.map(c =>
+        c.id === category.id ? { ...c, isActive: newActive, updatedAt: new Date().toISOString() } : c
       )
-
-      // Mettre à jour le salon
-      return editDocument('salons', salonId, {
-        serviceCategories: updatedCategories,
-        updatedAt: new Date().toISOString(),
+      await editDocument('salons', salonId, { serviceCategories: updatedCategories, updatedAt: new Date().toISOString() })
+      await logActivity({
+        salonId,
+        ...getCurrentActor(),
+        type: 'category_toggled',
+        action: newActive ? 'activated' : 'deactivated',
+        resourceId: category.id,
+        resourceType: 'category',
+        resourceLabel: category.name,
+        metadata: { statut: newActive ? 'Active' : 'Inactive' },
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['salon'] })
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['salon'] }); queryClient.invalidateQueries({ queryKey: ['activities'] }) },
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (categoryId: string) => {
       if (!salon || !salonId) throw new Error('Aucun salon sélectionné')
-      const updatedCategories = categories.filter(category => category.id !== categoryId)
-
-      return editDocument('salons', salonId, {
-        serviceCategories: updatedCategories,
-        updatedAt: new Date().toISOString(),
+      const cat = categories.find(c => c.id === categoryId)
+      const updatedCategories = categories.filter(c => c.id !== categoryId)
+      await editDocument('salons', salonId, { serviceCategories: updatedCategories, updatedAt: new Date().toISOString() })
+      await logActivity({
+        salonId,
+        ...getCurrentActor(),
+        type: 'category_deleted',
+        action: 'deleted',
+        resourceId: categoryId,
+        resourceType: 'category',
+        resourceLabel: cat?.name ?? 'Catégorie',
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['salon'] })
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['salon'] }); queryClient.invalidateQueries({ queryKey: ['activities'] }) },
   })
 
   return {
     categories,
-    isLoading: false, // Pas de loading séparé puisque les données viennent du salon
+    isLoading: false,
     createCategory: createMutation.mutate,
-    updateCategory: (id: string, data: Partial<IServiceCategory>) => 
-      updateMutation.mutate({ id, data }),
+    updateCategory: (id: string, data: Partial<IServiceCategory>) => updateMutation.mutate({ id, data }),
     toggleActive: toggleActiveMutation.mutate,
     deleteCategory: deleteMutation.mutate,
     isCreating: createMutation.isPending,

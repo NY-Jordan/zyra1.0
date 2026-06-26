@@ -30,6 +30,7 @@ import { fetchCollection, createDocument, editDocument } from '@zyra/conf/lib/qu
 import { where } from 'firebase/firestore'
 import { useSalon } from '@/hooks/useSalon'
 import { toast } from 'sonner'
+import { logActivity } from '@/usecases/notificationsUseCases'
 import { getPhonePrefix } from '@/utils/phonePrefix'
 import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 import { useHairDressers } from '@/usecases/useHairDressers'
@@ -277,6 +278,18 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
 
       const orderId = await createDocument('orders', orderData)
 
+      await logActivity({
+        salonId: salon.id,
+        type: 'order_created',
+        actorId: 'system',
+        actorName: 'Système',
+        action: 'created',
+        resourceId: orderId,
+        resourceType: 'order',
+        resourceLabel: `Commande de ${orderData.clientName} — ${selectedService.name}`,
+        metadata: { montant: `${orderData.totalPrice} XAF`, coiffeur: selectedHairDresser.name },
+      })
+
       if (orderData.clientId) {
         const client = await fetchCollection('clients', [where('id', '==', orderData.clientId)])
         if (client.length > 0) {
@@ -292,10 +305,9 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
-      // Un nouveau client a pu être créé, ou l'historique d'un client existant mis à jour :
-      // sans ça, la liste des clients (page Clients + recherche d'import) reste en cache obsolète.
       queryClient.invalidateQueries({ queryKey: ['clients'] })
       queryClient.invalidateQueries({ queryKey: ['salon-clients'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
       toast.success('Commande créée avec succès!')
       handleClose()
     },

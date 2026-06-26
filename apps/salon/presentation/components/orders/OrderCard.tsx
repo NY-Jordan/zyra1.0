@@ -64,7 +64,7 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
 
   const handleTogglePayment = () => {
     if (!order.isPaid) {
-      markAsPaidMutation.mutate(order.id)
+      markAsPaidMutation.mutate({ orderId: order.id, orderLabel: `${order.clientName} · ${order.serviceName}` })
     }
   }
 
@@ -76,7 +76,7 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
   }
 
   const handleDeleteOrder = () => {
-    deleteOrderMutation.mutate(order.id, {
+    deleteOrderMutation.mutate({ orderId: order.id, orderLabel: `${order.clientName} · ${order.serviceName}` }, {
       onSuccess: () => {
         setIsDeleteDialogOpen(false)
       },

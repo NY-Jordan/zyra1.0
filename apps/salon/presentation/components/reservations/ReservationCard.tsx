@@ -34,6 +34,8 @@ import ReservationDetailsModal from './ReservationDetailsModal'
 import ReservationConfirmModal from './ReservationConfirmModal'
 import AssignHairdresserModal from './AssignHairdresserModal'
 import { useUpdateReservationStatus, useUpdateReservationPayment } from '@/usecases/useReservations'
+import { useSalon } from '@/hooks/useSalon'
+import { logActivity, createNotification, getCurrentActor } from '@/usecases/notificationsUseCases'
 
 interface ReservationCardProps {
   reservation: IReservation
@@ -41,6 +43,7 @@ interface ReservationCardProps {
 
 export default function ReservationCard({ reservation }: ReservationCardProps) {
   const queryClient = useQueryClient()
+  const { salon } = useSalon()
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
@@ -103,12 +106,15 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
     }
   }
 
+  const reservationLabel = `Réservation #${reservation.reservationNumber} · ${reservation.clientName}`
+
   const handleConfirmReservation = async () => {
     try {
       await updateStatusMutation.mutateAsync({
         reservationId: reservation.id,
         currentStatus: reservation.status as reservationStatusEnum,
-        newStatus: reservationStatusEnum.confirmed
+        newStatus: reservationStatusEnum.confirmed,
+        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
       })
       setShowConfirmDialog(false)
     } catch (error) {
@@ -120,7 +126,8 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
     try {
       await updatePaymentMutation.mutateAsync({
         reservationId: reservation.id,
-        isPaid: true
+        isPaid: true,
+        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
       })
       setShowPaymentDialog(false)
     } catch (error) {
@@ -133,7 +140,8 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
       await updateStatusMutation.mutateAsync({
         reservationId: reservation.id,
         currentStatus: reservation.status as reservationStatusEnum,
-        newStatus: reservationStatusEnum.canceled
+        newStatus: reservationStatusEnum.canceled,
+        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
       })
       setShowCancelDialog(false)
     } catch (error) {
@@ -146,7 +154,8 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
       await updateStatusMutation.mutateAsync({
         reservationId: reservation.id,
         currentStatus: reservation.status as reservationStatusEnum,
-        newStatus: reservationStatusEnum.completed
+        newStatus: reservationStatusEnum.completed,
+        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
       })
       setShowCompleteDialog(false)
     } catch (error) {
@@ -156,7 +165,6 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
 
   const handleAssignHairdresser = async (hairdresser: IHairDresser) => {
     try {
-      // Mettre à jour tous les people de la réservation avec le coiffeur
       const updatedPeople = reservation.people.map(person => ({
         ...person,
         hairdresserId: hairdresser.id
@@ -165,9 +173,29 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
         people: updatedPeople,
         updatedAt: new Date()
       })
+      if (salon?.id) {
+        await Promise.all([
+          logActivity({
+            salonId: salon.id,
+            ...getCurrentActor(),
+            type: 'reservation_hairdresser_changed',
+            action: 'hairdresser_changed',
+            resourceId: reservation.id,
+            resourceType: 'reservation',
+            resourceLabel: reservationLabel,
+            metadata: { hairdresser: hairdresser.name },
+          }),
+          createNotification({
+            salonId: salon.id,
+            type: 'reservation_hairdresser_changed',
+            title: 'Coiffeur assigné',
+            body: `${reservationLabel} → ${hairdresser.name}`,
+            resourceId: reservation.id,
+            resourceType: 'reservation',
+          }),
+        ])
+      }
       setShowAssignHairdresserModal(false)
-      
-      // Rafraîchir les données des réservations
       await queryClient.invalidateQueries({ queryKey: ['reservations'] })
     } catch (error) {
       console.error('Erreur lors de l\'assignation du coiffeur:', error)

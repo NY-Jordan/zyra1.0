@@ -158,6 +158,21 @@ export function useReservationSave() {
       console.log(reservationData);
       // Utiliser createDocument pour enregistrer dans la collection 'reservations'
       const reservationId = await createDocument('reservations', reservationData)
+
+      // Notifier le salon en temps réel
+      try {
+        await createDocument('notifications', {
+          salonId: reservation.salonId,
+          type: 'reservation_created',
+          title: 'Nouvelle réservation',
+          body: `${reservation.clientName} · ${reservation.totalPrice.toLocaleString()} XAF`,
+          resourceId: reservationId,
+          resourceType: 'reservation',
+          read: false,
+          createdAt: reservation.createdAt,
+        })
+      } catch (_) {}
+
       toast.success('Réservation enregistrée avec succès!')
       return { success: true, reservationId }
     } catch (error) {

@@ -1,16 +1,13 @@
 'use client'
 
 import React from 'react'
-import { Card, CardContent } from '@zyra/ui/components/card'
-import { Button } from '@zyra/ui/components/button'
-import { Badge } from '@zyra/ui/components/badge'
 import { Check, Plus, Minus } from 'lucide-react'
 import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 
 interface SupplementsSelectionProps {
   supplements: ISalonServiceSupplement[]
   selectedSupplements: string[]
-  onToggleSupplement: (supplementId: ISalonServiceSupplement) => void
+  onToggleSupplement: (supplement: ISalonServiceSupplement) => void
 }
 
 export default function SupplementsSelection({
@@ -18,87 +15,73 @@ export default function SupplementsSelection({
   selectedSupplements,
   onToggleSupplement,
 }: SupplementsSelectionProps) {
-  const totalSupplementsPrice = supplements
+  const totalExtra = supplements
     .filter(s => selectedSupplements.includes(s.id))
     .reduce((sum, s) => sum + s.price, 0)
-  console.log( supplements)
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Suppléments (optionnel)</h2>
-        <p className="text-gray-600 mt-1">Ajoutez des options supplémentaires à votre service</p>
+    <div className="space-y-5">
+      <div className="space-y-1">
+        <h2 className="text-[18px] font-extrabold text-slate-800">Suppléments</h2>
+        <p className="text-[13px] text-slate-500">Ajoutez des options supplémentaires à votre service (optionnel)</p>
       </div>
 
       {supplements.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-gray-500">Aucun supplément disponible pour ce service</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-2xl border border-[#F0EAE4] p-8 text-center">
+          <p className="text-[13px] text-slate-500">Aucun supplément disponible pour ce service</p>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {supplements.map((supplement, key) => {
             const isSelected = selectedSupplements.includes(supplement.name)
             return (
-              <Card
+              <button
                 key={key}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  isSelected ? 'ring-2 ring-blue-600 bg-blue-50' : ''
-                }`}
                 onClick={() => onToggleSupplement(supplement)}
+                className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${
+                  isSelected
+                    ? 'border-emerald-400 bg-emerald-50'
+                    : 'border-[#F0EAE4] bg-white hover:border-emerald-200'
+                }`}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{supplement.name}</h3>
-                        {isSelected && (
-                          <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center">
-                            <Check className="h-3 w-3 text-white" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
-                        <span>+{supplement.duration} min</span>
-                        <span className="font-bold text-blue-600">
-                          +{supplement.price.toLocaleString()} XAF
-                        </span>
-                      </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[14px] font-bold text-slate-800">{supplement.name}</p>
+                      {isSelected && (
+                        <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                          <Check className="h-2.5 w-2.5 text-white" />
+                        </div>
+                      )}
                     </div>
-                    
-                    <button
-                      className={`p-2 rounded-full transition-colors ${
-                        isSelected 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onToggleSupplement(supplement)
-                      }}
-                    >
-                      {isSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                    </button>
+                    <div className="flex items-center gap-3 mt-0.5 text-[12px] text-slate-500">
+                      <span>+{supplement.duration} min</span>
+                      <span className={`font-semibold ${isSelected ? 'text-emerald-600' : 'text-slate-600'}`}>
+                        +{Number(supplement.price).toLocaleString()} XAF
+                      </span>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isSelected ? 'bg-emerald-500 text-white' : 'bg-[#F0EAE4] text-slate-500'
+                    }`}
+                    onClick={(e) => { e.stopPropagation(); onToggleSupplement(supplement) }}
+                  >
+                    {isSelected ? <Minus className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                  </div>
+                </div>
+              </button>
             )
           })}
         </div>
       )}
 
-      {/* Total */}
-      {selectedSupplements.length > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">Total suppléments :</span>
-              <span className="text-xl font-bold text-blue-600">
-                +{totalSupplementsPrice.toLocaleString()} XAF
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+      {totalExtra > 0 && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between">
+          <span className="text-[13px] font-semibold text-emerald-800">Total suppléments</span>
+          <span className="text-[16px] font-extrabold text-emerald-600">+{totalExtra.toLocaleString()} XAF</span>
+        </div>
       )}
     </div>
   )

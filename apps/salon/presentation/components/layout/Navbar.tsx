@@ -13,7 +13,6 @@ import {
   LogOut,
   Building2,
   ChevronDown,
-  Bell,
   Store,
   Sun,
   Moon,
@@ -21,6 +20,7 @@ import {
   Menu,
   PanelLeftClose,
 } from 'lucide-react'
+import { NotificationBell } from '@/presentation/components/notifications/NotificationBell'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
@@ -133,15 +133,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
               </PopoverContent>
             </Popover>
 
-            <Link
-              href="/notifications"
-              className="relative rounded-xl p-2 text-slate-500 transition-colors hover:bg-[#F5F2EF] hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs text-white">
-                3
-              </span>
-            </Link>
+            <NotificationBell salonId={salon?.id ?? null} />
 
             <Popover>
               <PopoverTrigger asChild>

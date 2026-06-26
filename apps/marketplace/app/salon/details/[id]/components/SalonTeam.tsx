@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Users, Star } from 'lucide-react'
+import { Scissors } from 'lucide-react'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 
 interface TeamProps {
@@ -9,60 +9,33 @@ interface TeamProps {
 }
 
 export function SalonTeam({ hairdressers }: TeamProps) {
-  if (!hairdressers || hairdressers.length === 0) {
-    return null
-  }
+  if (!hairdressers || hairdressers.length === 0) return null
 
   return (
-    <section className="space-y-8">
-      <div>
-        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Notre Équipe</h2>
-        <p className="text-slate-600 text-base">Rencontrez nos professionnels qualifiés</p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {hairdressers.map((hairdresser) => (
+    <section className="space-y-5">
+      <h2 className="text-[20px] font-extrabold text-slate-800 tracking-tight">Notre Équipe</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {hairdressers.map(hd => (
           <div
-            key={hairdresser.id}
-            className="group bg-white rounded-2xl p-6 border border-slate-200 hover:border-green-300 hover:shadow-lg transition-all duration-300"
+            key={hd.id}
+            className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#F0EAE4] hover:border-emerald-200 hover:shadow-sm transition-all"
           >
-            <div className="flex gap-4">
-              {/* Avatar */}
-              <div className="flex-shrink-0">
-                {hairdresser.photo ? (
-                  <img
-                    src={hairdresser.photo}
-                    alt={hairdresser.name}
-                    className="h-20 w-20 rounded-xl object-cover ring-2 ring-slate-200 group-hover:ring-green-400 transition-all duration-300"
-                  />
-                ) : (
-                  <div className="h-20 w-20 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center ring-2 ring-slate-200">
-                    <Users className="h-10 w-10 text-white" />
-                  </div>
-                )}
+            {hd.photo ? (
+              <img
+                src={hd.photo}
+                alt={hd.name}
+                className="h-14 w-14 rounded-xl object-cover flex-shrink-0 ring-2 ring-[#F0EAE4]"
+              />
+            ) : (
+              <div className="h-14 w-14 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                <Scissors className="h-6 w-6 text-white" />
               </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 text-base mb-1">{hairdresser.name}</h3>
-                <p className="text-sm text-green-600 font-semibold mb-2">{hairdresser.speciality}</p>
-
-                {/* Rating */}
-                <div className="flex items-center gap-0.5 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < 4 ? 'fill-amber-400 text-amber-400' : 'text-slate-300'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-xs text-slate-600 ml-1">4.5</span>
-                </div>
-
-                {/* Languages */}
-                <p className="text-xs text-slate-500">Langues: FR • EN</p>
-              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-[14px] font-bold text-slate-800 truncate">{hd.name}</p>
+              {hd.speciality && (
+                <p className="text-[12px] text-emerald-600 font-medium mt-0.5 truncate">{hd.speciality}</p>
+              )}
             </div>
           </div>
         ))}

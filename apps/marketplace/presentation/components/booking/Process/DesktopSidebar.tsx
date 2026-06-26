@@ -1,5 +1,4 @@
 import React from 'react'
-import { ShoppingCart } from 'lucide-react'
 import { Booking } from '../../../../app/booking/[id]/types'
 import { SidebarContent } from './SidebarContent'
 
@@ -20,16 +19,14 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 }) => {
   const completedCount = multipleBookings.filter(b => b.service).length
   const totalCount = multipleBookings.length
-  const progressPercentage = (completedCount / totalCount) * 100
+  const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
 
   return (
     <div className="lg:col-span-2">
-      <div className="bg-white rounded-lg shadow p-4 sticky top-8">
-        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <span>📋</span> Résumé
-        </h3>
+      <div className="bg-white rounded-2xl border border-[#F0EAE4] p-4 sticky top-20">
+        <p className="text-[13px] font-bold text-slate-700 mb-4">Résumé</p>
 
-        <div className="max-h-96 overflow-y-auto pr-2">
+        <div className="max-h-96 overflow-y-auto pr-1 space-y-1">
           <SidebarContent
             multipleBookings={multipleBookings}
             currentPersonIndex={currentPersonIndex}
@@ -39,16 +36,14 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           />
         </div>
 
-        <div className="mt-6 pt-4 border-t space-y-2">
+        <div className="mt-4 pt-4 border-t border-[#F0EAE4] space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Réservations</span>
-            <span className="text-sm font-bold text-blue-600">
-              {completedCount}/{totalCount}
-            </span>
+            <span className="text-[12px] font-semibold text-slate-600">Réservations</span>
+            <span className="text-[12px] font-bold text-emerald-600">{completedCount}/{totalCount}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-[#F0EAE4] rounded-full h-1.5">
             <div
-              className="bg-green-500 h-2 rounded-full transition-all"
+              className="bg-emerald-500 h-1.5 rounded-full transition-all"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>

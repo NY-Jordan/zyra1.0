@@ -3,6 +3,8 @@ import { fetchCollectionPaginate, fetchCollection, editDocument } from '@zyra/co
 import { Timestamp, where } from 'firebase/firestore'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
+import { logActivity, createNotification } from '@/usecases/notificationsUseCases'
+import { LogContext } from '@/types/notifications.types'
 
 export interface ReservationFilters {
   salonId: string
@@ -143,11 +145,13 @@ export const useUpdateReservationStatus = () => {
       currentStatus,
       newStatus,
       additionalData = {},
+      logContext,
     }: {
       reservationId: string
       currentStatus: reservationStatusEnum
       newStatus: reservationStatusEnum
       additionalData?: Record<string, unknown>
+      logContext?: LogContext
     }) => {
       if (!isValidStatusTransition(currentStatus, newStatus)) {
         throw new Error(
@@ -162,14 +166,34 @@ export const useUpdateReservationStatus = () => {
         updatedAt: new Date(),
       })
 
+      if (logContext) {
+        const typeMap: Record<string, any> = {
+          [reservationStatusEnum.confirmed]: 'reservation_confirmed',
+          [reservationStatusEnum.canceled]: 'reservation_canceled',
+          [reservationStatusEnum.completed]: 'reservation_completed',
+        }
+        const type = typeMap[newStatus]
+        const titleMap: Record<string, string> = {
+          reservation_confirmed: 'Réservation confirmée',
+          reservation_canceled: 'Réservation annulée',
+          reservation_completed: 'Réservation terminée',
+        }
+        if (type) {
+          await Promise.all([
+            logActivity({ ...logContext, type, action: newStatus, resourceId: reservationId, resourceType: 'reservation' }),
+            createNotification({ salonId: logContext.salonId, type, title: titleMap[type] ?? type, body: logContext.resourceLabel ?? '', resourceId: reservationId, resourceType: 'reservation' }),
+          ])
+        }
+      }
+
       return { reservationId, newStatus }
     },
     onSuccess: () => {
-      // Invalider les queries de réservations pour rafraîchir
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] });
-      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] });
-      queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
+      queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
     }
   })
 }
@@ -183,15 +207,24 @@ export const useUpdateReservationPayment = () => {
   return useMutation({
     mutationFn: async ({
       reservationId,
-      isPaid
+      isPaid,
+      logContext,
     }: {
       reservationId: string
       isPaid: boolean
+      logContext?: LogContext
     }) => {
       await editDocument('reservations', reservationId, {
         isPaid,
         updatedAt: new Date()
       })
+
+      if (logContext && isPaid) {
+        await Promise.all([
+          logActivity({ ...logContext, type: 'reservation_paid', action: 'paid', resourceId: reservationId, resourceType: 'reservation' }),
+          createNotification({ salonId: logContext.salonId, type: 'reservation_paid', title: 'Réservation payée', body: logContext.resourceLabel ?? '', resourceId: reservationId, resourceType: 'reservation' }),
+        ])
+      }
 
       return { reservationId, isPaid }
     },
@@ -199,6 +232,7 @@ export const useUpdateReservationPayment = () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
     }
   })
 }
@@ -217,6 +251,7 @@ export const useUpdatePersonHairdresser = () => {
       hairdresserName,
       date,
       time,
+      logContext,
     }: {
       reservation: IReservation
       personIndex: number
@@ -224,6 +259,7 @@ export const useUpdatePersonHairdresser = () => {
       hairdresserName: string
       date: Date
       time: string
+      logContext?: LogContext
     }) => {
       const person = reservation.people[personIndex]
       if (!person) throw new Error('Personne non trouvée')
@@ -250,6 +286,13 @@ export const useUpdatePersonHairdresser = () => {
         updatedAt: new Date(),
       })
 
+      if (logContext) {
+        await Promise.all([
+          logActivity({ ...logContext, type: 'reservation_hairdresser_changed', action: 'hairdresser_changed', resourceId: reservation.id, resourceType: 'reservation', metadata: { hairdresser: hairdresserName } }),
+          createNotification({ salonId: logContext.salonId, type: 'reservation_hairdresser_changed', title: 'Coiffeur modifié', body: `${logContext.resourceLabel ?? ''} → ${hairdresserName}`, resourceId: reservation.id, resourceType: 'reservation' }),
+        ])
+      }
+
       return { personIndex, updatedPeople, scheduledAt, endsAt }
     },
     onSuccess: () => {
@@ -257,6 +300,7 @@ export const useUpdatePersonHairdresser = () => {
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
       queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
     },
   })
 }

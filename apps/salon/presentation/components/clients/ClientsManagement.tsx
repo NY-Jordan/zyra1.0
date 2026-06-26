@@ -195,7 +195,7 @@ export default function ClientsManagement() {
 
   const confirmDelete = () => {
     if (clientToDelete) {
-      deleteClientMutation.mutate(clientToDelete.id, {
+      deleteClientMutation.mutate({ clientId: clientToDelete.id, clientName: clientToDelete.name }, {
         onSuccess: () => setClientToDelete(null),
       })
     }
