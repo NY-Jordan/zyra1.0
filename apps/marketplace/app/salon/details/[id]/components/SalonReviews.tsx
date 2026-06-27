@@ -4,43 +4,41 @@ import React from 'react'
 import { Star } from 'lucide-react'
 
 const REVIEWS = [
-  { name: 'Marie K.', ago: '2 jours', note: 'Accueil chaleureux, service impeccable. Mon coiffeur a parfaitement compris ce que je voulais !' },
-  { name: 'Jean-Paul N.', ago: '5 jours', note: 'Salon très propre et équipe professionnelle. Je reviendrai sans hésiter.' },
-  { name: 'Aline T.', ago: '1 semaine', note: 'Excellente expérience ! Résultat au-delà de mes attentes. Je recommande vivement.' },
+  { name: 'Marie K.', ago: 'Juin 2026', rating: 5, note: 'Accueil chaleureux, service impeccable. Mon coiffeur a parfaitement compris ce que je voulais !' },
+  { name: 'Jean-Paul N.', ago: 'Juin 2026', rating: 5, note: 'Salon très propre et équipe professionnelle. Je reviendrai sans hésiter.' },
+  { name: 'Aline T.', ago: 'Mai 2026', rating: 4, note: 'Excellente expérience ! Résultat au-delà de mes attentes. Je recommande vivement.' },
 ]
 
 export function SalonReviews() {
   return (
-    <section className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[20px] font-extrabold text-slate-800 tracking-tight">Avis clients</h2>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200">
-          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-          <span className="text-[12px] font-bold text-amber-800">4.8</span>
-          <span className="text-[11px] text-amber-600">(128)</span>
-        </div>
+    <section id="avis" className="scroll-mt-20">
+      <div className="flex items-baseline gap-2 mb-5">
+        <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900">Avis</h2>
+        <span className="flex items-center gap-1">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          <span className="text-[16px] font-bold text-gray-900">4,7</span>
+          <span className="text-[14px] text-gray-500">(151)</span>
+        </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {REVIEWS.map((review, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-[#F0EAE4] p-4">
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0">
-                  {review.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-[13px] font-bold text-slate-800">{review.name}</p>
-                  <p className="text-[11px] text-slate-400">Il y a {review.ago}</p>
-                </div>
+          <div key={idx}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-[15px] font-bold flex-shrink-0">
+                {review.name.charAt(0)}
               </div>
-              <div className="flex gap-0.5 flex-shrink-0">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                ))}
+              <div>
+                <p className="text-[14px] font-bold text-gray-900">{review.name}</p>
+                <p className="text-[12px] text-gray-400">{review.ago}</p>
               </div>
             </div>
-            <p className="text-[13px] text-slate-600 leading-relaxed">{review.note}</p>
+            <div className="flex gap-0.5 mb-2">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className={`h-3.5 w-3.5 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`} />
+              ))}
+            </div>
+            <p className="text-[14px] text-gray-600 leading-relaxed">{review.note}</p>
           </div>
         ))}
       </div>

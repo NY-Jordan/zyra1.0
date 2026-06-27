@@ -7,14 +7,15 @@ import { fetchCollection, fetchAllSubCollections } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { Scissors, Loader2, ArrowLeft } from 'lucide-react'
+import { Scissors, Loader2, ArrowLeft, Star, Share, Heart, ChevronRight } from 'lucide-react'
 
-import { SalonHeader } from './components/SalonHeader'
 import { SalonGallery } from './components/SalonGallery'
 import { SalonServices } from './components/SalonServices'
 import { SalonTeam } from './components/SalonTeam'
 import { SalonReviews } from './components/SalonReviews'
 import { SalonSidebar } from './components/SalonSidebar'
+import { SalonLocation } from './components/SalonLocation'
+import { SalonFooter } from './components/SalonFooter'
 
 export default function SalonDetailsPage() {
   const params = useParams()
@@ -50,27 +51,27 @@ export default function SalonDetailsPage() {
     enabled: !!salonId,
   })
 
+  const goToBooking = () => { if (salon) window.location.href = `/booking/${salon.id}` }
+
   if (loadingSalon || loadingHairdressers) {
     return (
-      <div className="min-h-screen bg-[#F8F4F0] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center">
-            <Scissors className="h-6 w-6 text-white" />
-          </div>
-          <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-900" />
       </div>
     )
   }
 
   if (!salon) {
     return (
-      <div className="min-h-screen bg-[#F8F4F0] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-[16px] font-semibold text-slate-600">Salon introuvable</p>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto">
+            <Scissors className="h-5 w-5 text-gray-400" />
+          </div>
+          <p className="text-[15px] font-semibold text-gray-900">Salon introuvable</p>
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-[13px] font-semibold text-emerald-600 hover:text-emerald-700 mx-auto"
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gray-900 hover:underline"
           >
             <ArrowLeft className="h-4 w-4" /> Retour
           </button>
@@ -79,95 +80,128 @@ export default function SalonDetailsPage() {
     )
   }
 
+  const photos = (salon.photos as string[]) || []
+  const today = salon.openingHours?.find(h => h.day === new Date().toLocaleDateString('en-US', { weekday: 'long' }))
+  const fullAddress = [salon.address, salon.city, salon.country].filter(Boolean).join(', ')
+
   return (
-    <div className="min-h-screen bg-[#F8F4F0]">
-      <SalonHeader
-        salonName={salon.name}
-        salonCity={salon.city}
-        rating={4.8}
-        reviewCount={128}
-        onBack={() => router.back()}
-      />
-
-      {/* Hero banner */}
-      {(salon.photos as string[] || []).length > 0 ? (
-        <div className="relative h-48 sm:h-64 overflow-hidden">
-          <img
-            src={(salon.photos as string[])[0]}
-            alt={salon.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-          <div className="absolute bottom-4 left-4 right-4">
-            <h1 className="text-[22px] sm:text-[28px] font-extrabold text-white drop-shadow-md">{salon.name}</h1>
-            <p className="text-[13px] text-white/80 mt-0.5">{salon.city}</p>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* ===== Top nav ===== */}
+      <header className="border-b border-gray-100">
+        <div className="max-w-[1420px] mx-auto px-5 sm:px-6 h-[60px] flex items-center justify-between">
+          <button onClick={() => router.push('/')} className="text-[22px] font-extrabold tracking-tight text-gray-900 lowercase">
+            zyra
+          </button>
         </div>
-      ) : (
-        <div className="h-32 bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-end px-6 pb-4">
-          <div>
-            <h1 className="text-[22px] font-extrabold text-white">{salon.name}</h1>
-            <p className="text-[13px] text-white/80">{salon.city}</p>
-          </div>
-        </div>
-      )}
+      </header>
 
-      {/* Sticky mobile CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-4 bg-white/95 backdrop-blur-sm border-t border-[#F0EAE4]">
-        <button
-          onClick={() => window.location.href = `/booking/${salon.id}`}
-          className="w-full h-12 rounded-2xl text-[14px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20"
-        >
-          Réserver une visite
-        </button>
-      </div>
+      <main className="max-w-[1420px] mx-auto px-5 sm:px-6 pt-6 pb-16">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1.5 text-[12px] text-gray-400 mb-4 flex-wrap">
+          <button onClick={() => router.push('/')} className="hover:text-gray-600">Accueil</button>
+          <ChevronRight className="h-3 w-3" />
+          <span>Salon de coiffure</span>
+          {salon.city && (
+            <>
+              <ChevronRight className="h-3 w-3" />
+              <span>{salon.city}</span>
+            </>
+          )}
+          <ChevronRight className="h-3 w-3" />
+          <span className="text-gray-600 font-medium">{salon.name}</span>
+        </nav>
 
-      {/* Main content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Left column */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            {salon.description && (
-              <div className="bg-white rounded-2xl border border-[#F0EAE4] p-5">
-                <p className="text-[14px] text-slate-600 leading-relaxed">{salon.description}</p>
-              </div>
-            )}
-
-            {/* Gallery */}
-            <div className="bg-white rounded-2xl border border-[#F0EAE4] p-5">
-              <SalonGallery photos={salon.photos as string[] || []} />
+        {/* Title row */}
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div className="min-w-0">
+            <h1 className="text-[30px] sm:text-[40px] font-extrabold tracking-tight text-gray-900 leading-[1.05]">
+              {salon.name}
+            </h1>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2.5 text-[14px]">
+              <span className="font-bold text-gray-900">4,7</span>
+              <span className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`h-3.5 w-3.5 ${i < 4 ? 'fill-amber-400 text-amber-400' : 'fill-amber-400/40 text-amber-400'}`} />
+                ))}
+              </span>
+              <span className="font-semibold text-gray-900">(151)</span>
+              <span className="text-gray-300">•</span>
+              <span className="font-semibold text-emerald-600">Ouvert</span>
+              {today?.openDay && <span className="text-gray-500">jusqu'à {today.close}</span>}
+              {salon.city && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-500">{salon.city}{salon.country ? `, ${salon.country}` : ''}</span>
+                </>
+              )}
+              {fullAddress && (
+                <button
+                  onClick={() => window.open(`https://maps.google.com/?daddr=${encodeURIComponent(fullAddress)}`, '_blank')}
+                  className="font-semibold text-violet-600 hover:underline"
+                >
+                  Afficher l'itinéraire
+                </button>
+              )}
             </div>
+          </div>
 
-            {/* Services */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button className="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors">
+              <Share className="h-4 w-4 text-gray-700" />
+            </button>
+            <button className="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors group">
+              <Heart className="h-4 w-4 text-gray-700 group-hover:text-rose-500 transition-colors" />
+            </button>
+          </div>
+        </div>
+
+        {/* Gallery */}
+        {photos.length > 0 && <SalonGallery photos={photos} />}
+
+        {/* Two-column */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 lg:gap-12 mt-10">
+          {/* Left */}
+          <div className="min-w-0 space-y-12">
             {salon.serviceCategories && salon.serviceCategories.length > 0 && (
-              <div className="bg-white rounded-2xl border border-[#F0EAE4] p-5">
-                <SalonServices
-                  salonId={salon.id}
-                  serviceCategories={salon.serviceCategories}
-                  services={salon.services || []}
-                />
-              </div>
+              <SalonServices
+                salonId={salon.id}
+                serviceCategories={salon.serviceCategories}
+                services={salon.services || []}
+              />
             )}
 
-            {/* Team */}
-            {hairdressers.length > 0 && (
-              <div className="bg-white rounded-2xl border border-[#F0EAE4] p-5">
-                <SalonTeam hairdressers={hairdressers} />
-              </div>
+            {salon.description && (
+              <section>
+                <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900 mb-3">À propos</h2>
+                <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-5">{salon.description}</p>
+              </section>
             )}
 
-            {/* Reviews */}
-            <div className="bg-white rounded-2xl border border-[#F0EAE4] p-5">
-              <SalonReviews />
-            </div>
+            {hairdressers.length > 0 && <SalonTeam hairdressers={hairdressers} />}
+
+            <SalonReviews />
+
+            <SalonLocation salon={salon} />
           </div>
 
-          {/* Sidebar */}
+          {/* Right sticky sidebar */}
           <div className="hidden lg:block">
             <SalonSidebar salon={salon} />
           </div>
         </div>
+      </main>
+
+      {/* Footer */}
+      <SalonFooter salon={salon} />
+
+      {/* Mobile sticky CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-5 py-3 bg-white border-t border-gray-200">
+        <button
+          onClick={goToBooking}
+          className="w-full py-3.5 rounded-full text-[15px] font-bold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.99] transition-all"
+        >
+          Réserver
+        </button>
       </div>
     </div>
   )

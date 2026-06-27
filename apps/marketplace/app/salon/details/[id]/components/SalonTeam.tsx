@@ -12,29 +12,27 @@ export function SalonTeam({ hairdressers }: TeamProps) {
   if (!hairdressers || hairdressers.length === 0) return null
 
   return (
-    <section className="space-y-5">
-      <h2 className="text-[20px] font-extrabold text-slate-800 tracking-tight">Notre Équipe</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <section className="scroll-mt-20">
+      <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900 mb-5">Notre équipe</h2>
+
+      <div className="flex gap-5 overflow-x-auto pb-1 scrollbar-hide">
         {hairdressers.map(hd => (
-          <div
-            key={hd.id}
-            className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#F0EAE4] hover:border-emerald-200 hover:shadow-sm transition-all"
-          >
+          <div key={hd.id} className="flex flex-col items-center gap-2.5 flex-shrink-0 w-[88px]">
             {hd.photo ? (
               <img
                 src={hd.photo}
                 alt={hd.name}
-                className="h-14 w-14 rounded-xl object-cover flex-shrink-0 ring-2 ring-[#F0EAE4]"
+                className="w-[72px] h-[72px] rounded-full object-cover"
               />
             ) : (
-              <div className="h-14 w-14 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                <Scissors className="h-6 w-6 text-white" />
+              <div className="w-[72px] h-[72px] rounded-full bg-gray-100 flex items-center justify-center">
+                <Scissors className="h-5 w-5 text-gray-500" />
               </div>
             )}
-            <div className="min-w-0">
-              <p className="text-[14px] font-bold text-slate-800 truncate">{hd.name}</p>
+            <div className="text-center w-full">
+              <p className="text-[13px] font-bold text-gray-900 truncate">{hd.name}</p>
               {hd.speciality && (
-                <p className="text-[12px] text-emerald-600 font-medium mt-0.5 truncate">{hd.speciality}</p>
+                <p className="text-[11px] text-gray-400 truncate">{hd.speciality}</p>
               )}
             </div>
           </div>

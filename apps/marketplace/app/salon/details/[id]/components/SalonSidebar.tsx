@@ -1,99 +1,95 @@
 'use client'
 
 import React from 'react'
-import { Clock, MapPin, Phone, Calendar, CheckCircle } from 'lucide-react'
+import { Clock, MapPin, ChevronDown } from 'lucide-react'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
 
 interface SalonSidebarProps {
   salon: ISalon
 }
 
+const DAY_LABELS: Record<string, string> = {
+  Monday: 'Lundi', Tuesday: 'Mardi', Wednesday: 'Mercredi', Thursday: 'Jeudi',
+  Friday: 'Vendredi', Saturday: 'Samedi', Sunday: 'Dimanche',
+}
+
 export function SalonSidebar({ salon }: SalonSidebarProps) {
+  const [hoursOpen, setHoursOpen] = React.useState(false)
+
+  const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' })
+  const today = salon.openingHours?.find(h => h.day === todayName)
+  const fullAddress = [salon.address, salon.city, salon.country].filter(Boolean).join(', ')
+
   return (
-    <div className="space-y-4 h-fit sticky top-20">
-      {/* CTA */}
-      <button
-        onClick={() => window.location.href = `/booking/${salon.id}`}
-        className="w-full h-12 rounded-2xl text-[14px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
-      >
-        <Calendar className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
-        Réserver une visite
-      </button>
-
-      {/* Horaires */}
-      {salon.openingHours && salon.openingHours.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#F0EAE4] p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <Clock className="h-3.5 w-3.5 text-emerald-600" />
-            </div>
-            <span className="text-[13px] font-bold text-slate-800">Horaires</span>
-          </div>
-          <div className="space-y-1.5">
-            {salon.openingHours.map(hour => (
-              <div key={hour.day} className="flex justify-between items-center">
-                <span className="text-[12px] text-slate-500">{hour.day}</span>
-                <span className={`text-[12px] font-semibold ${hour.openDay ? 'text-slate-700' : 'text-rose-500'}`}>
-                  {hour.openDay ? `${hour.open} – ${hour.close}` : 'Fermé'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Adresse & Contact */}
-      <div className="bg-white rounded-2xl border border-[#F0EAE4] p-4 space-y-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center">
-              <MapPin className="h-3.5 w-3.5 text-rose-500" />
-            </div>
-            <span className="text-[13px] font-bold text-slate-800">Adresse</span>
-          </div>
-          <p className="text-[12px] text-slate-600 leading-relaxed">{salon.address}</p>
-          <p className="text-[12px] text-slate-500">{salon.city}{salon.country ? `, ${salon.country}` : ''}</p>
+    <div className="sticky top-6">
+      <div className="rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
+        {/* Réserver */}
+        <div className="p-5">
           <button
-            onClick={() => window.open(`https://maps.google.com/?daddr=${encodeURIComponent(salon.address || '')}`)}
-            className="mt-2 text-[12px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+            onClick={() => window.location.href = `/booking/${salon.id}`}
+            className="w-full py-3.5 rounded-full text-[15px] font-bold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.99] transition-all"
           >
-            Voir sur la carte →
+            Réserver
           </button>
         </div>
 
-        {(salon.phone || salon.email) && (
-          <div className="border-t border-[#F5F2EF] pt-3">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-sky-50 flex items-center justify-center">
-                <Phone className="h-3.5 w-3.5 text-sky-500" />
+        <div className="border-t border-gray-100" />
+
+        {/* Hours */}
+        {salon.openingHours && salon.openingHours.length > 0 && (
+          <div className="px-5 py-4">
+            <button
+              onClick={() => setHoursOpen(v => !v)}
+              className="w-full flex items-center gap-3 text-left"
+            >
+              <Clock className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <span className="flex-1 text-[14px]">
+                <span className="font-semibold text-emerald-600">Ouvert</span>
+                {today?.openDay && <span className="text-gray-600"> jusqu'à {today.close}</span>}
+                {today && !today.openDay && <span className="text-gray-600"> · fermé aujourd'hui</span>}
+              </span>
+              <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform ${hoursOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {hoursOpen && (
+              <div className="mt-3 pl-8 space-y-1.5">
+                {salon.openingHours.map(hour => {
+                  const isToday = hour.day === todayName
+                  return (
+                    <div key={hour.day} className="flex justify-between items-center">
+                      <span className={`text-[13px] ${isToday ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                        {(DAY_LABELS[hour.day as string] as string) || hour.day}
+                      </span>
+                      <span className={`text-[13px] ${hour.openDay ? (isToday ? 'font-semibold text-gray-900' : 'text-gray-600') : 'text-gray-400'}`}>
+                        {hour.openDay ? `${hour.open} – ${hour.close}` : 'Fermé'}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
-              <span className="text-[13px] font-bold text-slate-800">Contact</span>
-            </div>
-            {salon.phone && (
-              <a href={`tel:${salon.phone}`} className="text-[12px] font-semibold text-emerald-600 hover:text-emerald-700 block">
-                {salon.phone}
-              </a>
-            )}
-            {salon.email && (
-              <a href={`mailto:${salon.email}`} className="text-[12px] text-slate-500 hover:text-slate-700 break-all block mt-0.5">
-                {salon.email}
-              </a>
             )}
           </div>
         )}
-      </div>
 
-      {/* Infos pratiques */}
-      <div className="bg-white rounded-2xl border border-[#F0EAE4] p-4">
-        <p className="text-[13px] font-bold text-slate-800 mb-3">Infos pratiques</p>
-        <ul className="space-y-2">
-          {['Confirmation instantanée', 'Paiement sécurisé', 'Accès WiFi gratuit', 'Parking à proximité'].map(item => (
-            <li key={item} className="flex items-center gap-2.5 text-[12px] text-slate-600">
-              <CheckCircle className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
-              {item}
-            </li>
-          ))}
-        </ul>
+        {fullAddress && <div className="border-t border-gray-100" />}
+
+        {/* Address */}
+        {fullAddress && (
+          <div className="px-5 py-4">
+            <div className="flex items-start gap-3">
+              <MapPin className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] text-gray-600 leading-relaxed">{fullAddress}</p>
+                <button
+                  onClick={() => window.open(`https://maps.google.com/?daddr=${encodeURIComponent(fullAddress)}`, '_blank')}
+                  className="text-[13px] font-semibold text-violet-600 hover:underline mt-1"
+                >
+                  Afficher l'itinéraire
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
