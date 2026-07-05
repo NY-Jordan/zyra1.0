@@ -8,6 +8,9 @@ export type ActivityType =
   | 'reservation_completed'
   | 'reservation_hairdresser_changed'
   | 'reservation_paid'
+  | 'reservation_checked_in'
+  | 'reservation_no_show'
+  | 'reservation_rescheduled'
   // Orders
   | 'order_created'
   | 'order_completed'

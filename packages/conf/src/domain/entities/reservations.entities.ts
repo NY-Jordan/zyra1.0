@@ -40,4 +40,7 @@ export interface IReservation {
   people: IReservationPerson[];
   earliestScheduledAt?: Timestamp;
   latestEndsAt?: Timestamp;
+  // Marqueur : la réservation a été reprogrammée au moins une fois
+  wasRescheduled?: boolean;
+  rescheduledAt?: Timestamp;
 }

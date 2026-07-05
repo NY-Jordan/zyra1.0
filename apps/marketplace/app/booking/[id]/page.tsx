@@ -15,6 +15,7 @@ import {
   DesktopSidebar,
 } from '../../../presentation/components/booking/Process'
 import StepIndicator from '../../../presentation/components/booking/StepIndicator'
+import './booking.css'
 
 // Types
 import { Booking } from './types'
@@ -22,6 +23,7 @@ import { useBookingReducerHook } from '@/hooks/useBookingReducerHook'
 import { useBookingValidation } from '@/hooks/useBookingValidation'
 import { useReservationSave } from '@/hooks/useReservationSave'
 import { useAvailableSlots, useHairdressersData, useSalonData } from '@/hooks/useData'
+import { useOccupiedSlots } from '@/hooks/useOccupiedSlots'
 import { getEndTime, addMinutesToDate } from '@/lib/timeHelpers'
 import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 
@@ -63,7 +65,13 @@ export default function BookingPage() {
     salonId,
     currentBooking?.service
   )
-  const availableSlots = useAvailableSlots(salon || null, currentBooking?.date || null)
+  const openingSlots = useAvailableSlots(salon || null, currentBooking?.date || null)
+  const occupiedSlots = useOccupiedSlots(salonId, currentBooking?.date || null, currentBooking?.hairdresser || null)
+  // Créneaux réellement disponibles = ouverture − déjà réservés (temps réel)
+  const availableSlots = React.useMemo(
+    () => openingSlots.filter(s => !occupiedSlots.has(s)),
+    [openingSlots, occupiedSlots],
+  )
   const hairdressers = hairdressersData
 
   const handleSelectBooking = (index: number) => {
@@ -196,7 +204,10 @@ export default function BookingPage() {
   const steps = state.reservationType === 'multiple' ? MULTIPLE_STEPS : SINGLE_STEPS
 
   return (
-    <div className="min-h-screen bg-[#F8F4F0]">
+    <div
+      className="booking-page min-h-screen bg-white"
+      style={{ fontFamily: 'var(--font-sans), ui-sans-serif, sans-serif' }}
+    >
       <BookingHeader
         salon={salon || null}
         currentStep={state.currentStep}
@@ -207,7 +218,7 @@ export default function BookingPage() {
       {!isLoading && salon && (
         <div className="pt-14">
           {/* Step indicator */}
-          <div className="bg-white border-b border-[#F0EAE4] px-4 py-3">
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
             <div className="max-w-4xl mx-auto">
               <StepIndicator steps={steps} currentStep={state.currentStep} />
             </div>
@@ -226,7 +237,7 @@ export default function BookingPage() {
               <div className="max-w-6xl mx-auto px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
                   <div className="lg:col-span-4">
-                    <div className="bg-white rounded-2xl border border-[#F0EAE4] p-5">
+                    <div className="bg-white rounded-2xl border border-gray-200 p-5">
                       <MultipleReservationFlow
                         salon={salon}
                         currentStep={state.currentStep}
@@ -283,7 +294,7 @@ export default function BookingPage() {
             </>
           ) : (
             <div className="max-w-4xl mx-auto px-4 py-6">
-              <div className="bg-white rounded-2xl border border-[#F0EAE4] p-5">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5">
                 <SingleReservationFlow
                   salon={salon}
                   currentStep={state.currentStep}

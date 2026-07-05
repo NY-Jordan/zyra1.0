@@ -1,0 +1,67 @@
+/* Salon detail page — type scale & motion
+   Titles  → Clash Display (Semibold 600)
+   Body / buttons / nav / inputs → Geist (inherited from the page root) */
+
+/* ── Headings : Clash Display ───────────────────────────── */
+.salon-detail h1,
+.salon-detail h2,
+.salon-detail h3 {
+  font-family: var(--font-clash), var(--font-bricolage), ui-sans-serif, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* H1 64px · H2 42px · H3 28px — capped via clamp so they stay mobile-safe */
+.salon-detail h1 {
+  font-size: clamp(36px, 7vw, 64px);
+  line-height: 1.04;
+}
+.salon-detail h2 {
+  font-size: clamp(28px, 4.5vw, 42px);
+  line-height: 1.1;
+}
+.salon-detail h3 {
+  font-size: clamp(22px, 3vw, 28px);
+  line-height: 1.2;
+}
+
+/* ── Body roles : Geist ─────────────────────────────────── */
+/* Navigation / breadcrumb — 15px */
+.salon-detail nav,
+.salon-detail nav * {
+  font-size: 15px;
+}
+
+/* Buttons — 15px medium */
+.salon-detail button {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Inputs — 16px */
+.salon-detail input,
+.salon-detail textarea,
+.salon-detail select {
+  font-size: 16px;
+}
+
+/* Labels — 15px */
+.salon-detail label {
+  font-size: 15px;
+}
+
+/* ── Motion : smooth fade-in when switching service categories ── */
+@keyframes zyraFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.zyra-fade {
+  animation: zyraFadeIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}

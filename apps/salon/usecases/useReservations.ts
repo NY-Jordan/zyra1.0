@@ -27,13 +27,32 @@ export interface ReservationFilters {
 const isValidStatusTransition = (currentStatus: reservationStatusEnum, newStatus: reservationStatusEnum): boolean => {
   // Les transitions valides
   const validTransitions: Record<reservationStatusEnum, reservationStatusEnum[]> = {
-    [reservationStatusEnum.pending]: [reservationStatusEnum.confirmed, reservationStatusEnum.canceled],
-    [reservationStatusEnum.confirmed]: [reservationStatusEnum.completed, reservationStatusEnum.canceled],
+    [reservationStatusEnum.pending]: [
+      reservationStatusEnum.confirmed,
+      reservationStatusEnum.canceled,
+      reservationStatusEnum.checked_in,
+      reservationStatusEnum.no_show,
+    ],
+    [reservationStatusEnum.confirmed]: [
+      reservationStatusEnum.completed,
+      reservationStatusEnum.canceled,
+      reservationStatusEnum.checked_in,
+      reservationStatusEnum.no_show,
+    ],
+    [reservationStatusEnum.checked_in]: [reservationStatusEnum.completed, reservationStatusEnum.canceled],
+    [reservationStatusEnum.no_show]: [], // État final
+    [reservationStatusEnum.rescheduled]: [], // Marqueur de log : une résa déplacée repasse "confirmed"
     [reservationStatusEnum.completed]: [], // État final
     [reservationStatusEnum.canceled]: [] // État final
   }
 
   return validTransitions[currentStatus].includes(newStatus)
+}
+
+/** Heure de début la plus tôt d'une réservation (ms epoch). */
+const reservationStartMs = (reservation: Pick<IReservation, 'earliestScheduledAt' | 'people'>): number => {
+  const ts = reservation.earliestScheduledAt ?? reservation.people?.[0]?.scheduledAt
+  return ts ? ts.toDate().getTime() : 0
 }
 
 /**
@@ -146,18 +165,28 @@ export const useUpdateReservationStatus = () => {
       newStatus,
       additionalData = {},
       logContext,
+      startMs,
     }: {
       reservationId: string
       currentStatus: reservationStatusEnum
       newStatus: reservationStatusEnum
       additionalData?: Record<string, unknown>
       logContext?: LogContext
+      startMs?: number
     }) => {
       if (!isValidStatusTransition(currentStatus, newStatus)) {
         throw new Error(
-          `Transition invalide : ${currentStatus} → ${newStatus}. ` +
-          `Les transitions valides sont : pending→confirmed/canceled, confirmed→completed/canceled, completed→canceled`
+          `Transition invalide : ${currentStatus} → ${newStatus}.`
         )
+      }
+
+      // Garde : on ne peut plus confirmer une fois l'heure de début atteinte
+      if (
+        newStatus === reservationStatusEnum.confirmed &&
+        typeof startMs === 'number' &&
+        Date.now() >= startMs
+      ) {
+        throw new Error("L'heure de début est dépassée : la réservation ne peut plus être confirmée.")
       }
 
       await editDocument('reservations', reservationId, {
@@ -171,12 +200,16 @@ export const useUpdateReservationStatus = () => {
           [reservationStatusEnum.confirmed]: 'reservation_confirmed',
           [reservationStatusEnum.canceled]: 'reservation_canceled',
           [reservationStatusEnum.completed]: 'reservation_completed',
+          [reservationStatusEnum.checked_in]: 'reservation_checked_in',
+          [reservationStatusEnum.no_show]: 'reservation_no_show',
         }
         const type = typeMap[newStatus]
         const titleMap: Record<string, string> = {
           reservation_confirmed: 'Réservation confirmée',
           reservation_canceled: 'Réservation annulée',
           reservation_completed: 'Réservation terminée',
+          reservation_checked_in: 'Client arrivé',
+          reservation_no_show: 'Client absent',
         }
         if (type) {
           await Promise.all([
@@ -300,6 +333,84 @@ export const useUpdatePersonHairdresser = () => {
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
       queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
       queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
+    },
+  })
+}
+
+/**
+ * Hook pour reprogrammer une réservation (déplacer la même réservation vers un nouveau créneau).
+ * Les personnes sont repositionnées séquentiellement à partir du nouveau créneau de départ,
+ * en conservant la durée de chacune. Le statut repasse à "confirmed".
+ */
+export const useRescheduleReservation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      reservation,
+      date,
+      time,
+      hairdresserId,
+      hairdresserName,
+      logContext,
+    }: {
+      reservation: IReservation
+      date: Date
+      time: string
+      hairdresserId?: string
+      hairdresserName?: string
+      logContext?: LogContext
+    }) => {
+      const [h = 0, m = 0] = time.split(':').map(Number)
+      let cursor = new Date(date)
+      cursor.setHours(h, m, 0, 0)
+
+      const updatedPeople = reservation.people.map(person => {
+        const scheduledAt = new Date(cursor)
+        const endsAt = new Date(scheduledAt.getTime() + (person.totalDuration || 0) * 60 * 1000)
+        cursor = endsAt
+        return {
+          ...person,
+          ...(hairdresserId ? { hairdresserId, hairdresserName } : {}),
+          scheduledAt: Timestamp.fromDate(scheduledAt),
+          endsAt: Timestamp.fromDate(endsAt),
+        }
+      })
+
+      const earliest = updatedPeople[0]?.scheduledAt
+      const latest = updatedPeople.reduce<typeof updatedPeople[number]['endsAt'] | undefined>(
+        (acc, p) => (!acc || p.endsAt.seconds > acc.seconds ? p.endsAt : acc),
+        undefined,
+      )
+
+      await editDocument('reservations', reservation.id, {
+        people: updatedPeople,
+        // Une résa reprogrammée repart en attente (re-confirmation nécessaire)
+        status: reservationStatusEnum.pending,
+        wasRescheduled: true,
+        rescheduledAt: Timestamp.fromDate(new Date()),
+        earliestScheduledAt: earliest,
+        latestEndsAt: latest,
+        updatedAt: new Date(),
+      })
+
+      if (logContext) {
+        await Promise.all([
+          logActivity({ ...logContext, type: 'reservation_rescheduled', action: 'rescheduled', resourceId: reservation.id, resourceType: 'reservation', metadata: { date: date.toLocaleDateString('fr-FR'), heure: time } }),
+          createNotification({ salonId: logContext.salonId, type: 'reservation_rescheduled', title: 'Réservation reprogrammée', body: `${logContext.resourceLabel ?? ''} → ${date.toLocaleDateString('fr-FR')} ${time}`, resourceId: reservation.id, resourceType: 'reservation' }),
+        ])
+      }
+
+      return { reservationId: reservation.id }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
+      queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] })
+      queryClient.invalidateQueries({ queryKey: ['hd-day-reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['hd-day-reservations-new'] })
       queryClient.invalidateQueries({ queryKey: ['activities'] })
     },
   })

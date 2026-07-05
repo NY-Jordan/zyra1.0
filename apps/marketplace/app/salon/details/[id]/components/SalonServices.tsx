@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { List } from 'lucide-react'
 
 interface SalonService {
   name: string
@@ -25,7 +26,7 @@ function formatDuration(min: number) {
   if (m < 60) return `${m} min`
   const h = Math.floor(m / 60)
   const rem = m % 60
-  return rem === 0 ? `${h}h` : `${h}h${rem}`
+  return rem === 0 ? `${h}h` : `${h} h et ${rem} min`
 }
 
 export function SalonServices({ salonId, serviceCategories, services }: SalonServicesProps) {
@@ -39,34 +40,34 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
 
   return (
     <section id="services" className="scroll-mt-20">
-      <style>{`
-        @keyframes zyraFadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .zyra-fade { animation: zyraFadeIn .28s cubic-bezier(0.22, 1, 0.36, 1); }
-      `}</style>
-
-      <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900 mb-5">Prestations</h2>
+      <h2 className="text-gray-900 mb-5">Prestations</h2>
 
       {/* Pill category tabs */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 mb-5">
-        {serviceCategories.map(cat => {
-          const active = selectedCategory === cat.id
-          return (
-            <button
-              key={cat.id}
-              onClick={() => { setSelectedCategory(cat.id); setShowAll(false) }}
-              className={`px-4 py-2 text-[13px] font-semibold rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-300 ease-out ${
-                active
-                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/25 scale-[1.02]'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:border-emerald-300 hover:text-emerald-700'
-              }`}
-            >
-              {cat.name}
-            </button>
-          )
-        })}
+      <div className="flex items-center gap-2 mb-6">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 min-w-0">
+          {serviceCategories.map(cat => {
+            const active = selectedCategory === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => { setSelectedCategory(cat.id); setShowAll(false) }}
+                className={`px-4 py-2 rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-300 ease-out ${
+                  active
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-800 border border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                {cat.name}
+              </button>
+            )
+          })}
+        </div>
+        <button
+          aria-label="Toutes les catégories"
+          className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors flex-shrink-0"
+        >
+          <List className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Service cards — re-keyed to animate on category switch */}
@@ -74,18 +75,18 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
         {visible.map((service, idx) => (
           <div
             key={idx}
-            className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl border border-gray-200 hover:border-emerald-200 hover:shadow-[0_2px_12px_rgba(16,185,129,0.10)] transition-all"
+            className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all"
           >
             <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-bold text-gray-900 leading-snug">{service.name}</p>
-              <p className="text-[13px] text-gray-500 mt-1">{formatDuration(service.duration)}</p>
-              <p className="text-[14px] text-gray-900 mt-2">
-                à partir de <span className="font-semibold text-emerald-700">{Number(service.price).toLocaleString('fr-FR')} FCFA</span>
+              <p className="text-[16px] font-bold text-gray-900 leading-snug">{service.name}</p>
+              <p className="text-[14px] text-gray-500 mt-1">{formatDuration(service.duration)}</p>
+              <p className="text-[15px] font-semibold text-gray-900 mt-2">
+                à partir de {Number(service.price).toLocaleString('fr-FR')} FCFA
               </p>
             </div>
             <button
               onClick={() => window.location.href = `/booking/${salonId}`}
-              className="h-10 px-5 rounded-full text-[13px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all whitespace-nowrap flex-shrink-0"
+              className="h-10 px-5 rounded-full text-gray-900 border border-gray-300 hover:bg-gray-50 transition-colors whitespace-nowrap flex-shrink-0"
             >
               Réserver
             </button>
@@ -96,7 +97,7 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
       {filtered.length > 6 && (
         <button
           onClick={() => setShowAll(v => !v)}
-          className="mt-4 text-[14px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+          className="mt-4 text-gray-900 hover:underline"
         >
           {showAll ? 'Voir moins' : `Afficher tout (${filtered.length})`}
         </button>

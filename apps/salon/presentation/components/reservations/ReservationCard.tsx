@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import React, { useState } from 'react'
 import { Card, CardContent } from '@zyra/ui/components/card'
 import { Badge } from '@zyra/ui/components/badge'
 import { Button } from '@zyra/ui/components/button'
@@ -18,7 +17,9 @@ import {
   CheckCircle,
   XCircle,
   MoreHorizontal,
-  UserX
+  UserX,
+  LogIn,
+  CalendarClock,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -28,42 +29,17 @@ import {
 } from '@zyra/ui/components/dropdown-menu'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum, reservationPaymentMethodEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { editDocument } from '@zyra/conf/lib/query'
 import ReservationDetailsModal from './ReservationDetailsModal'
-import ReservationConfirmModal from './ReservationConfirmModal'
-import AssignHairdresserModal from './AssignHairdresserModal'
-import { useUpdateReservationStatus, useUpdateReservationPayment } from '@/usecases/useReservations'
-import { useSalon } from '@/hooks/useSalon'
-import { logActivity, createNotification, getCurrentActor } from '@/usecases/notificationsUseCases'
+import ReservationActionDialogs from './ReservationActionDialogs'
+import { useReservationActions } from '@/hooks/useReservationActions'
 
 interface ReservationCardProps {
   reservation: IReservation
 }
 
 export default function ReservationCard({ reservation }: ReservationCardProps) {
-  const queryClient = useQueryClient()
-  const { salon } = useSalon()
   const [showDetailsModal, setShowDetailsModal] = useState(false)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
-  const [showCancelDialog, setShowCancelDialog] = useState(false)
-  const [showCompleteDialog, setShowCompleteDialog] = useState(false)
-  const [showAssignHairdresserModal, setShowAssignHairdresserModal] = useState(false)
-
-  // Vérifier si la réservation a au moins un coiffeur associé
-  const hasHairdresser = useMemo(() => {
-    return reservation.people.some(person => person.hairdresserId)
-  }, [reservation.people])
-
-  // Mutations du useCase
-  const updateStatusMutation = useUpdateReservationStatus()
-  const updatePaymentMutation = useUpdateReservationPayment()
-
-  const isConfirming = updateStatusMutation.isPending
-  const isUpdatingPayment = updatePaymentMutation.isPending
-  const isCanceling = updateStatusMutation.isPending
-  const isCompleting = updateStatusMutation.isPending
+  const a = useReservationActions(reservation)
 
   const getStatusBadge = (status: reservationStatusEnum) => {
     switch (status) {
@@ -71,6 +47,10 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
         return <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">En attente</Badge>
       case reservationStatusEnum.confirmed:
         return <Badge variant="default" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">Confirmée</Badge>
+      case reservationStatusEnum.checked_in:
+        return <Badge variant="default" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Client arrivé</Badge>
+      case reservationStatusEnum.no_show:
+        return <Badge variant="default" className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400">Absent</Badge>
       case reservationStatusEnum.completed:
         return <Badge variant="default" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Terminée</Badge>
       case reservationStatusEnum.canceled:
@@ -82,152 +62,35 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
 
   const getPaymentMethodIcon = (method: reservationPaymentMethodEnum) => {
     switch (method) {
-      case reservationPaymentMethodEnum.cash:
-        return <Banknote className="h-4 w-4" />
-      case reservationPaymentMethodEnum.mobile:
-        return <Smartphone className="h-4 w-4" />
-      case reservationPaymentMethodEnum.card:
-        return <CreditCard className="h-4 w-4" />
-      default:
-        return <DollarSign className="h-4 w-4" />
+      case reservationPaymentMethodEnum.cash: return <Banknote className="h-4 w-4" />
+      case reservationPaymentMethodEnum.mobile: return <Smartphone className="h-4 w-4" />
+      case reservationPaymentMethodEnum.card: return <CreditCard className="h-4 w-4" />
+      default: return <DollarSign className="h-4 w-4" />
     }
   }
 
   const getPaymentMethodLabel = (method: reservationPaymentMethodEnum) => {
     switch (method) {
-      case reservationPaymentMethodEnum.cash:
-        return 'Espèces'
-      case reservationPaymentMethodEnum.mobile:
-        return 'Mobile Money'
-      case reservationPaymentMethodEnum.card:
-        return 'Carte bancaire'
-      default:
-        return method
+      case reservationPaymentMethodEnum.cash: return 'Espèces'
+      case reservationPaymentMethodEnum.mobile: return 'Mobile Money'
+      case reservationPaymentMethodEnum.card: return 'Carte bancaire'
+      default: return method
     }
   }
 
-  const reservationLabel = `Réservation #${reservation.reservationNumber} · ${reservation.clientName}`
+  const formatDate = (timestamp: any) =>
+    timestamp.toDate().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 
-  const handleConfirmReservation = async () => {
-    try {
-      await updateStatusMutation.mutateAsync({
-        reservationId: reservation.id,
-        currentStatus: reservation.status as reservationStatusEnum,
-        newStatus: reservationStatusEnum.confirmed,
-        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
-      })
-      setShowConfirmDialog(false)
-    } catch (error) {
-      console.error('Erreur lors de la confirmation:', error)
-    }
-  }
+  const formatTime = (timestamp: any) =>
+    timestamp.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 
-  const handleTogglePayment = async () => {
-    try {
-      await updatePaymentMutation.mutateAsync({
-        reservationId: reservation.id,
-        isPaid: true,
-        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
-      })
-      setShowPaymentDialog(false)
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du paiement:', error)
-    }
-  }
-
-  const handleCancelReservation = async () => {
-    try {
-      await updateStatusMutation.mutateAsync({
-        reservationId: reservation.id,
-        currentStatus: reservation.status as reservationStatusEnum,
-        newStatus: reservationStatusEnum.canceled,
-        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
-      })
-      setShowCancelDialog(false)
-    } catch (error) {
-      console.error('Erreur lors de l\'annulation:', error)
-    }
-  }
-
-  const handleCompleteReservation = async () => {
-    try {
-      await updateStatusMutation.mutateAsync({
-        reservationId: reservation.id,
-        currentStatus: reservation.status as reservationStatusEnum,
-        newStatus: reservationStatusEnum.completed,
-        logContext: salon?.id ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: reservationLabel } : undefined,
-      })
-      setShowCompleteDialog(false)
-    } catch (error) {
-      console.error('Erreur lors de la finalisation:', error)
-    }
-  }
-
-  const handleAssignHairdresser = async (hairdresser: IHairDresser) => {
-    try {
-      const updatedPeople = reservation.people.map(person => ({
-        ...person,
-        hairdresserId: hairdresser.id
-      }))
-      await editDocument('reservations', reservation.id, {
-        people: updatedPeople,
-        updatedAt: new Date()
-      })
-      if (salon?.id) {
-        await Promise.all([
-          logActivity({
-            salonId: salon.id,
-            ...getCurrentActor(),
-            type: 'reservation_hairdresser_changed',
-            action: 'hairdresser_changed',
-            resourceId: reservation.id,
-            resourceType: 'reservation',
-            resourceLabel: reservationLabel,
-            metadata: { hairdresser: hairdresser.name },
-          }),
-          createNotification({
-            salonId: salon.id,
-            type: 'reservation_hairdresser_changed',
-            title: 'Coiffeur assigné',
-            body: `${reservationLabel} → ${hairdresser.name}`,
-            resourceId: reservation.id,
-            resourceType: 'reservation',
-          }),
-        ])
-      }
-      setShowAssignHairdresserModal(false)
-      await queryClient.invalidateQueries({ queryKey: ['reservations'] })
-    } catch (error) {
-      console.error('Erreur lors de l\'assignation du coiffeur:', error)
-      throw error
-    }
-  }
-
-  const formatDate = (timestamp: any) => {
-    const date = timestamp.toDate()
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    })
-  }
-
-  const formatTime = (timestamp: any) => {
-    const date = timestamp.toDate()
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  // Get first person's info as summary
   const firstPerson = reservation.people[0]
   const startTime = firstPerson ? formatTime(firstPerson.scheduledAt) : ''
   const startDate = firstPerson ? formatDate(firstPerson.scheduledAt) : ''
 
   return (
     <>
-      <Card className={`hover:shadow-md transition-shadow ${!hasHairdresser ? 'border-orange-200 dark:border-orange-900/50' : ''}`}>
+      <Card className={`hover:shadow-md transition-shadow ${!a.hasHairdresser ? 'border-orange-200 dark:border-orange-900/50' : ''}`}>
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-4">
             {/* Informations principales */}
@@ -236,7 +99,13 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
                     <h3 className="font-semibold text-base">#{reservation.reservationNumber}</h3>
-                    {!hasHairdresser && (
+                    {reservation.wasRescheduled && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 dark:bg-violet-900/30 px-2 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-400">
+                        <CalendarClock className="h-3 w-3" />
+                        Reprogrammée
+                      </span>
+                    )}
+                    {!a.hasHairdresser && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
                         <UserX className="h-3 w-3" />
                         Sans coiffeur
@@ -274,25 +143,18 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
 
               {/* Infos clés - Compact */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t dark:border-slate-700">
-                {/* Client */}
                 <div className="flex items-center gap-2 text-sm">
                   <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">{reservation.clientName}</span>
                 </div>
-
-                {/* Téléphone */}
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">{reservation.clientPhone}</span>
                 </div>
-
-                {/* Date */}
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">{startDate}</span>
                 </div>
-
-                {/* Heure */}
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">{startTime}</span>
@@ -313,104 +175,67 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
                   Voir les détails
                 </DropdownMenuItem>
 
-                {/* Bouton d'assignation de coiffeur si pas de coiffeur */}
-                {!hasHairdresser && (
-                  <DropdownMenuItem onClick={() => setShowAssignHairdresserModal(true)} className="text-orange-600">
+                {a.canAssign && (
+                  <DropdownMenuItem onClick={() => a.setShowAssign(true)} className="text-orange-600">
                     <User className="h-4 w-4 mr-2" />
                     Assigner un coiffeur
                   </DropdownMenuItem>
                 )}
-
-                {/* Actions désactivées si pas de coiffeur */}
-                {hasHairdresser && reservation.status === reservationStatusEnum.pending && (
-                  <DropdownMenuItem onClick={() => setShowConfirmDialog(true)}>
+                {a.canConfirm && (
+                  <DropdownMenuItem onClick={() => a.setShowConfirm(true)}>
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Confirmer
                   </DropdownMenuItem>
                 )}
-                {hasHairdresser && reservation.status === reservationStatusEnum.confirmed && (
-                  <>
-                    <DropdownMenuItem onClick={() => setShowPaymentDialog(true)} disabled={reservation.isPaid}>
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Marquer comme payé
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowCompleteDialog(true)}>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Terminer
-                    </DropdownMenuItem>
-                  </>
+                {a.canCheckIn && (
+                  <DropdownMenuItem onClick={() => a.setShowCheckIn(true)}>
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Client arrivé
+                  </DropdownMenuItem>
                 )}
-                <DropdownMenuItem 
-                  onClick={() => setShowCancelDialog(true)}
-                  className="text-destructive"
-                  disabled={reservation.status === reservationStatusEnum.canceled || 
-                           reservation.status === reservationStatusEnum.completed}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Annuler
-                </DropdownMenuItem>
+                {a.canNoShow && (
+                  <DropdownMenuItem onClick={() => a.setShowNoShow(true)} className="text-orange-600">
+                    <UserX className="h-4 w-4 mr-2" />
+                    Client absent
+                  </DropdownMenuItem>
+                )}
+                {a.canReschedule && (
+                  <DropdownMenuItem onClick={() => a.setShowReschedule(true)}>
+                    <CalendarClock className="h-4 w-4 mr-2" />
+                    Reprogrammer
+                  </DropdownMenuItem>
+                )}
+                {a.canMarkPaid && (
+                  <DropdownMenuItem onClick={() => a.setShowPayment(true)}>
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Marquer comme payé
+                  </DropdownMenuItem>
+                )}
+                {a.canComplete && (
+                  <DropdownMenuItem onClick={() => a.setShowComplete(true)}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Terminer
+                  </DropdownMenuItem>
+                )}
+                {a.canCancel && (
+                  <DropdownMenuItem onClick={() => a.setShowCancel(true)} className="text-destructive">
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Annuler
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </CardContent>
       </Card>
 
-      {/* Details Modal */}
       <ReservationDetailsModal
         reservation={reservation}
         open={showDetailsModal}
         onOpenChange={setShowDetailsModal}
       />
 
-      <ReservationConfirmModal
-        open={showConfirmDialog}
-        title="Confirmer la réservation"
-        description="Êtes-vous sûr de vouloir confirmer cette réservation ?"
-        onCancel={() => setShowConfirmDialog(false)}
-        onConfirm={handleConfirmReservation}
-        confirmLabel="Confirmer"
-        loading={isConfirming}
-        confirmVariant="default"
-      />
-
-      <ReservationConfirmModal
-        open={showPaymentDialog}
-        title="Marquer comme payé"
-        description="Êtes-vous sûr de vouloir marquer cette réservation comme payée ?"
-        onCancel={() => setShowPaymentDialog(false)}
-        onConfirm={handleTogglePayment}
-        confirmLabel="Marquer comme payé"
-        loading={isUpdatingPayment}
-        confirmVariant="default"
-      />
-
-      <ReservationConfirmModal
-        open={showCancelDialog}
-        title="Annuler la réservation"
-        description="Êtes-vous sûr de vouloir annuler cette réservation ? Cette action ne peut pas être annulée."
-        onCancel={() => setShowCancelDialog(false)}
-        onConfirm={handleCancelReservation}
-        confirmLabel="Annuler la réservation"
-        loading={isCanceling}
-        confirmVariant="destructive"
-      />
-
-      <ReservationConfirmModal
-        open={showCompleteDialog}
-        title="Terminer la réservation"
-        description="Êtes-vous sûr de vouloir terminer cette réservation ?"
-        onCancel={() => setShowCompleteDialog(false)}
-        onConfirm={handleCompleteReservation}
-        confirmLabel="Terminer"
-        loading={isCompleting}
-        confirmVariant="default"
-      />
-
-      <AssignHairdresserModal
-        open={showAssignHairdresserModal}
-        onOpenChange={setShowAssignHairdresserModal}
-        onSelect={handleAssignHairdresser}
-      />
+      <ReservationActionDialogs actions={a} />
     </>
   )
 }

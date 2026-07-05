@@ -22,8 +22,8 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   return (
     <div className="space-y-5">
       <div className="space-y-1">
-        <h2 className="text-[18px] font-extrabold text-slate-800">Résumé des réservations</h2>
-        <p className="text-[13px] text-slate-500">{multipleBookings.length} réservation{multipleBookings.length > 1 ? 's' : ''} au total</p>
+        <h2 className="text-[18px] font-extrabold text-gray-900">Résumé des réservations</h2>
+        <p className="text-[13px] text-gray-500">{multipleBookings.length} réservation{multipleBookings.length > 1 ? 's' : ''} au total</p>
       </div>
 
       <div className="space-y-2">
@@ -33,37 +33,37 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
             onClick={() => onSelectBooking?.(idx)}
             className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all ${
               idx === currentPersonIndex
-                ? 'border-emerald-400 bg-emerald-50'
-                : 'border-[#F0EAE4] bg-white hover:border-emerald-200'
+                ? 'border-gray-900 bg-gray-100'
+                : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  booking.service ? 'bg-emerald-100' : 'bg-[#F0EAE4]'
+                  booking.service ? 'bg-gray-100' : 'bg-gray-200'
                 }`}>
                   {booking.service
-                    ? <Check className="h-4 w-4 text-emerald-600" />
-                    : <User className="h-4 w-4 text-slate-400" />
+                    ? <Check className="h-4 w-4 text-gray-900" />
+                    : <User className="h-4 w-4 text-gray-400" />
                   }
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-[14px] font-bold text-slate-800">
+                    <p className="text-[14px] font-bold text-gray-900">
                       Personne {booking.personNumber || idx + 1}
                     </p>
                     {booking.service && (
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
                         Complète
                       </span>
                     )}
                   </div>
                   {booking.service && (
-                    <div className="flex items-center gap-3 mt-1 text-[12px] text-slate-500">
-                      <span className="font-medium text-slate-700">{booking.service.name}</span>
+                    <div className="flex items-center gap-3 mt-1 text-[12px] text-gray-500">
+                      <span className="font-medium text-gray-700">{booking.service.name}</span>
                       {booking.date && (
                         <>
-                          <span className="text-slate-300">·</span>
+                          <span className="text-gray-300">·</span>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             <span>{booking.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
@@ -72,7 +72,7 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                       )}
                       {booking.time && (
                         <>
-                          <span className="text-slate-300">·</span>
+                          <span className="text-gray-300">·</span>
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             <span>{booking.time}</span>
@@ -82,7 +82,7 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                     </div>
                   )}
                   {!booking.service && (
-                    <p className="text-[12px] text-slate-400 mt-0.5">Service non sélectionné</p>
+                    <p className="text-[12px] text-gray-400 mt-0.5">Service non sélectionné</p>
                   )}
                 </div>
               </div>
@@ -103,7 +103,7 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
       <div className="space-y-2 pt-2">
         <button
           onClick={onAddPerson}
-          className="w-full h-11 rounded-2xl border-2 border-dashed border-[#E8E0D8] text-[13px] font-semibold text-slate-500 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-2xl border-2 border-dashed border-gray-300 text-[13px] font-semibold text-gray-500 hover:border-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
         >
           <Plus className="h-4 w-4" />
           Ajouter une personne
@@ -111,7 +111,7 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
 
         <button
           onClick={onFinalize}
-          className="w-full h-11 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-[13px] font-bold transition-colors shadow-sm shadow-emerald-500/20"
+          className="w-full h-11 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white text-[13px] font-bold transition-colors shadow-sm shadow-gray-900/10"
         >
           Finaliser les réservations
         </button>

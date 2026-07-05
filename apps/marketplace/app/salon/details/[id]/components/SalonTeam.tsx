@@ -13,7 +13,7 @@ export function SalonTeam({ hairdressers }: TeamProps) {
 
   return (
     <section className="scroll-mt-20">
-      <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900 mb-5">Notre équipe</h2>
+      <h2 className="text-gray-900 mb-5">Notre équipe</h2>
 
       <div className="flex gap-5 overflow-x-auto pb-1 scrollbar-hide">
         {hairdressers.map(hd => (

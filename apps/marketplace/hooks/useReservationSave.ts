@@ -6,7 +6,12 @@ import { IReservation, IReservationPerson } from '@zyra/conf/domain/entities/res
 import { Timestamp } from 'firebase/firestore'
 import { Booking } from '@/app/booking/[id]/types'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import { createDocument } from '@zyra/conf/lib/query'
+import { createDocument, fetchCollection } from '@zyra/conf/lib/query'
+import { where } from 'firebase/firestore'
+
+/** Deux intervalles [aStart,aEnd) et [bStart,bEnd) se chevauchent-ils ? */
+const overlaps = (aStart: number, aEnd: number, bStart: number, bEnd: number) =>
+  aStart < bEnd && bStart < aEnd
 
 export function useReservationSave() {
   /**
@@ -153,9 +158,38 @@ export function useReservationSave() {
     reservation: IReservation
   ): Promise<{ success: boolean; reservationId?: string; error?: string }> => {
     try {
+      // Re-vérification temps réel : le créneau est-il encore libre ?
+      // (ferme la course entre l'affichage et l'enregistrement)
+      try {
+        const existing = await fetchCollection('reservations', [
+          where('salonId', '==', reservation.salonId),
+        ]) as IReservation[]
+
+        const conflict = reservation.people.some(np => {
+          const npStart = np.scheduledAt.toDate().getTime()
+          const npEnd = np.endsAt.toDate().getTime()
+          return existing.some(res => {
+            if (res.status === reservationStatusEnum.canceled || res.status === reservationStatusEnum.no_show) return false
+            return res.people.some(ep => {
+              // Conflit seulement si même coiffeur (ou créneau global si pas de coiffeur)
+              if (np.hairdresserId && ep.hairdresserId && np.hairdresserId !== ep.hairdresserId) return false
+              const epStart = ep.scheduledAt.toDate().getTime()
+              const epEnd = ep.endsAt.toDate().getTime()
+              return overlaps(npStart, npEnd, epStart, epEnd)
+            })
+          })
+        })
+
+        if (conflict) {
+          toast.error('Ce créneau vient d\'être réservé. Veuillez en choisir un autre.')
+          return { success: false, error: 'SLOT_TAKEN' }
+        }
+      } catch (_) {
+        // En cas d'échec de la vérification, on laisse la création se poursuivre
+      }
+
       // Supprimer l'id vide avant d'enregistrer
       const { id, ...reservationData } = reservation
-      console.log(reservationData);
       // Utiliser createDocument pour enregistrer dans la collection 'reservations'
       const reservationId = await createDocument('reservations', reservationData)
 

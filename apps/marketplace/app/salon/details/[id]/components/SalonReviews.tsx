@@ -13,7 +13,7 @@ export function SalonReviews() {
   return (
     <section id="avis" className="scroll-mt-20">
       <div className="flex items-baseline gap-2 mb-5">
-        <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900">Avis</h2>
+        <h2 className="text-gray-900">Avis</h2>
         <span className="flex items-center gap-1">
           <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
           <span className="text-[16px] font-bold text-gray-900">4,7</span>

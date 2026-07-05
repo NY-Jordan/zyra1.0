@@ -76,7 +76,7 @@ export default function MultipleBookingForm({
             onClick={() => onPersonChange(idx)}
             className={`px-4 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
               currentPersonIndex === idx
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-gray-900 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -98,13 +98,13 @@ export default function MultipleBookingForm({
                 onClick={() => handleServiceChange(service)}
                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                   currentBooking?.service?.id === service.id
-                    ? 'border-blue-600 bg-blue-50'
+                    ? 'border-gray-900 bg-gray-100'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <div className="font-semibold text-gray-900">{service.name}</div>
                 <div className="text-sm text-gray-600">{service.duration} min</div>
-                <div className="text-lg font-bold text-blue-600 mt-2">${service.price}</div>
+                <div className="text-lg font-bold text-gray-900 mt-2">${service.price}</div>
               </button>
             ))}
           </div>
@@ -152,7 +152,7 @@ export default function MultipleBookingForm({
               onClick={() => handleHairdresserChange(hairdresser)}
               className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
                 currentBooking?.hairdresser?.id === hairdresser.id
-                  ? 'border-blue-600 bg-blue-50'
+                  ? 'border-gray-900 bg-gray-100'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -166,7 +166,7 @@ export default function MultipleBookingForm({
       </Card>
 
       {/* Summary Cart */}
-      <div className="bg-white border-2 border-blue-200 rounded-lg p-4 space-y-3">
+      <div className="bg-white border-2 border-gray-300 rounded-lg p-4 space-y-3">
         <h3 className="font-bold text-gray-900">Résumé pour Personne {currentPersonIndex + 1}</h3>
         <div className="space-y-2 text-sm">
           {currentBooking?.service && (

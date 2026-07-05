@@ -62,7 +62,7 @@ export const MultipleReservationFlow: React.FC<MultipleReservationFlowProps> = (
 
       {currentStep === 2 && (
         <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+          <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h3 className="font-semibold text-lg">
               Votre service (Personne {currentPersonIndex + 1})
             </h3>
@@ -78,7 +78,7 @@ export const MultipleReservationFlow: React.FC<MultipleReservationFlowProps> = (
 
       {currentStep === 3 && currentBooking?.service && (
         <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+          <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h3 className="font-semibold text-lg">
               Suppléments (Personne {currentPersonIndex + 1})
             </h3>
@@ -93,7 +93,7 @@ export const MultipleReservationFlow: React.FC<MultipleReservationFlowProps> = (
 
       {currentStep === 4 && (
         <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+          <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h3 className="font-semibold text-lg">
               Coiffeur (Personne {currentPersonIndex + 1})
             </h3>
@@ -108,7 +108,7 @@ export const MultipleReservationFlow: React.FC<MultipleReservationFlowProps> = (
 
       {currentStep === 5 && (
         <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+          <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h3 className="font-semibold text-lg">
               Date & Heure (Personne {currentPersonIndex + 1})
             </h3>

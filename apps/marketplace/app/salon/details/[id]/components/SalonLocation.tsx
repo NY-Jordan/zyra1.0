@@ -18,7 +18,7 @@ export function SalonLocation({ salon }: SalonLocationProps) {
 
   return (
     <section id="localisation" className="scroll-mt-20">
-      <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900 mb-5">Localisation</h2>
+      <h2 className="text-gray-900 mb-5">Localisation</h2>
 
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         {/* Map */}

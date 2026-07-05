@@ -58,7 +58,7 @@ export default function MultipleTimeSelection({
             onClick={() => onPersonChange(idx)}
             className={`px-4 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
               currentPersonIndex === idx
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-gray-900 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -84,7 +84,7 @@ export default function MultipleTimeSelection({
                 <div className="text-right">
                   {slot.date && slot.time ? (
                     <div>
-                      <div className="font-semibold text-blue-600">
+                      <div className="font-semibold text-gray-900">
                         {slot.date.toLocaleDateString('fr-FR')}
                       </div>
                       <div className="text-sm text-gray-600">{slot.time}</div>
@@ -126,7 +126,7 @@ export default function MultipleTimeSelection({
                 onClick={() => handleTimeChange(time)}
                 className={`p-2 rounded-lg font-semibold transition-all ${
                   currentSlot.time === time
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 }`}
               >

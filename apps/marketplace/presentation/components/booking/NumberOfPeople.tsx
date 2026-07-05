@@ -40,7 +40,7 @@ export default function NumberOfPeople({ numberOfPeople, onNumberChange }: Numbe
         </Button>
 
         <div className="text-center">
-          <div className="text-6xl font-bold text-blue-600 mb-2">{numberOfPeople}</div>
+          <div className="text-6xl font-bold text-gray-900 mb-2">{numberOfPeople}</div>
           <p className="text-gray-600">
             {numberOfPeople === 1 ? 'personne' : 'personnes'}
           </p>
@@ -49,14 +49,14 @@ export default function NumberOfPeople({ numberOfPeople, onNumberChange }: Numbe
         <Button
           onClick={handleIncrease}
           disabled={numberOfPeople >= 5}
-          className="h-12 w-12 p-0 bg-blue-600 hover:bg-blue-700"
+          className="h-12 w-12 p-0 bg-gray-900 hover:bg-gray-800"
         >
           <Plus className="h-6 w-6" />
         </Button>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-        <p className="text-sm text-blue-900">
+      <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 text-center">
+        <p className="text-sm text-gray-900">
           Vous pourrez configurer les détails pour chaque personne à l'étape suivante
         </p>
       </div>

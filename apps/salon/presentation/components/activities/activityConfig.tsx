@@ -58,6 +58,27 @@ export const ACTIVITY_CONFIG: Record<ActivityType, ActivityConfig> = {
     label: 'Réservation payée',
     actionVerb: 'a marqué comme payée',
   },
+  reservation_checked_in: {
+    icon: <CheckCircle className="h-3.5 w-3.5" />,
+    dotColor: 'bg-emerald-400',
+    bgColor: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+    label: 'Client arrivé',
+    actionVerb: 'a marqué présent',
+  },
+  reservation_no_show: {
+    icon: <UserMinus className="h-3.5 w-3.5" />,
+    dotColor: 'bg-rose-400',
+    bgColor: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400',
+    label: 'Client absent',
+    actionVerb: 'a marqué absent',
+  },
+  reservation_rescheduled: {
+    icon: <Clock className="h-3.5 w-3.5" />,
+    dotColor: 'bg-violet-400',
+    bgColor: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400',
+    label: 'Réservation reprogrammée',
+    actionVerb: 'a reprogrammé',
+  },
 
   // ── Orders ───────────────────────────────────────────────────────────────────
   order_created: {

@@ -1,0 +1,11 @@
+/* Booking flow — typography
+   Titles → Clash Display (Semibold 600)
+   Body / buttons / inputs → Geist (inherited from the page root) */
+
+.booking-page h1,
+.booking-page h2,
+.booking-page h3 {
+  font-family: var(--font-clash), var(--font-bricolage), ui-sans-serif, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}

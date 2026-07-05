@@ -8,7 +8,6 @@ import { where } from 'firebase/firestore'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { Scissors, Loader2, ArrowLeft, Star, Share, Heart, ChevronRight } from 'lucide-react'
-
 import { SalonGallery } from './components/SalonGallery'
 import { SalonServices } from './components/SalonServices'
 import { SalonTeam } from './components/SalonTeam'
@@ -85,7 +84,10 @@ export default function SalonDetailsPage() {
   const fullAddress = [salon.address, salon.city, salon.country].filter(Boolean).join(', ')
 
   return (
-    <div className="min-h-screen bg-white">
+    <div
+      className="salon-detail min-h-screen bg-white"
+      style={{ fontFamily: 'var(--font-sans), ui-sans-serif, sans-serif' }}
+    >
       {/* ===== Top nav ===== */}
       <header className="border-b border-gray-100">
         <div className="max-w-[1420px] mx-auto px-5 sm:px-6 h-[60px] flex items-center justify-between">
@@ -114,7 +116,7 @@ export default function SalonDetailsPage() {
         {/* Title row */}
         <div className="flex items-start justify-between gap-4 mb-5">
           <div className="min-w-0">
-            <h1 className="text-[30px] sm:text-[40px] font-extrabold tracking-tight text-gray-900 leading-[1.05]">
+            <h1 className="text-gray-900">
               {salon.name}
             </h1>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2.5 text-[14px]">
@@ -172,8 +174,8 @@ export default function SalonDetailsPage() {
 
             {salon.description && (
               <section>
-                <h2 className="text-[26px] font-extrabold tracking-tight text-gray-900 mb-3">À propos</h2>
-                <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-5">{salon.description}</p>
+                <h2 className="text-gray-900 mb-3">À propos</h2>
+                <p className="text-[18px] text-gray-600 leading-relaxed line-clamp-5">{salon.description}</p>
               </section>
             )}
 

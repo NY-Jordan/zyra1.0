@@ -28,9 +28,9 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         }}
         className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
           currentPersonIndex === idx && currentStep !== 7
-            ? 'border-blue-500 bg-blue-50 shadow-md'
+            ? 'border-gray-900 bg-gray-100 shadow-md'
             : booking.service
-            ? 'border-green-500 bg-green-50'
+            ? 'border-gray-900 bg-gray-50'
             : 'border-gray-200 bg-white hover:border-gray-300'
         }`}
       >
@@ -38,7 +38,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               {booking.service ? (
-                <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-gray-900 flex-shrink-0" />
               ) : (
                 <Circle className="h-4 w-4 text-gray-300 flex-shrink-0" />
               )}
@@ -54,7 +54,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                   <p className="text-gray-500 truncate">{booking.hairdresser.name}</p>
                 )}
                 {booking.date && booking.time && (
-                  <p className="text-blue-600 font-medium">
+                  <p className="text-gray-900 font-medium">
                     {booking.date.toLocaleDateString('fr-FR')} à {booking.time}
                   </p>
                 )}

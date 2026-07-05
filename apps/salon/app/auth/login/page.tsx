@@ -3,7 +3,7 @@
 import { useForm, FieldValues } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Mail, Lock, ArrowRight, AlertCircle, Scissors } from 'lucide-react'
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import { ownerAuthService } from '@/services/ownerAuthService'
 import { useRouter } from 'next/navigation'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -38,26 +38,25 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F4F0] dark:bg-[#0F1318] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-white dark:bg-[#0B0E12] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-[400px]">
 
         {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-md shadow-emerald-500/30">
-              <Scissors className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-[22px] font-extrabold text-slate-800 dark:text-white tracking-tight">Zyra</span>
-          </div>
+        <div className="flex justify-center mb-6">
+          <img
+            src="/logo.jpg"
+            alt="Zyra"
+            className="h-5xl w-5xl object-contain rounded-2xl"
+          />
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl p-8 shadow-sm">
+        <div className="bg-white dark:bg-[#12161C] border border-gray-200 dark:border-slate-800/60 rounded-2xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.05)]">
 
           {/* Header */}
           <div className="mb-7">
-            <h1 className="text-[20px] font-extrabold text-slate-800 dark:text-white">Connexion</h1>
-            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">
+            <h1 className="text-[20px] font-extrabold text-gray-900 dark:text-white tracking-tight">Connexion</h1>
+            <p className="text-[13px] text-gray-500 dark:text-slate-400 mt-1">
               Accédez à votre tableau de bord
             </p>
           </div>
@@ -74,18 +73,18 @@ export default function Login() {
 
             {/* Email */}
             <div className="space-y-1.5">
-              <label className="text-[12px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+              <label className="text-[12px] font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
                 Adresse e-mail
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-500" />
                 <input
                   type="email"
                   placeholder="exemple@domaine.com"
-                  className={`w-full h-11 pl-10 pr-4 text-[14px] rounded-xl border bg-[#FAFAF9] dark:bg-slate-800/50 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 dark:focus:border-emerald-500 ${
+                  className={`w-full h-11 pl-10 pr-4 text-[14px] rounded-xl border bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 outline-none transition-all focus:ring-2 focus:ring-[#22C55E]/30 focus:border-[#22C55E] ${
                     errors.email
                       ? 'border-rose-300 dark:border-rose-700'
-                      : 'border-[#E8E0D8] dark:border-slate-700'
+                      : 'border-gray-200 dark:border-slate-700'
                   }`}
                   {...register('email', {
                     required: "L'adresse e-mail est requise",
@@ -107,26 +106,26 @@ export default function Login() {
             {/* Password */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[12px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                <label className="text-[12px] font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
                   Mot de passe
                 </label>
                 <button
                   type="button"
                   onClick={() => router.push('/auth/forgot-password')}
-                  className="text-[12px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                  className="text-[12px] text-[#16A34A] hover:text-[#15803D] dark:text-[#22C55E] hover:underline font-semibold"
                 >
                   Oublié ?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-500" />
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className={`w-full h-11 pl-10 pr-4 text-[14px] rounded-xl border bg-[#FAFAF9] dark:bg-slate-800/50 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 dark:focus:border-emerald-500 ${
+                  className={`w-full h-11 pl-10 pr-4 text-[14px] rounded-xl border bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 outline-none transition-all focus:ring-2 focus:ring-[#22C55E]/30 focus:border-[#22C55E] ${
                     errors.password
                       ? 'border-rose-300 dark:border-rose-700'
-                      : 'border-[#E8E0D8] dark:border-slate-700'
+                      : 'border-gray-200 dark:border-slate-700'
                   }`}
                   {...register('password', {
                     required: 'Le mot de passe est requis',
@@ -147,7 +146,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-[14px] font-bold transition-colors shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"
+                className="w-full h-11 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-60 text-white text-[14px] font-bold transition-colors shadow-md shadow-[#22C55E]/25 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -169,7 +168,7 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[11px] text-slate-400 dark:text-slate-600 mt-6">
+        <p className="text-center text-[11px] text-gray-400 dark:text-slate-600 mt-6">
           © {new Date().getFullYear()} Zyra · Tous droits réservés
         </p>
       </div>
