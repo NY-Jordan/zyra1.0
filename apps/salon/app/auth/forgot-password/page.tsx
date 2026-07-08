@@ -1,11 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useForm, FieldValues } from 'react-hook-form'
-import { Input } from '@zyra/ui/components/input'
-import { Button } from '@zyra/ui/components/button'
-import Image from 'next/image'
 import Link from 'next/link'
-import { Mail, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Mail, ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Sparkle } from 'lucide-react'
 
 export default function ForgotPassword() {
   const { register, handleSubmit, formState: { errors }, watch } = useForm()
@@ -39,144 +36,112 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex bg-zinc-100 dark:bg-slate-950">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-12 overflow-hidden bg-gradient-to-br from-slate-100 via-white to-slate-100 dark:from-[#080A0E] dark:via-[#0B0E12] dark:to-[#0F1319]">
 
-      {/* ── Left branding ──────────────────────────────────────────────────── */}
-      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/salon-background.jpg"
-            alt="Salon de beauté"
-            fill
-            sizes="50vw"
-            priority
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-zinc-900/70 backdrop-blur-sm" />
-        </div>
-        <div className="relative h-full flex flex-col justify-between text-white z-10">
-          <div className="p-12">
-            <div className="text-2xl font-bold text-white">Zyra</div>
-          </div>
-          <div className="p-12 space-y-5">
-            <h1 className="text-4xl font-bold leading-tight">
-              Récupérez l'accès à votre compte.
-            </h1>
-            <p className="text-lg text-zinc-200">
-              Un e-mail de réinitialisation vous sera envoyé en quelques secondes.
-            </p>
-            <div className="pt-6 space-y-3">
-              {[
-                'Sécurisé et chiffré',
-                'Lien valable 1 heure',
-                'Aucune donnée partagée',
-              ].map(item => (
-                <div key={item} className="flex items-center gap-3">
-                  <div className="bg-zinc-800/80 p-2 rounded-full flex-shrink-0">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-zinc-100">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="p-12">
-            <p className="text-sm text-zinc-300">
-              © {new Date().getFullYear()} Zyra. Tous droits réservés.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Dot grid texture */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.5] dark:opacity-[0.35] [background-image:radial-gradient(circle,_rgba(100,116,139,0.35)_1px,_transparent_1px)] dark:[background-image:radial-gradient(circle,_rgba(148,163,184,0.5)_1px,_transparent_1px)] [background-size:26px_26px]" />
 
-      {/* ── Right form ─────────────────────────────────────────────────────── */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white dark:bg-slate-900">
-        <div className="w-full max-w-md">
+      {/* Ambient glow blobs */}
+      <div className="pointer-events-none absolute -top-40 -left-32 h-96 w-96 rounded-full bg-emerald-400/25 dark:bg-emerald-500/30 blur-[110px]" />
+      <div className="pointer-events-none absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-emerald-300/25 dark:bg-emerald-400/25 blur-[110px]" />
+      <div className="pointer-events-none absolute top-1/3 right-0 h-72 w-72 rounded-full bg-sky-300/15 dark:bg-sky-500/25 blur-[110px]" />
+
+      {/* Radial vignette to keep focus on the card */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_35%,_rgba(255,255,255,0.6)_100%)] dark:bg-[radial-gradient(ellipse_at_center,_transparent_35%,_rgba(3,5,8,0.5)_100%)]" />
+
+      <Sparkle className="hidden sm:block fixed bottom-8 right-10 h-8 w-8 text-slate-300 dark:text-slate-700/80" />
+      <Sparkle className="hidden sm:block fixed top-10 left-10 h-5 w-5 text-slate-300/80 dark:text-slate-700/60" />
+
+      <div className="relative w-full max-w-[420px]">
+
+        {/* Card */}
+        <div className="relative rounded-[28px] border border-slate-200 dark:border-white/5 shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.55)] bg-[linear-gradient(120deg,#ffffff_46%,#f3f5f7_54%)] dark:bg-[linear-gradient(120deg,#12151b_46%,#1b232f_54%)] px-8 pt-10 pb-8 overflow-hidden">
+
+          {/* Logo */}
+          <div className="relative flex justify-center mb-9">
+            <div className="absolute h-24 w-44 rounded-full bg-emerald-400/25 dark:bg-emerald-500/20 blur-3xl" />
+            <img src="/images/logo-light.png" alt="Zyra" className="relative w-44 h-auto dark:hidden" />
+            <img src="/images/logo-dark.png" alt="Zyra" className="relative hidden w-44 h-auto dark:block" />
+          </div>
 
           {status === 'sent' ? (
             /* ── Success state ─────────────────────────────────────────────── */
-            <div className="text-center space-y-5">
-              <div className="flex justify-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="h-14 w-14 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="h-7 w-7 text-emerald-500" />
                 </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-2">
-                  E-mail envoyé !
-                </h2>
-                <p className="text-zinc-500 dark:text-slate-400 text-sm leading-relaxed">
-                  Si un compte Zyra est associé à{' '}
-                  <span className="font-semibold text-zinc-700 dark:text-slate-200">{sentEmail}</span>,
-                  vous recevrez un lien de réinitialisation dans quelques instants.
-                </p>
-              </div>
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl px-4 py-3 text-left">
-                <p className="text-[12px] font-semibold text-amber-800 dark:text-amber-300 mb-1">
+              <h2 className="text-[17px] font-bold text-slate-800 dark:text-white mb-2">
+                E-mail envoyé !
+              </h2>
+              <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed mb-5">
+                Si un compte Zyra est associé à{' '}
+                <span className="font-semibold text-slate-700 dark:text-slate-200">{sentEmail}</span>,
+                vous recevrez un lien de réinitialisation dans quelques instants.
+              </p>
+
+              <div className="rounded-2xl border border-slate-200 dark:border-white/10 px-5 py-4 text-left mb-6">
+                <p className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 dark:text-slate-500 uppercase mb-2">
                   Vous ne voyez pas l'e-mail ?
                 </p>
-                <ul className="text-[11px] text-amber-700 dark:text-amber-400 space-y-1 list-disc list-inside">
+                <ul className="text-[12px] text-slate-500 dark:text-slate-400 space-y-1 list-disc list-inside">
                   <li>Vérifiez votre dossier spam ou courrier indésirable</li>
                   <li>Le lien est valable pendant 1 heure</li>
                   <li>Vérifiez que l'adresse saisie est correcte</li>
                 </ul>
               </div>
-              <div className="flex flex-col gap-2 pt-2">
-                <button
-                  onClick={() => setStatus('idle')}
-                  className="text-sm text-zinc-500 dark:text-slate-400 hover:text-zinc-700 dark:hover:text-slate-200 underline underline-offset-2 transition-colors"
-                >
-                  Renvoyer l'e-mail
-                </button>
-                <Link
-                  href="/auth/login"
-                  className="inline-flex items-center justify-center gap-2 text-sm font-medium text-zinc-700 dark:text-slate-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Retour à la connexion
-                </Link>
-              </div>
+
+              <button
+                onClick={() => setStatus('idle')}
+                className="w-full h-12 rounded-full bg-[#22C55E] hover:bg-[#16A34A] text-white text-[14px] font-bold transition-colors shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
+              >
+                Renvoyer l'e-mail
+              </button>
+
+              <Link
+                href="/auth/login"
+                className="mt-5 inline-flex items-center justify-center gap-1.5 text-[12px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Retour à la connexion
+              </Link>
             </div>
           ) : (
             /* ── Form state ────────────────────────────────────────────────── */
             <>
-              <div className="text-center mb-8">
-                <div className="mb-3 flex justify-center">
-                  <div className="h-12 w-12 rounded-full bg-zinc-800 dark:bg-slate-700 flex items-center justify-center text-white">
-                    <Mail size={22} />
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold text-zinc-800 dark:text-white">
+              <div className="text-center mb-7">
+                <h2 className="text-[17px] font-bold text-slate-800 dark:text-white mb-2">
                   Mot de passe oublié ?
                 </h2>
-                <p className="text-zinc-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   Saisissez l'adresse e-mail associée à votre compte.<br />
                   Nous vous enverrons un lien pour le réinitialiser.
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              {/* Error */}
+              {status === 'error' && (
+                <div className="flex items-start gap-2.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-400 rounded-xl px-4 py-3 mb-5 text-[13px]">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <p>{errorMessage}</p>
+                </div>
+              )}
 
-                {status === 'error' && (
-                  <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl px-4 py-3">
-                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-[13px] text-red-700 dark:text-red-400">{errorMessage}</p>
-                  </div>
-                )}
+              <form onSubmit={handleSubmit(onSubmit)}>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-slate-300">
+                {/* Field box */}
+                <div className="rounded-2xl border border-slate-200 dark:border-white/10 px-5 py-5">
+                  <label className="block text-[10px] font-semibold tracking-[0.15em] text-slate-400 dark:text-slate-500 uppercase mb-2">
                     Adresse e-mail
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-slate-500 h-5 w-5" />
-                    <Input
-                      id="email"
+                  <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500 pb-2 transition-colors">
+                    <Mail className="h-4 w-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
+                    <input
                       type="email"
                       placeholder="exemple@domaine.com"
                       disabled={status === 'loading'}
-                      className="pl-10 py-5 bg-white dark:bg-slate-800 border-zinc-300 dark:border-slate-600 text-zinc-800 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-slate-500 focus-visible:ring-zinc-400 focus-visible:border-zinc-400"
+                      className="w-full bg-transparent outline-none text-[14px] text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                       {...register('email', {
                         required: "L'adresse e-mail est requise",
                         pattern: {
@@ -187,38 +152,52 @@ export default function ForgotPassword() {
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-xs text-red-500">{errors.email.message as string}</p>
+                    <p className="text-[11px] text-rose-500 flex items-center gap-1 mt-1.5">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.email.message as string}
+                    </p>
                   )}
                 </div>
 
-                <Button
+                {/* Submit */}
+                <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="w-full py-6 bg-zinc-800 hover:bg-zinc-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white"
+                  className="mt-6 w-full h-12 rounded-full bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-60 text-white text-[14px] font-bold transition-colors shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
                 >
                   {status === 'loading' ? (
                     <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
                       Envoi en cours…
                     </span>
                   ) : (
-                    'Envoyer le lien de réinitialisation'
+                    <>
+                      Envoyer le lien
+                      <ArrowRight className="h-4 w-4" />
+                    </>
                   )}
-                </Button>
+                </button>
               </form>
 
               <div className="mt-6 text-center">
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center gap-1.5 text-sm text-zinc-500 dark:text-slate-400 hover:text-zinc-800 dark:hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="h-3.5 w-3.5" />
                   Retour à la connexion
                 </Link>
               </div>
             </>
           )}
 
+          {/* Footer */}
+          <p className="text-center text-[11px] text-slate-400 dark:text-slate-600 mt-7">
+            © {new Date().getFullYear()} Zyra · Tous droits réservés
+          </p>
         </div>
       </div>
     </div>

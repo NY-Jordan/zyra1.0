@@ -19,6 +19,7 @@ import {
   Monitor,
   Menu,
   PanelLeftClose,
+  ShieldCheck,
 } from 'lucide-react'
 import { NotificationBell } from '@/presentation/components/notifications/NotificationBell'
 import { useRouter } from 'next/navigation'
@@ -73,10 +74,13 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
               </button>
             )} */}
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-emerald-500/20 flex-shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl overflow-hidden shadow-sm shadow-emerald-500/20 flex-shrink-0">
               {salon?.logo
                 ? <img src={salon.logo} alt={salon.name} className="w-full h-full object-cover" />
-                : <div className="flex h-full w-full items-center justify-center bg-emerald-500"><Store className="h-6 w-6 text-white" /></div>
+                : <>
+                  <img src="/images/icon-light.png" alt="Zyra" className="relative w-44 h-auto dark:hidden" />
+                  <img src="/images/icon-dark.png" alt="Zyra" className="relative hidden w-44 h-auto dark:block" />
+                </>
               }
             </div>
             <div className="min-w-0">
@@ -227,6 +231,14 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
                   >
                     <Settings className="h-4 w-4 mr-3" />
                     Paramètres
+                  </Link>
+
+                  <Link
+                    href="/salon/administration"
+                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    <ShieldCheck className="h-4 w-4 mr-3" />
+                    Administration
                   </Link>
 
                   <Link

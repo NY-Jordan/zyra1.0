@@ -5,21 +5,22 @@
     },
     "firestore": {
       "port": 8080,
-      "host": "localhost",
-      "rules": "firestore.rules",
-      "indexes": "firestore.indexes.json"
+      "host": "localhost"
     },
     "storage": {
-      "enabled": true,
       "port": 9199,
-      "host": "localhost",
-      "rules": "storage.rules"
+      "host": "localhost"
     },
     "ui": {
       "enabled": true,
       "port": 5000
     },
-    "exportOnExit": "./.firebase/data/"
+    "exportOnExit": "./.firebase/data/",
+    "singleProjectMode": true
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   },
   "storage": {
     "rules": "storage.rules"

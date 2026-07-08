@@ -181,9 +181,15 @@ export default function Dashboard() {
             <div className={`${card} p-5`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                    <Store className="w-[18px] h-[18px] text-white" />
-                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl overflow-hidden shadow-sm shadow-emerald-500/20 flex-shrink-0">
+                  {salon?.logo
+                    ? <img src={salon.logo} alt={salon.name} className="w-full h-full object-cover" />
+                    : <>
+                      <img src="/images/icon-light.png" alt="Zyra" className="relative w-44 h-auto dark:hidden" />
+                      <img src="/images/icon-dark.png" alt="Zyra" className="relative hidden w-44 h-auto dark:block" />
+                    </>
+                  }
+                </div>
                   <h3 className="text-[14px] font-extrabold text-slate-800 dark:text-white">Salon connecté</h3>
                 </div>
                 {isReady ? (

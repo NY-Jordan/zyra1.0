@@ -21,6 +21,7 @@ import {
   Activity,
   Bug,
   LifeBuoy,
+  ShieldCheck,
 } from 'lucide-react'
 import { useBookingAccess, BookingAccessState } from '@/hooks/useBookingAccess'
 
@@ -207,6 +208,11 @@ const sidebarItems: SidebarItem[] = [
     href: '/analytics',
     icon: <BarChart3 className="h-5 w-5" />,
     requiresBookingAccess: true,
+  },
+  {
+    label: 'Administration',
+    href: '/salon/administration',
+    icon: <ShieldCheck className="h-5 w-5" />,
   },
   {
     label: 'Paramètres',

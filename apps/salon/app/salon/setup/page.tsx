@@ -80,12 +80,10 @@ export default function SalonSetupPage() {
 
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-            <Scissors className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-[15px] font-bold text-slate-800 dark:text-white tracking-tight">Zyra</span>
-        </div>
+         <>
+              <img src="/images/full-logo-light.png" alt="Zyra" className="relative w-32 h-auto dark:hidden" />
+              <img src="/images/full-logo-dark.png" alt="Zyra" className="relative hidden w-32 h-auto dark:block" />
+            </>
 
         <button
           onClick={handleLogout}
