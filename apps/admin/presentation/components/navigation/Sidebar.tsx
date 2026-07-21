@@ -2,7 +2,7 @@
 
 import {
   LayoutGrid, Building2, Scissors, User, Calendar, CreditCard,
-  Wrench, Package, Settings, Sparkles, ChevronLeft, PanelLeftClose, PanelLeftOpen
+  Wrench, Package, Settings, Sparkles, KeyRound, ChevronLeft, PanelLeftClose, PanelLeftOpen
 } from "lucide-react"
 import MenuItem from "./MenuItem"
 import clsx from "clsx"
@@ -17,6 +17,7 @@ const nav = [
   { icon: Wrench,     label: "Services",          to: "/admin/services" },
   { icon: Package,    label: "Forfaits",          to: "/admin/packages" },
   { icon: Sparkles,   label: "Fonctionnalités",   to: "/admin/features" },
+  { icon: KeyRound,   label: "Permissions",       to: "/admin/permissions" },
   { icon: Settings,   label: "Paramètres",        to: "/admin/settings" },
 ]
 

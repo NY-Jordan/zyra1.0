@@ -2,6 +2,7 @@ import { ICreateSalon } from "@zyra/conf/domain/entities/salons.entities"
 import { createDocument } from "@zyra/conf/lib/query"
 import { uploadLogoFile } from "@zyra/conf/lib/utils"
 import { SalonStatusEnum } from "@zyra/conf/domain/enums/statusEnum"
+import { seedSalonRolePermissions } from "@zyra/conf/lib/permissions"
 
 export async function createSalon({
   salon,
@@ -29,7 +30,7 @@ export async function createSalon({
     photoUrls.push(await uploadLogoFile("salons", file))
   }
 
-  return await createDocument("salons", {
+  const salonId = await createDocument("salons", {
     ...salon,
     photos: photoUrls,
     logo: logoUrl,
@@ -41,6 +42,8 @@ export async function createSalon({
     status: { name: SalonStatusEnum.active, createdAt: new Date() },
     onboardingStep: 'welcome',
   })
+  await seedSalonRolePermissions(salonId)
+  return salonId
 }
 
 

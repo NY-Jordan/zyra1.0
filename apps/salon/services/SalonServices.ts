@@ -1,6 +1,7 @@
 import { ICreateSalon, IRegisterSalon, ISalon } from "@zyra/conf/domain/entities/salons.entities"
 import { IOwner, IRegisterOwner } from "@zyra/conf/domain/entities/owners.entities"
 import { fetchCollection, createDocument, fetchCollectionPaginate, deleteDocument } from "@zyra/conf/lib/query"
+import { seedSalonRolePermissions } from "@zyra/conf/lib/permissions"
 import { where } from "firebase/firestore"
 import { isFileArray, uploadLogoFile } from "@zyra/conf/lib/utils"
 import bcrypt from "bcryptjs"
@@ -57,7 +58,7 @@ export async function registerSalon({
   ownerId = await createOwner(owner)
 
   // Create the salon with ownerId and photo URLs
-   await createDocument("salons", {
+  const salonId = await createDocument("salons", {
     ...salonData,
     ownerId,
     reservationsCount: 0,
@@ -73,6 +74,7 @@ export async function registerSalon({
       createdAt : new Date(),
     }
   })
+  await seedSalonRolePermissions(salonId)
   return {
     email : owner.email,
     password : owner.password

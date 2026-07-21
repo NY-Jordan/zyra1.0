@@ -62,7 +62,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex w-full items-center justify-between h-16">
           <div className="flex min-w-0 items-center gap-3">
-        {/*     {onToggleSidebar && (
+            {onToggleSidebar && (
               <button
                 type="button"
                 onClick={onToggleSidebar}
@@ -72,7 +72,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
                 <span className="hidden lg:flex"><PanelLeftClose className="h-5 w-5" /></span>
                 <span className="flex lg:hidden">{sidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</span>
               </button>
-            )} */}
+            )}
 
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl overflow-hidden shadow-sm shadow-emerald-500/20 flex-shrink-0">
               {salon?.logo

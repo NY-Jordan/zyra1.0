@@ -32,17 +32,11 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { useOwner } from '@/hooks/useOwner'
+import useSalon from '@/hooks/useSalon'
+import { usePermissionsCatalog, useSalonMembers, useSalonRolePermissions } from '@/usecases/administrationUseCases'
 import InviteUserModal from './InviteUserModal'
 import RolesPermissions from './RolesPermissions'
-import {
-  DEFAULT_ROLE_PERMISSIONS,
-  getRole,
-  MOCK_TEAM_MEMBERS,
-  MemberStatus,
-  RoleId,
-  ROLES,
-  TeamMember,
-} from './types'
+import { getRole, MemberStatus, RoleId, ROLES, TeamMember } from './types'
 
 const card = 'bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl'
 
@@ -164,8 +158,17 @@ function MemberCard({ member, locked, onChangeRole, onToggleStatus, onRemove }: 
 
 export default function AdministrationManagement() {
   const { owner } = useOwner()
-  const [members, setMembers] = useState<TeamMember[]>(MOCK_TEAM_MEMBERS)
-  const [rolePermissions, setRolePermissions] = useState(DEFAULT_ROLE_PERMISSIONS)
+  const { salon } = useSalon()
+  const { data: permissionsCatalog = [] } = usePermissionsCatalog()
+  const { rolePermissions, togglePermission } = useSalonRolePermissions()
+  const {
+    members,
+    isLoading: membersLoading,
+    inviteMember,
+    changeMemberRole,
+    toggleMemberStatus,
+    removeMember,
+  } = useSalonMembers()
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | RoleId>('all')
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
@@ -173,6 +176,7 @@ export default function AdministrationManagement() {
 
   const ownerMember: TeamMember = {
     id: 'owner',
+    salonId: salon?.id || '',
     name: owner?.name || 'Vous',
     email: owner?.email || '—',
     roleId: 'owner',
@@ -198,43 +202,37 @@ export default function AdministrationManagement() {
   }, [members, searchTerm, roleFilter])
 
   const handleInvite = ({ name, email, roleId }: { name: string; email: string; roleId: RoleId }) => {
-    setMembers(prev => [
-      ...prev,
-      {
-        id: `member-${Date.now()}`,
-        name,
-        email,
-        roleId,
-        status: 'invited',
-        addedAt: new Date().toISOString().slice(0, 10),
-      },
-    ])
+    inviteMember({ name, email, roleId })
   }
 
   const handleChangeRole = (memberId: string, roleId: RoleId) => {
-    setMembers(prev => prev.map(m => (m.id === memberId ? { ...m, roleId } : m)))
+    changeMemberRole(memberId, roleId)
   }
 
   const handleToggleStatus = (memberId: string) => {
-    setMembers(prev => prev.map(m => (
-      m.id === memberId ? { ...m, status: m.status === 'active' ? 'suspended' : 'active' } : m
-    )))
+    const member = members.find(m => m.id === memberId)
+    if (member) toggleMemberStatus(member)
   }
 
   const confirmRemove = () => {
     if (!memberToRemove) return
-    setMembers(prev => prev.filter(m => m.id !== memberToRemove.id))
+    removeMember(memberToRemove.id)
     setMemberToRemove(null)
   }
 
   const handleTogglePermission = (roleId: RoleId, permissionKey: string) => {
-    setRolePermissions(prev => {
-      const current = prev[roleId] || []
-      const next = current.includes(permissionKey)
-        ? current.filter(k => k !== permissionKey)
-        : [...current, permissionKey]
-      return { ...prev, [roleId]: next }
-    })
+    togglePermission(roleId, permissionKey)
+  }
+
+  if (membersLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4" />
+          <p className="text-slate-400 dark:text-slate-500 text-sm">Chargement de l'équipe...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -340,7 +338,11 @@ export default function AdministrationManagement() {
         </TabsContent>
 
         <TabsContent value="roles" className="mt-4">
-          <RolesPermissions rolePermissions={rolePermissions} onTogglePermission={handleTogglePermission} />
+          <RolesPermissions
+            permissions={permissionsCatalog}
+            rolePermissions={rolePermissions}
+            onTogglePermission={handleTogglePermission}
+          />
         </TabsContent>
       </Tabs>
 
