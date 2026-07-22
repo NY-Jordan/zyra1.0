@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@zyra/ui/components/dropdown-menu'
 import { formatPrice } from '@zyra/conf/lib/utils'
+import { useHasPermission } from '@/hooks/useHasPermission'
 import { useServices } from '@/usecases/useServices'
 import CreateServiceModal from './CreateServiceModal'
 import ConfirmModal from '../../../../admin/presentation/components/CofirmModal'
@@ -36,6 +37,10 @@ interface ServicesManagementProps {
 }
 
 export default function ServicesManagement({ services, categories }: ServicesManagementProps) {
+  const { hasPermission } = useHasPermission()
+  const canCreate = hasPermission('services.create')
+  const canEdit = hasPermission('services.edit')
+  const canDelete = hasPermission('services.delete')
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -199,14 +204,16 @@ export default function ServicesManagement({ services, categories }: ServicesMan
                 <Filter className="h-3.5 w-3.5" />
                 Filtrer
               </button>
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors whitespace-nowrap"
-              >
-                <Plus className="h-4 w-4" />
-                Nouveau Service
-              </button>
+              {canCreate && (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors whitespace-nowrap"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nouveau Service
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -250,21 +257,27 @@ export default function ServicesManagement({ services, categories }: ServicesMan
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="rounded-xl">
-                          <DropdownMenuItem onClick={() => handleEditClick(service)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleToggleActive(service)}>
-                            <RefreshCw className="w-4 h-4" />
-                            {service.isActive !== false ? "Désactiver" : "Activer"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDeleteClick(service)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer
-                          </DropdownMenuItem>
+                          {canEdit && (
+                            <DropdownMenuItem onClick={() => handleEditClick(service)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Modifier
+                            </DropdownMenuItem>
+                          )}
+                          {canEdit && (
+                            <DropdownMenuItem onClick={() => handleToggleActive(service)}>
+                              <RefreshCw className="w-4 h-4" />
+                              {service.isActive !== false ? "Désactiver" : "Activer"}
+                            </DropdownMenuItem>
+                          )}
+                          {canDelete && (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeleteClick(service)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -322,14 +335,16 @@ export default function ServicesManagement({ services, categories }: ServicesMan
             <p className="text-[13px] text-slate-400 mb-4">
               {searchTerm ? 'Aucun service ne correspond à votre recherche.' : 'Commencez par créer votre premier service.'}
             </p>
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Créer votre premier service
-            </button>
+            {canCreate && (
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Créer votre premier service
+              </button>
+            )}
           </div>
         )}
       </div>

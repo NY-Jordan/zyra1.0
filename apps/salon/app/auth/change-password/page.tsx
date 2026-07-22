@@ -3,63 +3,74 @@
 import { useForm, FieldValues } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Mail, Lock, ArrowRight, AlertCircle, Sparkle } from 'lucide-react'
-import { ownerAuthService } from '@/services/ownerAuthService'
-import { useSalon } from '@/hooks/useSalon'
+import { Lock, ArrowRight, AlertCircle, KeyRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { onAuthStateChanged, updatePassword } from 'firebase/auth'
+import { where } from 'firebase/firestore'
 import { auth } from '@zyra/conf/lib/firebase'
+import { fetchCollection, editDocument } from '@zyra/conf/lib/query'
+import { ISalonMember } from '@zyra/conf/domain/entities/permissions.entities'
+import { useSalon } from '@/hooks/useSalon'
 
-export default function Login() {
-  const { register, handleSubmit, formState: { errors } } = useForm()
+export default function ChangePassword() {
+  const { register, handleSubmit, formState: { errors }, watch } = useForm()
   const [isLoading, setIsLoading] = useState(false)
-  const [connectionError, setConnectionError] = useState('')
+  const [error, setError] = useState('')
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const router = useRouter()
   const { switchSalon } = useSalon()
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, user => {
-      if (user) router.replace('/salon/setup')
+      if (!user) {
+        router.replace('/auth/login')
+        return
+      }
+      setCheckingAuth(false)
     })
     return unsub
   }, [router])
 
-  const handleAuth = async (data: FieldValues) => {
-    setConnectionError('')
+  const onSubmit = async (data: FieldValues) => {
+    if (!auth.currentUser) {
+      router.replace('/auth/login')
+      return
+    }
+    if (data.newPassword !== data.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.')
+      return
+    }
+
+    setError('')
     setIsLoading(true)
     try {
-      const user = await ownerAuthService.login(data.email, data.password)
-      const context = await ownerAuthService.getAccountContext(user.uid)
+      await updatePassword(auth.currentUser, data.newPassword)
 
-      if (context.type === 'owner') {
-        if (typeof window !== 'undefined') localStorage.removeItem('salonId')
-        toast.success('Connexion réussie')
-        window.location.href = '/salon/setup'
-        return
+      const members = await fetchCollection('salon_members', [
+        where('uid', '==', auth.currentUser.uid),
+      ]) as ISalonMember[]
+      const member = members[0]
+      if (member) {
+        await editDocument('salon_members', member.id, { mustChangePassword: false })
+        switchSalon(member.salonId)
       }
 
-      if (context.type === 'member') {
-        if (context.member.status === 'suspended') {
-          await signOut(auth)
-          setConnectionError('Votre accès a été suspendu. Contactez le propriétaire du salon.')
-          return
-        }
-        switchSalon(context.member.salonId)
-        toast.success('Connexion réussie')
-        window.location.href = context.member.mustChangePassword
-          ? '/auth/change-password'
-          : '/salon/dashboard'
-        return
+      toast.success('Mot de passe mis à jour avec succès')
+      window.location.href = '/salon/dashboard'
+    } catch (err: any) {
+      if (err.code === 'auth/requires-recent-login') {
+        setError('Votre session a expiré. Veuillez vous reconnecter puis réessayer.')
+      } else if (err.code === 'auth/weak-password') {
+        setError('Le mot de passe est trop faible.')
+      } else {
+        setError('Une erreur est survenue. Veuillez réessayer.')
       }
-
-      await signOut(auth)
-      setConnectionError('Ce compte est introuvable. Contactez le support Zyra.')
-    } catch (error: any) {
-      setConnectionError(error.message || 'Une erreur est survenue. Vérifiez votre connexion internet.')
     } finally {
       setIsLoading(false)
     }
   }
+
+  if (checkingAuth) return null
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 py-12 overflow-hidden bg-gradient-to-br from-slate-100 via-white to-slate-100 dark:from-[#080A0E] dark:via-[#0B0E12] dark:to-[#0F1319]">
@@ -75,90 +86,87 @@ export default function Login() {
       {/* Radial vignette to keep focus on the card */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_35%,_rgba(255,255,255,0.6)_100%)] dark:bg-[radial-gradient(ellipse_at_center,_transparent_35%,_rgba(3,5,8,0.5)_100%)]" />
 
-
       <div className="relative w-full max-w-[420px]">
 
         {/* Card */}
         <div className="relative rounded-[28px] border border-slate-200 dark:border-white/5 shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.55)] bg-[linear-gradient(120deg,#ffffff_46%,#f3f5f7_54%)] dark:bg-[linear-gradient(120deg,#12151b_46%,#1b232f_54%)] px-8 pt-10 pb-8 overflow-hidden">
 
-          {/* Logo */}
-          <div className="relative flex justify-center mb-9">
-            <div className="absolute h-fit w-fit  bg-emerald-400/25 dark:bg-emerald-500/20 blur-3xl" />
-            <img src="/images/logo-light.png" alt="Zyra" className="relative w-44 h-auto dark:hidden" />
-            <img src="/images/logo-dark.png" alt="Zyra" className="relative hidden w-44 h-auto dark:block" />
+          {/* Icon */}
+          <div className="flex justify-center mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-[#EEF8F0] dark:bg-emerald-950/20 flex items-center justify-center text-emerald-600">
+              <KeyRound className="h-6 w-6" />
+            </div>
           </div>
 
-          {/* Connection error */}
-          {connectionError && (
+          <div className="text-center mb-7">
+            <h2 className="text-[17px] font-bold text-slate-800 dark:text-white mb-2">
+              Choisissez votre mot de passe
+            </h2>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              Pour des raisons de sécurité, vous devez définir un nouveau mot de
+              passe avant d'accéder à votre espace.
+            </p>
+          </div>
+
+          {/* Error */}
+          {error && (
             <div className="flex items-start gap-2.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-400 rounded-xl px-4 py-3 mb-5 text-[13px]">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-              <p>{connectionError}</p>
+              <p>{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit(handleAuth)}>
+          <form onSubmit={handleSubmit(onSubmit)}>
 
             {/* Fields box */}
             <div className="rounded-2xl border border-slate-200 dark:border-white/10 px-5 py-5 space-y-5">
 
-              {/* Email */}
+              {/* New password */}
               <div>
                 <label className="block text-[10px] font-semibold tracking-[0.15em] text-slate-400 dark:text-slate-500 uppercase mb-2">
-                  Adresse e-mail
+                  Nouveau mot de passe
                 </label>
-                <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500 pb-2 transition-colors">
-                  <Mail className="h-4 w-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
-                  <input
-                    type="email"
-                    placeholder="exemple@domaine.com"
-                    className="w-full bg-transparent outline-none text-[14px] text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                    {...register('email', {
-                      required: "L'adresse e-mail est requise",
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "L'adresse e-mail est invalide",
-                      },
-                    })}
-                  />
-                </div>
-                {errors.email && (
-                  <p className="text-[11px] text-rose-500 flex items-center gap-1 mt-1.5">
-                    <AlertCircle className="h-3 w-3" />
-                    {errors.email.message as string}
-                  </p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 dark:text-slate-500 uppercase">
-                    Mot de passe
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => router.push('/auth/forgot-password')}
-                    className="text-[11px] text-[#16A34A] hover:text-[#15803D] dark:text-[#22C55E] hover:underline font-semibold"
-                  >
-                    Oublié ?
-                  </button>
-                </div>
                 <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500 pb-2 transition-colors">
                   <Lock className="h-4 w-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
                   <input
                     type="password"
                     placeholder="••••••••"
                     className="w-full bg-transparent outline-none text-[14px] text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                    {...register('password', {
-                      required: 'Le mot de passe est requis',
+                    {...register('newPassword', {
+                      required: 'Le nouveau mot de passe est requis',
                       minLength: { value: 6, message: 'Le mot de passe doit contenir au moins 6 caractères' },
                     })}
                   />
                 </div>
-                {errors.password && (
+                {errors.newPassword && (
                   <p className="text-[11px] text-rose-500 flex items-center gap-1 mt-1.5">
                     <AlertCircle className="h-3 w-3" />
-                    {errors.password.message as string}
+                    {errors.newPassword.message as string}
+                  </p>
+                )}
+              </div>
+
+              {/* Confirm password */}
+              <div>
+                <label className="block text-[10px] font-semibold tracking-[0.15em] text-slate-400 dark:text-slate-500 uppercase mb-2">
+                  Confirmer le mot de passe
+                </label>
+                <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500 pb-2 transition-colors">
+                  <Lock className="h-4 w-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full bg-transparent outline-none text-[14px] text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                    {...register('confirmPassword', {
+                      required: 'Veuillez confirmer le mot de passe',
+                      validate: (value) => value === watch('newPassword') || 'Les mots de passe ne correspondent pas',
+                    })}
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-[11px] text-rose-500 flex items-center gap-1 mt-1.5">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.confirmPassword.message as string}
                   </p>
                 )}
               </div>
@@ -176,11 +184,11 @@ export default function Login() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Connexion…
+                  Mise à jour…
                 </span>
               ) : (
                 <>
-                  Se connecter
+                  Continuer
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}

@@ -10,11 +10,24 @@ import {
   ResourceType,
 } from '@/types/notifications.types'
 
+/**
+ * Nom de l'utilisateur connecté (owner ou membre), tenu à jour par
+ * `Navbar.tsx` (monté partout où `getCurrentActor` peut être appelé).
+ * `auth.currentUser.displayName` n'est pas fiable : jamais renseigné pour un
+ * owner (créé sans `updateProfile`), donc on privilégie nos propres données
+ * (`owners`/`salon_members`) dès qu'elles sont disponibles.
+ */
+let cachedActorName: string | null = null
+
+export function setCachedActorName(name: string | null) {
+  cachedActorName = name
+}
+
 export function getCurrentActor(): { actorId: string; actorName: string } {
   const user = auth.currentUser
   return {
     actorId: user?.uid ?? 'system',
-    actorName: user?.displayName ?? 'Système',
+    actorName: cachedActorName ?? user?.displayName ?? 'Système',
   }
 }
 

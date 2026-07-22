@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
 import { Calendar, Check, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
 import { Timestamp, where } from 'firebase/firestore'
 import { createDocument, editDocument, fetchCollection } from '@zyra/conf/lib/query'
-import { logActivity, createNotification } from '@/usecases/notificationsUseCases'
+import { logActivity, createNotification, getCurrentActor } from '@/usecases/notificationsUseCases'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { IReservation, IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
@@ -242,8 +242,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
         logActivity({
           salonId: salon.id,
           type: 'reservation_created',
-          actorId: 'system',
-          actorName: 'Système',
+          ...getCurrentActor(),
           action: 'created',
           resourceId: reservationId,
           resourceType: 'reservation',

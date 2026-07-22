@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@zyra/ui/components/alert-dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@zyra/ui/components/dialog'
 import {
   Search,
   UserPlus,
@@ -30,11 +31,15 @@ import {
   UserX,
   Trash2,
   ShieldCheck,
+  Copy,
+  Check,
+  KeyRound,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useOwner } from '@/hooks/useOwner'
 import useSalon from '@/hooks/useSalon'
 import { usePermissionsCatalog, useSalonMembers, useSalonRolePermissions } from '@/usecases/administrationUseCases'
-import InviteUserModal from './InviteUserModal'
+import AddMemberModal from './AddMemberModal'
 import RolesPermissions from './RolesPermissions'
 import { getRole, MemberStatus, RoleId, ROLES, TeamMember } from './types'
 
@@ -164,23 +169,28 @@ export default function AdministrationManagement() {
   const {
     members,
     isLoading: membersLoading,
-    inviteMember,
+    addMember,
+    isAddingMember,
     changeMemberRole,
     toggleMemberStatus,
     removeMember,
   } = useSalonMembers()
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | RoleId>('all')
-  const [inviteModalOpen, setInviteModalOpen] = useState(false)
+  const [addMemberModalOpen, setAddMemberModalOpen] = useState(false)
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null)
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [passwordCopied, setPasswordCopied] = useState(false)
 
   const ownerMember: TeamMember = {
     id: 'owner',
+    uid: owner?.id || 'owner',
     salonId: salon?.id || '',
     name: owner?.name || 'Vous',
     email: owner?.email || '—',
     roleId: 'owner',
     status: 'active',
+    mustChangePassword: false,
     addedAt: '—',
   }
 
@@ -201,8 +211,22 @@ export default function AdministrationManagement() {
     })
   }, [members, searchTerm, roleFilter])
 
-  const handleInvite = ({ name, email, roleId }: { name: string; email: string; roleId: RoleId }) => {
-    inviteMember({ name, email, roleId })
+  const handleAddMember = async (data: { name: string; email: string; roleId: RoleId; sendCredentials: boolean }) => {
+    try {
+      const result = await addMember(data)
+      setAddMemberModalOpen(false)
+      setGeneratedPassword(result.password)
+      toast.success('Membre créé avec succès')
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la création du membre')
+    }
+  }
+
+  const handleCopyPassword = () => {
+    if (!generatedPassword) return
+    navigator.clipboard.writeText(generatedPassword)
+    setPasswordCopied(true)
+    setTimeout(() => setPasswordCopied(false), 2000)
   }
 
   const handleChangeRole = (memberId: string, roleId: RoleId) => {
@@ -216,7 +240,7 @@ export default function AdministrationManagement() {
 
   const confirmRemove = () => {
     if (!memberToRemove) return
-    removeMember(memberToRemove.id)
+    removeMember(memberToRemove)
     setMemberToRemove(null)
   }
 
@@ -247,11 +271,11 @@ export default function AdministrationManagement() {
         </div>
         <button
           type="button"
-          onClick={() => setInviteModalOpen(true)}
+          onClick={() => setAddMemberModalOpen(true)}
           className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors"
         >
           <UserPlus className="h-4 w-4" />
-          Inviter un membre
+          Ajouter un membre
         </button>
       </div>
 
@@ -346,8 +370,51 @@ export default function AdministrationManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Invitation */}
-      <InviteUserModal open={inviteModalOpen} onOpenChange={setInviteModalOpen} onInvite={handleInvite} />
+      {/* Ajout d'un membre */}
+      <AddMemberModal
+        open={addMemberModalOpen}
+        onOpenChange={setAddMemberModalOpen}
+        onAddMember={handleAddMember}
+        isSubmitting={isAddingMember}
+      />
+
+      {/* Mot de passe généré (affiché une seule fois) */}
+      <Dialog open={!!generatedPassword} onOpenChange={(o) => { if (!o) { setGeneratedPassword(null); setPasswordCopied(false) } }}>
+        <DialogContent className="rounded-2xl border-[#F0EAE4] dark:border-slate-800/50 sm:max-w-[420px]">
+          <DialogHeader>
+            <div className="w-10 h-10 rounded-xl bg-[#EEF8F0] dark:bg-emerald-950/20 flex items-center justify-center text-emerald-600 mb-2">
+              <KeyRound className="h-5 w-5" />
+            </div>
+            <DialogTitle className="text-[16px] font-extrabold text-slate-800 dark:text-white">
+              Membre créé avec succès
+            </DialogTitle>
+            <DialogDescription className="text-[12px] text-slate-500 dark:text-slate-400">
+              Voici le mot de passe généré. Il ne sera plus affiché ensuite — copiez-le pour le
+              communiquer au membre si vous n'avez pas choisi de le lui envoyer par e-mail.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2 bg-[#F8F4F0] dark:bg-slate-800/50 rounded-xl px-3 py-2.5">
+            <code className="flex-1 text-[13px] font-mono text-slate-800 dark:text-white truncate">
+              {generatedPassword}
+            </code>
+            <button
+              type="button"
+              onClick={handleCopyPassword}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-900 transition-colors flex-shrink-0"
+              aria-label="Copier le mot de passe"
+            >
+              {passwordCopied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setGeneratedPassword(null); setPasswordCopied(false) }}
+            className="w-full h-10 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+          >
+            J'ai copié le mot de passe
+          </button>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation de retrait */}
       <AlertDialog open={!!memberToRemove} onOpenChange={(o) => { if (!o) setMemberToRemove(null) }}>

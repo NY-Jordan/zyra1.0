@@ -4,6 +4,12 @@ import { auth } from "@zyra/conf/lib/firebase";
 import { editDocument, fetchCollection } from "@zyra/conf/lib/query";
 import { ISubscription } from "@zyra/conf/domain/entities/subscriptions.entities";
 import { SalonStatusEnum } from "@zyra/conf/domain/enums/statusEnum";
+import { ISalonMember } from "@zyra/conf/domain/entities/permissions.entities";
+
+export type AccountContext =
+  | { type: 'owner' }
+  | { type: 'member'; member: ISalonMember }
+  | { type: 'unknown' }
 
 /**
  * Service d'authentification qui gère la connexion et la vérification des abonnements
@@ -62,6 +68,26 @@ export const ownerAuthService = {
     } catch (error) {
       console.error("Erreur lors de la récupération du propriétaire:", error);
       throw error;
+    }
+  },
+
+  /**
+   * Détermine si l'utilisateur Firebase Auth courant est un owner, un membre
+   * d'équipe (`salon_members`), ou un compte incohérent (aucun des deux).
+   * @param uid UID Firebase Auth
+   */
+  async getAccountContext(uid: string): Promise<AccountContext> {
+    try {
+      await this.getOwnerById(uid);
+      return { type: 'owner' };
+    } catch {
+      const members = await fetchCollection("salon_members", [
+        where("uid", "==", uid),
+      ]) as ISalonMember[];
+      if (members.length > 0) {
+        return { type: 'member', member: members[0] };
+      }
+      return { type: 'unknown' };
     }
   },
 

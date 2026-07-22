@@ -27,6 +27,7 @@ import {
 } from '@zyra/ui/components/dropdown-menu'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface HairDresserCardProps {
   hairDresser: HairDresserWithSalonAssociation
@@ -45,9 +46,13 @@ export default function HairDresserCard({
   onEditClick,
   onViewClick,
   isToggling = false,
-  isDeleting = false 
+  isDeleting = false
 }: HairDresserCardProps) {
-  
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('hairdressers.edit')
+  const canChangeStatus = hasPermission('hairdressers.status')
+  const canDelete = hasPermission('hairdressers.delete')
+
   const getStatusColor = (active: boolean) => {
     switch (active) {
       case true:
@@ -160,32 +165,36 @@ export default function HairDresserCard({
                   Voir les détails
                 </DropdownMenuItem>
               )}
-              {onEditClick && (
+              {onEditClick && canEdit && (
                 <DropdownMenuItem onClick={() => onEditClick(hairDresser)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Modifier
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={handleStatusClick}>
-                {hairDresser.associationHairdresser.active === true ? (
-                  <>
-                    <Ban className="h-4 w-4 mr-2" />
-                    Suspendre
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Activer
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="text-destructive"
-                onClick={handleDeleteClick}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Supprimer
-              </DropdownMenuItem>
+              {canChangeStatus && (
+                <DropdownMenuItem onClick={handleStatusClick}>
+                  {hairDresser.associationHairdresser.active === true ? (
+                    <>
+                      <Ban className="h-4 w-4 mr-2" />
+                      Suspendre
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Activer
+                    </>
+                  )}
+                </DropdownMenuItem>
+              )}
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={handleDeleteClick}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

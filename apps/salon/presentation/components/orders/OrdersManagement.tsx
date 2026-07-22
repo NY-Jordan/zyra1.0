@@ -13,6 +13,7 @@ import {
   Calendar as CalendarIcon,
 } from 'lucide-react'
 import { useSalon } from '@/hooks/useSalon'
+import { useHasPermission } from '@/hooks/useHasPermission'
 import { useHairDressers } from '@/usecases/useHairDressers'
 import { useQuery } from '@tanstack/react-query'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
@@ -56,6 +57,7 @@ function KpiCard({ icon, label, value, bg, iconColor }: {
 export default function OrdersManagement() {
   const { salon } = useSalon()
   const { hairDressers } = useHairDressers()
+  const { hasPermission } = useHasPermission()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [paymentFilter, setPaymentFilter] = useState<string>('all')
@@ -167,14 +169,16 @@ export default function OrdersManagement() {
             Gérez les commandes de votre salon
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsNewOrderModalOpen(true)}
-          className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Nouvelle commande
-        </button>
+        {hasPermission('orders.create') && (
+          <button
+            type="button"
+            onClick={() => setIsNewOrderModalOpen(true)}
+            className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Nouvelle commande
+          </button>
+        )}
       </div>
 
       {/* Statistiques */}
@@ -335,7 +339,7 @@ export default function OrdersManagement() {
                 ? 'Aucune commande ne correspond à vos filtres.'
                 : 'Commencez par créer votre première commande.'}
             </p>
-            {!searchTerm && statusFilter === 'all' && paymentFilter === 'all' && hairDresserFilter === 'all' && (
+            {!searchTerm && statusFilter === 'all' && paymentFilter === 'all' && hairDresserFilter === 'all' && hasPermission('orders.create') && (
               <button
                 type="button"
                 onClick={() => setIsNewOrderModalOpen(true)}

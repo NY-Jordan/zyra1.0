@@ -10,6 +10,7 @@ import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon, OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
 import { DAYS_OF_WEEK } from '@zyra/conf/lib/utils'
 import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface SalonOpeningHoursProps {
   salon: ISalon
@@ -18,6 +19,8 @@ interface SalonOpeningHoursProps {
 
 
 export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHoursProps) {
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('settings.hours')
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [editingSlot, setEditingSlot] = useState<OpeningHour | null>(null)
@@ -179,7 +182,7 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
                     </td>
                     <td className="px-4 py-2">
                       <div className="flex gap-2">
-                        {!isCurrentlyEditing && (
+                        {!isCurrentlyEditing && canEdit && (
                           <>
                             <Button 
                               size="sm" 

@@ -25,6 +25,8 @@ import {
   Scissors,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { adminAuth } from '@zyra/conf/lib/firebase-admin'
+import { unknown } from 'zod'
 
 const card = 'bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl'
 

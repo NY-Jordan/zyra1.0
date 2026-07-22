@@ -34,6 +34,7 @@ import { toast } from 'sonner'
 import { hairDresserInvitationStatusEnum, IHairDresserInvitation } from '@zyra/conf/domain/entities/hairdressers.entities'
 import EditInvitationModal from './EditInvitationModal'
 import { formatDate } from '@zyra/conf/lib/utils'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface InvitationsSheetProps {
   open: boolean
@@ -54,6 +55,8 @@ const DAYS_OF_WEEK = [
 
 export default function InvitationsSheet({ open, onOpenChange }: InvitationsSheetProps) {
   const { salon } = useSalon()
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('hairdressers.edit')
   const [selectedInvitation, setSelectedInvitation] = useState<IHairDresserInvitation | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
 
@@ -143,13 +146,13 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
                   </h3>
                   <div className="space-y-3">
                     {groupedInvitations.pending.map((invitation) => (
-                      <InvitationCard 
-                        key={invitation.id} 
-                        invitation={invitation} 
-                        onEdit={() => {
+                      <InvitationCard
+                        key={invitation.id}
+                        invitation={invitation}
+                        onEdit={canEdit ? () => {
                           setSelectedInvitation(invitation)
                           setEditModalOpen(true)
-                        }}
+                        } : undefined}
                       />
                     ))}
                   </div>

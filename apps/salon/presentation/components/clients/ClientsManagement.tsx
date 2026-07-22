@@ -34,6 +34,7 @@ import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import ClientFormModal from './ClientFormModal'
 import { ClientActivitySheet } from './ClientActivitySheet'
 import { useDeleteClient } from '@/usecases/clientsUseCases'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 const ITEMS_PER_PAGE = 9
 
@@ -63,6 +64,9 @@ function ClientCard({ client, onEdit, onDelete, onViewActivity }: {
   onDelete: () => void
   onViewActivity: () => void
 }) {
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('clients.edit')
+  const canDelete = hasPermission('clients.delete')
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 
@@ -91,22 +95,26 @@ function ClientCard({ client, onEdit, onDelete, onViewActivity }: {
           >
             <History className="h-3.5 w-3.5" />
           </button>
-          <button
-            type="button"
-            onClick={onEdit}
-            aria-label="Modifier"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-[#F5F2EF] hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-          >
-            <Edit className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={onDelete}
-            aria-label="Supprimer"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label="Modifier"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-[#F5F2EF] hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+            >
+              <Edit className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label="Supprimer"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -135,6 +143,8 @@ function ClientCard({ client, onEdit, onDelete, onViewActivity }: {
 
 export default function ClientsManagement() {
   const { salon } = useSalon()
+  const { hasPermission } = useHasPermission()
+  const canCreate = hasPermission('clients.create')
   const [searchTerm, setSearchTerm] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<IClient | null>(null)
@@ -213,14 +223,16 @@ export default function ClientsManagement() {
             Gérez vos clients réguliers
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleNewClient}
-          className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Nouveau client
-        </button>
+        {canCreate && (
+          <button
+            type="button"
+            onClick={handleNewClient}
+            className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Nouveau client
+          </button>
+        )}
       </div>
 
       {/* Statistiques */}
@@ -269,7 +281,7 @@ export default function ClientsManagement() {
               ? 'Aucun client ne correspond à votre recherche.'
               : 'Commencez par ajouter votre premier client.'}
           </p>
-          {!searchTerm && (
+          {!searchTerm && canCreate && (
             <button
               type="button"
               onClick={handleNewClient}

@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
 import { Input } from '@zyra/ui/components/input'
+import { Checkbox } from '@zyra/ui/components/checkbox'
 import {
   Select,
   SelectContent,
@@ -10,13 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@zyra/ui/components/select'
-import { UserPlus, Send, X } from 'lucide-react'
+import { UserPlus, Send, X, Loader2 } from 'lucide-react'
 import { ROLES, RoleId } from './types'
 
-interface InviteUserModalProps {
+interface AddMemberModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onInvite: (data: { name: string; email: string; roleId: RoleId }) => void
+  onAddMember: (data: { name: string; email: string; roleId: RoleId; sendCredentials: boolean }) => void
+  isSubmitting?: boolean
 }
 
 function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
@@ -27,25 +29,27 @@ function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?
   )
 }
 
-const assignableRoles = ROLES.filter(r => !r.locked)
+// Le coiffeur est déjà géré (compte + association au salon) par le module Coiffeurs.
+const assignableRoles = ROLES.filter(r => !r.locked && r.id !== 'hairdresser')
 
-export default function InviteUserModal({ open, onOpenChange, onInvite }: InviteUserModalProps) {
+export default function AddMemberModal({ open, onOpenChange, onAddMember, isSubmitting }: AddMemberModalProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [roleId, setRoleId] = useState<RoleId>(assignableRoles[0].id)
+  const [sendCredentials, setSendCredentials] = useState(true)
 
   const handleClose = () => {
     setName('')
     setEmail('')
     setRoleId(assignableRoles[0].id)
+    setSendCredentials(true)
     onOpenChange(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !email.trim()) return
-    onInvite({ name: name.trim(), email: email.trim(), roleId })
-    handleClose()
+    onAddMember({ name: name.trim(), email: email.trim(), roleId, sendCredentials })
   }
 
   return (
@@ -64,11 +68,11 @@ export default function InviteUserModal({ open, onOpenChange, onInvite }: Invite
             <UserPlus className="h-5 w-5" />
           </div>
           <DialogTitle className="text-[16px] font-extrabold text-slate-800 dark:text-white">
-            Inviter un membre
+            Ajouter un membre
           </DialogTitle>
         </div>
         <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">
-          Un accès sera créé pour cette personne selon le rôle choisi.
+          Un compte est créé immédiatement avec un mot de passe généré automatiquement.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -116,12 +120,28 @@ export default function InviteUserModal({ open, onOpenChange, onInvite }: Invite
             </p>
           </div>
 
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <Checkbox
+              checked={sendCredentials}
+              onCheckedChange={(v) => setSendCredentials(v === true)}
+              className="mt-0.5"
+            />
+            <span className="text-[12px] text-slate-600 dark:text-slate-300">
+              Inclure les accès (mot de passe) dans l'e-mail envoyé au membre
+            </span>
+          </label>
+
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-1.5 h-11 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors"
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-1.5 h-11 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors disabled:opacity-60"
           >
-            <Send className="h-4 w-4" />
-            Envoyer l'invitation
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            Créer le membre
           </button>
         </form>
       </DialogContent>

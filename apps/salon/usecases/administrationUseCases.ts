@@ -4,22 +4,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { where } from 'firebase/firestore'
 import {
   fetchCollection,
-  createDocument,
   editDocument,
-  deleteDocument,
   fetchSubCollection,
   updateSubCollectionDocument,
+  createSubCollectionDocument,
 } from '@zyra/conf/lib/query'
 import { seedSalonRolePermissions } from '@zyra/conf/lib/permissions'
 import {
   IPermission,
   ISalonMember,
   ISalonRolePermissions,
-  MemberStatus,
   PERMISSIONS_COLLECTION,
   PERMISSIONS_SEED,
   ROLE_PERMISSIONS_SUBCOLLECTION,
   SALON_MEMBERS_COLLECTION,
+  ROLE_IDS,
+  DEFAULT_ROLE_PERMISSIONS,
   RoleId,
   isPermissionLocked,
 } from '@zyra/conf/domain/entities/permissions.entities'
@@ -55,10 +55,44 @@ export function useSalonRolePermissions() {
         await seedSalonRolePermissions(salonId)
         docs = (await fetchSubCollection('salons', salonId, ROLE_PERMISSIONS_SUBCOLLECTION)) as ISalonRolePermissions[]
       }
-      return docs.reduce((acc, doc) => {
+
+      const byRole = docs.reduce((acc, doc) => {
         acc[doc.roleId] = doc.permissionKeys || []
         return acc
       }, {} as Record<RoleId, string[]>)
+
+      // Clés déjà "vues" pour ce rôle (actives ou explicitement décochées).
+      // Fallback sur permissionKeys pour les docs créés avant l'ajout de ce
+      // champ : leurs clés déjà actives sont donc considérées comme connues.
+      const knownByRole = docs.reduce((acc, doc) => {
+        acc[doc.roleId] = doc.knownPermissionKeys || doc.permissionKeys || []
+        return acc
+      }, {} as Record<RoleId, string[]>)
+
+      // Complète UNIQUEMENT avec les clés réellement nouvelles du catalogue
+      // par défaut (jamais vues auparavant) — une permission déjà connue et
+      // décochée par l'owner ne sera donc plus jamais recochée automatiquement.
+      await Promise.all(
+        ROLE_IDS.map(async roleId => {
+          const currentActive = byRole[roleId] || []
+          const known = knownByRole[roleId] || []
+          const newlyKnown = (DEFAULT_ROLE_PERMISSIONS[roleId] || []).filter(k => !known.includes(k))
+          if (newlyKnown.length === 0) return
+          const nextActive = [...currentActive, ...newlyKnown]
+          const nextKnown = [...known, ...newlyKnown]
+          byRole[roleId] = nextActive
+          const data = { permissionKeys: nextActive, knownPermissionKeys: nextKnown }
+          if (docs.some(d => d.roleId === roleId)) {
+            await updateSubCollectionDocument('salons', salonId, ROLE_PERMISSIONS_SUBCOLLECTION, roleId, data)
+          } else {
+            await createSubCollectionDocument(
+              'salons', salonId, ROLE_PERMISSIONS_SUBCOLLECTION, { roleId, ...data }, roleId
+            )
+          }
+        })
+      )
+
+      return byRole
     },
     enabled: !!salonId,
   })
@@ -70,11 +104,14 @@ export function useSalonRolePermissions() {
         where('roleId', '==', roleId),
       ])) as ISalonRolePermissions[]
       const current = docs[0]?.permissionKeys || []
+      const known = docs[0]?.knownPermissionKeys || current
       const next = current.includes(permissionKey)
         ? current.filter(k => k !== permissionKey)
         : [...current, permissionKey]
+      const nextKnown = known.includes(permissionKey) ? known : [...known, permissionKey]
       await updateSubCollectionDocument('salons', salonId, ROLE_PERMISSIONS_SUBCOLLECTION, roleId, {
         permissionKeys: next,
+        knownPermissionKeys: nextKnown,
       })
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
@@ -89,7 +126,7 @@ export function useSalonRolePermissions() {
 
 /** Membres et invitations du salon courant (collection plate `salon_members`). */
 export function useSalonMembers() {
-  const { salonId } = useSalon()
+  const { salon, salonId } = useSalon()
   const queryClient = useQueryClient()
   const queryKey = ['salon-members', salonId]
   const invalidate = () => queryClient.invalidateQueries({ queryKey })
@@ -103,17 +140,27 @@ export function useSalonMembers() {
     enabled: !!salonId,
   })
 
-  const inviteMutation = useMutation({
-    mutationFn: async ({ name, email, roleId }: { name: string; email: string; roleId: RoleId }) => {
+  const addMemberMutation = useMutation({
+    mutationFn: async ({
+      name,
+      email,
+      roleId,
+      sendCredentials,
+    }: {
+      name: string
+      email: string
+      roleId: RoleId
+      sendCredentials: boolean
+    }) => {
       if (!salonId) throw new Error('Salon non trouvé')
-      return createDocument(SALON_MEMBERS_COLLECTION, {
-        salonId,
-        name,
-        email,
-        roleId,
-        status: 'invited' as MemberStatus,
-        addedAt: new Date().toISOString().slice(0, 10),
+      const res = await fetch('/api/members/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ salonId, salonName: salon?.name, name, email, roleId, sendCredentials }),
       })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la création du membre')
+      return data as { id: string; password: string }
     },
     onSuccess: invalidate,
   })
@@ -133,16 +180,26 @@ export function useSalonMembers() {
   })
 
   const removeMutation = useMutation({
-    mutationFn: async (memberId: string) => deleteDocument(SALON_MEMBERS_COLLECTION, memberId),
+    mutationFn: async (member: ISalonMember) => {
+      const res = await fetch('/api/members/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: member.uid }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la suppression du membre')
+    },
     onSuccess: invalidate,
   })
 
   return {
     members: query.data || [],
     isLoading: query.isLoading,
-    inviteMember: (data: { name: string; email: string; roleId: RoleId }) => inviteMutation.mutate(data),
+    addMember: (data: { name: string; email: string; roleId: RoleId; sendCredentials: boolean }) =>
+      addMemberMutation.mutateAsync(data),
+    isAddingMember: addMemberMutation.isPending,
     changeMemberRole: (memberId: string, roleId: RoleId) => changeRoleMutation.mutate({ memberId, roleId }),
     toggleMemberStatus: (member: ISalonMember) => toggleStatusMutation.mutate(member),
-    removeMember: (memberId: string) => removeMutation.mutate(memberId),
+    removeMember: (member: ISalonMember) => removeMutation.mutate(member),
   }
 }

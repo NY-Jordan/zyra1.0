@@ -30,11 +30,14 @@ import HairDresserDetailsModal from './HairDresserDetailsModal'
 import InviteHairDresserModal from './InviteHairDresserModal'
 import InvitationsSheet from './InvitationsSheet'
 import { useSalon } from '@/hooks/useSalon'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 
 
 export default function HairDressersManagement() {
   const { salon } = useSalon()
+  const { hasPermission } = useHasPermission()
+  const canInvite = hasPermission('hairdressers.invite')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all')
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
@@ -257,10 +260,12 @@ export default function HairDressersManagement() {
                   <Mail className="h-4 w-4 mr-2" />
                   Voir les invitations
                 </Button>
-                <Button onClick={() => setInviteModalOpen(true)}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Inviter un coiffeur
-                </Button>
+                {canInvite && (
+                  <Button onClick={() => setInviteModalOpen(true)}>
+                    <Send className="h-4 w-4 mr-2" />
+                    Inviter un coiffeur
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -295,7 +300,7 @@ export default function HairDressersManagement() {
                         : 'Commencez par ajouter des coiffeurs à votre salon'
                       }
                     </p>
-                    {!searchTerm && statusFilter === 'all' && (
+                    {!searchTerm && statusFilter === 'all' && canInvite && (
                       <Button onClick={() => setInviteModalOpen(true)}>
                         <Send className="h-4 w-4 mr-2" />
                         Inviter votre premier coiffeur

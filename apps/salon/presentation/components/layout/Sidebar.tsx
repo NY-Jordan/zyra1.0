@@ -24,6 +24,8 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { useBookingAccess, BookingAccessState } from '@/hooks/useBookingAccess'
+import { useSalonMember } from '@/hooks/useSalonMember'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 // ── Portal tooltip ────────────────────────────────────────────────────────────
 
@@ -161,6 +163,10 @@ interface SidebarItem {
   icon: React.ReactNode
   badge?: string
   requiresBookingAccess?: boolean
+  /** Clé de permission requise pour un membre (non-owner) ; owner voit toujours tout. */
+  permissionKey?: string
+  /** Réservé au owner, quel que soit l'état de la matrice de permissions. */
+  ownerOnly?: boolean
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -174,50 +180,59 @@ const sidebarItems: SidebarItem[] = [
     href: '/salon/reservations',
     icon: <Calendar className="h-5 w-5" />,
     requiresBookingAccess: true,
+    permissionKey: 'bookings.view',
   },
   {
     label: 'Commandes',
     href: '/salon/orders',
     icon: <ShoppingBag className="h-5 w-5" />,
     requiresBookingAccess: true,
+    permissionKey: 'orders.view',
   },
   {
     label: 'Services',
     href: '/salon/services',
     icon: <Scissors className="h-5 w-5" />,
+    permissionKey: 'services.view',
   },
   {
     label: 'Coiffeurs',
     href: '/salon/hair-dressers',
     icon: <Users className="h-5 w-5" />,
+    permissionKey: 'hairdressers.view',
   },
   {
     label: 'Clients',
     href: '/salon/clients',
     icon: <User2 className="h-5 w-5" />,
     requiresBookingAccess: true,
+    permissionKey: 'clients.view',
   },
   {
     label: 'Activités',
     href: '/activities',
     icon: <Activity className="h-5 w-5" />,
     requiresBookingAccess: true,
+    permissionKey: 'activities.view',
   },
   {
     label: 'Statistiques',
     href: '/analytics',
     icon: <BarChart3 className="h-5 w-5" />,
     requiresBookingAccess: true,
+    permissionKey: 'analytics.view',
   },
   {
     label: 'Administration',
     href: '/salon/administration',
     icon: <ShieldCheck className="h-5 w-5" />,
+    ownerOnly: true,
   },
   {
     label: 'Paramètres',
     href: '/salon/salon-info',
     icon: <Settings className="h-5 w-5" />,
+    permissionKey: 'settings.view',
   },
 ]
 
@@ -234,8 +249,17 @@ export default function Sidebar({ isOpen = true, onClose, collapsed = false, onT
   const pathname = usePathname()
   const access = useBookingAccess()
   const { isReady } = access
+  const { member } = useSalonMember()
+  const { hasPermission } = useHasPermission()
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
+  const visibleItems = sidebarItems.filter(item => {
+    if (!member) return true // owner : accès complet
+    if (item.ownerOnly) return false
+    if (!item.permissionKey) return true
+    return hasPermission(item.permissionKey)
+  })
 
   return (
     <>
@@ -267,7 +291,7 @@ export default function Sidebar({ isOpen = true, onClose, collapsed = false, onT
         <div className="flex h-full flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
           <nav className="space-y-1.5">
-            {sidebarItems.map((item) => {
+            {visibleItems.map((item) => {
               const locked = item.requiresBookingAccess && !isReady
               const active = isActive(item.href)
 

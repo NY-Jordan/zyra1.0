@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
 import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface SalonFormData {
   name: string
@@ -26,6 +27,8 @@ interface SalonGeneralInfoProps {
 }
 
 export default function SalonGeneralInfo({ salon, onUpdate }: SalonGeneralInfoProps) {
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('settings.general')
   const [isEditing, setIsEditing] = useState(false)
 
   const {
@@ -89,10 +92,12 @@ export default function SalonGeneralInfo({ salon, onUpdate }: SalonGeneralInfoPr
         <div className="flex items-center justify-between">
           <CardTitle>Informations générales</CardTitle>
           {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Modifier
-            </Button>
+            canEdit && (
+              <Button onClick={() => setIsEditing(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Modifier
+              </Button>
+            )
           ) : (
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setIsEditing(false)}>

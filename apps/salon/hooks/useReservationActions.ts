@@ -9,6 +9,7 @@ import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { useUpdateReservationStatus, useUpdateReservationPayment } from '@/usecases/useReservations'
 import { useSalon } from '@/hooks/useSalon'
 import { useNow } from '@/hooks/useNow'
+import { useHasPermission } from '@/hooks/useHasPermission'
 import { logActivity, createNotification, getCurrentActor } from '@/usecases/notificationsUseCases'
 
 /**
@@ -26,6 +27,10 @@ export function useReservationActions(
   const queryClient = useQueryClient()
   const { salon } = useSalon()
   const now = useNow()
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('bookings.edit')
+  const canCancelPermission = hasPermission('bookings.cancel')
+  const canManagePayments = hasPermission('payments.manage')
 
   const updateStatusMutation = useUpdateReservationStatus()
   const updatePaymentMutation = useUpdateReservationPayment()
@@ -59,15 +64,15 @@ export function useReservationActions(
   const isNoShow = status === reservationStatusEnum.no_show
   const isActive = isPending || isConfirmed
 
-  // ── Matrice d'actions (process validé) ────────────────────────────
-  const canAssign = !hasHairdresser && !hasStarted && isActive
-  const canConfirm = hasHairdresser && !hasStarted && isPending
-  const canCheckIn = isConfirmed && !hasStarted
-  const canNoShow = isConfirmed || (isActive && hasStarted)
-  const canReschedule = isActive || isNoShow
-  const canCancel = isActive && !hasStarted
-  const canMarkPaid = isCheckedIn && !reservation.isPaid
-  const canComplete = isCheckedIn && reservation.isPaid
+  // ── Matrice d'actions (process validé + permissions du rôle) ───────
+  const canAssign = !hasHairdresser && !hasStarted && isActive && canEdit
+  const canConfirm = hasHairdresser && !hasStarted && isPending && canEdit
+  const canCheckIn = isConfirmed && !hasStarted && canEdit
+  const canNoShow = (isConfirmed || (isActive && hasStarted)) && canEdit
+  const canReschedule = (isActive || isNoShow) && canEdit
+  const canCancel = isActive && !hasStarted && canCancelPermission
+  const canMarkPaid = isCheckedIn && !reservation.isPaid && canManagePayments
+  const canComplete = isCheckedIn && reservation.isPaid && canEdit
   const hasAnyAction =
     canAssign || canConfirm || canCheckIn || canNoShow || canReschedule || canCancel || canMarkPaid || canComplete
 

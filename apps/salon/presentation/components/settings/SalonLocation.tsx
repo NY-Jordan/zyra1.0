@@ -7,6 +7,7 @@ import { Edit, MapPin, ExternalLink } from 'lucide-react'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
 import SalonLocationForm from '@/presentation/components/SalonLocationForm'
 import dynamic from 'next/dynamic'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 // Import dynamique pour éviter les erreurs SSR
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
@@ -20,6 +21,8 @@ interface SalonLocationProps {
 }
 
 export default function SalonLocation({ salon, onUpdate }: SalonLocationProps) {
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('settings.location')
   const [isEditing, setIsEditing] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
 
@@ -109,10 +112,12 @@ export default function SalonLocation({ salon, onUpdate }: SalonLocationProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Localisation</CardTitle>
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Modifier l'emplacement
-            </Button>
+            {canEdit && (
+              <Button onClick={() => setIsEditing(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Modifier l'emplacement
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>

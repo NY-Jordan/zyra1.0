@@ -6,18 +6,27 @@ import { Avatar, AvatarFallback, AvatarImage } from '@zyra/ui/components/avatar'
 import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
 import { useOwner } from '@/hooks/useOwner'
-import { User, Mail, Phone, Camera, Edit, Calendar, Lock } from 'lucide-react'
+import { useSalonMember } from '@/hooks/useSalonMember'
+import useSalon from '@/hooks/useSalon'
+import { User, Mail, Phone, Camera, Edit, Calendar, Lock, Briefcase } from 'lucide-react'
 import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import UserInfoEditForm from '@/presentation/components/profile/UserInfoEditForm'
 import PasswordChangeForm from '@/presentation/components/profile/PasswordChangeForm'
 import LogoutSalon from '@/presentation/components/profile/LogoutSalon'
+import { getRole } from '@/presentation/components/administration/types'
 
 export default function ProfilePage() {
-  const { owner, isLoading, refetch } = useOwner()
+  const { member, isLoading: memberLoading } = useSalonMember()
+  const { owner, isLoading: ownerLoading, refetch } = useOwner()
+  const { salon } = useSalon()
   const [isEditing, setIsEditing] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+  // Une fois qu'on sait que l'utilisateur est un membre, inutile d'attendre
+  // la requête `owners` (qui échoue toujours pour un membre).
+  const isLoading = memberLoading || (ownerLoading && !member)
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -72,6 +81,128 @@ export default function ProfilePage() {
           />
           <div className="flex items-center justify-center min-h-96">
             <div className="text-muted-foreground">Chargement...</div>
+          </div>
+        </div>
+      </ProtectedLayout>
+    )
+  }
+
+  // ── Profil d'un membre d'équipe (manager / réceptionniste) ──────────────────
+  // Pas de compte `owners` : pas de photo, pas d'édition des infos (réservé au
+  // owner) — uniquement les informations du membre et le changement de mdp.
+  if (member) {
+    const role = getRole(member.roleId)
+    return (
+      <ProtectedLayout>
+        <div className="max-w-7xl mx-auto">
+          <PageHeader
+            title="Mon Profil"
+            breadcrumbs={[
+              { label: 'Dashboard', href: '/salon/dashboard' },
+              { label: 'Mon Profil', isCurrent: true }
+            ]}
+            actions={
+              !isChangingPassword && (
+                <Button variant="outline" onClick={() => setIsChangingPassword(true)}>
+                  <Lock className="h-4 w-4 mr-2" />
+                  Changer mot de passe
+                </Button>
+              )
+            }
+          />
+
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <Avatar className="h-24 w-24">
+                    <AvatarFallback className="text-lg bg-primary/10">
+                      {member.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="text-2xl font-semibold">{member.name}</h1>
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full ${role.bg} ${role.text}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${role.dot}`} />
+                        {role.label}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground">{member.email}</p>
+                    {salon?.name && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Briefcase className="h-4 w-4" />
+                        {salon.name}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {isChangingPassword ? (
+              <PasswordChangeForm
+                onSuccess={() => setIsChangingPassword(false)}
+                onCancel={() => setIsChangingPassword(false)}
+              />
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Informations personnelles</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Nom complet</p>
+                        <p className="font-medium">{member.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="font-medium">{member.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Membre depuis</p>
+                        <p className="font-medium">
+                          {member.addedAt ? new Date(member.addedAt).toLocaleDateString('fr-FR') : 'Date inconnue'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Sécurité</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Lock className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Mot de passe</p>
+                        <p className="font-medium">••••••••</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsChangingPassword(true)}
+                      className="w-full"
+                    >
+                      <Lock className="h-4 w-4 mr-2" />
+                      Changer le mot de passe
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </ProtectedLayout>

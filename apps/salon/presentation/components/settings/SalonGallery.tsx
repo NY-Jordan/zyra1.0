@@ -7,6 +7,7 @@ import { Camera, X, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface SalonGalleryProps {
   salon: ISalon
@@ -16,6 +17,8 @@ interface SalonGalleryProps {
 const MAX_PHOTOS = 6
 
 export default function SalonGallery({ salon, onUpdate }: SalonGalleryProps) {
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('settings.gallery')
   const [isUploading, setIsUploading] = useState(false)
   
   const currentPhotos = Array.isArray(salon.photos) ? salon.photos : []
@@ -122,14 +125,16 @@ export default function SalonGallery({ salon, onUpdate }: SalonGalleryProps) {
               )}
             </p>
           </div>
-          <Button 
-            onClick={() => document.getElementById('photo-upload')?.click()}
-            disabled={isUploading || isAtLimit}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            {isUploading ? 'Upload en cours...' : 
-             isAtLimit ? 'Limite atteinte' : 'Ajouter des photos'}
-          </Button>
+          {canEdit && (
+            <Button
+              onClick={() => document.getElementById('photo-upload')?.click()}
+              disabled={isUploading || isAtLimit}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              {isUploading ? 'Upload en cours...' :
+               isAtLimit ? 'Limite atteinte' : 'Ajouter des photos'}
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -161,14 +166,16 @@ export default function SalonGallery({ salon, onUpdate }: SalonGalleryProps) {
                   alt={`Photo ${index + 1}`}
                   className="w-full h-32 object-cover rounded-lg border"
                 />
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removePhoto(index)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                {canEdit && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removePhoto(index)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
                 
                 {/* Numéro de la photo */}
                 <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
@@ -178,8 +185,8 @@ export default function SalonGallery({ salon, onUpdate }: SalonGalleryProps) {
             ))}
 
             {/* Slots vides pour visualiser les emplacements restants */}
-            {Array.from({ length: remainingSlots }, (_, index) => (
-              <div 
+            {canEdit && Array.from({ length: remainingSlots }, (_, index) => (
+              <div
                 key={`empty-${index}`}
                 className="w-full h-32 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 onClick={() => !isUploading && document.getElementById('photo-upload')?.click()}
@@ -198,12 +205,14 @@ export default function SalonGallery({ salon, onUpdate }: SalonGalleryProps) {
             <p className="text-sm text-muted-foreground mb-4">
               Ajoutez jusqu'à {MAX_PHOTOS} photos pour présenter votre salon
             </p>
-            <Button 
-              onClick={() => document.getElementById('photo-upload')?.click()}
-              disabled={isUploading}
-            >
-              Ajouter votre première photo
-            </Button>
+            {canEdit && (
+              <Button
+                onClick={() => document.getElementById('photo-upload')?.click()}
+                disabled={isUploading}
+              >
+                Ajouter votre première photo
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

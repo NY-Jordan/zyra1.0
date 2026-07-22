@@ -23,6 +23,7 @@ import {
 } from '@zyra/ui/components/alert-dialog'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
 import { useMarkOrderAsPaid, useDeleteOrder } from '@/usecases/ordersUseCases'
+import { useHasPermission } from '@/hooks/useHasPermission'
 import OrderDetailsModal from './OrderDetailsModal'
 import { formatDateTime } from '@zyra/conf/lib/utils'
 
@@ -61,6 +62,9 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const markAsPaidMutation = useMarkOrderAsPaid()
   const deleteOrderMutation = useDeleteOrder()
+  const { hasPermission } = useHasPermission()
+  const canManagePayments = hasPermission('payments.manage')
+  const canDelete = hasPermission('orders.delete')
 
   const handleTogglePayment = () => {
     if (!order.isPaid) {
@@ -131,7 +135,7 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
                   <CheckCircle className="h-3 w-3" />
                   Payé
                 </span>
-              ) : (
+              ) : canManagePayments ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -141,7 +145,7 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
                 >
                   {markAsPaidMutation.isPending ? 'Mise à jour...' : 'Marquer comme payé'}
                 </Button>
-              )}
+              ) : null}
             </div>
 
             {/* Actions */}
@@ -155,14 +159,16 @@ export default function OrderCard({ order, onViewDetails }: OrderCardProps) {
                 <Eye className="h-3.5 w-3.5 mr-1.5" />
                 Voir les détails
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 rounded-xl text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20"
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              {canDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-xl text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

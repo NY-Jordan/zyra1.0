@@ -25,6 +25,7 @@ import { DAYS_OF_WEEK } from '@zyra/conf/lib/utils'
 import { updateSubCollectionDocument } from '@zyra/conf/lib/query'
 import { toast } from 'sonner'
 import { hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface HairDresserDetailsModalProps {
   open: boolean
@@ -39,6 +40,8 @@ export default function HairDresserDetailsModal({
   hairdresser,
   categories = [],
 }: HairDresserDetailsModalProps) {
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('hairdressers.edit')
   const [isEditing, setIsEditing] = useState(false)
   const [editedServices, setEditedServices] = useState<string[]>([])
   const [editedWorkingHours, setEditedWorkingHours] = useState<any[]>([])
@@ -119,7 +122,7 @@ export default function HairDresserDetailsModal({
             <DialogTitle className="flex items-center gap-2">
               Détails de {hairdresser?.name}
             </DialogTitle>
-            {!isEditing && (
+            {!isEditing && canEdit && (
               <Button
                 variant="ghost"
                 size="sm"

@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@zyra/ui/components/dropdown-menu'
 import { useServiceCategories } from '@/usecases/useServiceCategories'
+import { useHasPermission } from '@/hooks/useHasPermission'
 import CreateCategoryModal from './CreateCategoryModal'
 import ConfirmModal from '../../../../../admin/presentation/components/CofirmModal'
 import UpdateCategoryModal from './UpdateCategoryModal'
@@ -34,6 +35,8 @@ interface CategoriesManagementProps {
 }
 
 export default function CategoriesManagement({ categories, services }: CategoriesManagementProps) {
+  const { hasPermission } = useHasPermission()
+  const canManageCategories = hasPermission('services.categories')
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -200,14 +203,16 @@ export default function CategoriesManagement({ categories, services }: Categorie
                 className="pl-9 h-10 w-full sm:w-64 rounded-xl border-[#E8E0D8] dark:border-slate-700"
               />
             </div>
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors flex-shrink-0"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Nouvelle Catégorie</span>
-            </button>
+            {canManageCategories && (
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors flex-shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Nouvelle Catégorie</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -245,40 +250,42 @@ export default function CategoriesManagement({ categories, services }: Categorie
                             </span>
                           </div>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 rounded-xl text-slate-500 hover:bg-[#F5F2EF] dark:hover:bg-slate-800 flex-shrink-0"
-                              disabled={isToggling || isDeleting}
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditClick(category)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Modifier
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleActive(category)}>
-                              <RefreshCw className="w-4 h-4" />
-                              {isActive ? 'Désactiver' : 'Activer'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className={servicesCount > 0 ? 'text-gray-400 dark:text-slate-500' : 'text-destructive'}
-                              onClick={() => handleDeleteClick(category)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Supprimer
-                              {servicesCount > 0 && (
-                                <span className="ml-1 text-xs">
-                                  ({servicesCount} service{servicesCount > 1 ? 's' : ''})
-                                </span>
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {canManageCategories && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 rounded-xl text-slate-500 hover:bg-[#F5F2EF] dark:hover:bg-slate-800 flex-shrink-0"
+                                disabled={isToggling || isDeleting}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEditClick(category)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Modifier
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleToggleActive(category)}>
+                                <RefreshCw className="w-4 h-4" />
+                                {isActive ? 'Désactiver' : 'Activer'}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className={servicesCount > 0 ? 'text-gray-400 dark:text-slate-500' : 'text-destructive'}
+                                onClick={() => handleDeleteClick(category)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Supprimer
+                                {servicesCount > 0 && (
+                                  <span className="ml-1 text-xs">
+                                    ({servicesCount} service{servicesCount > 1 ? 's' : ''})
+                                  </span>
+                                )}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
 
                       {/* Description */}
@@ -329,14 +336,16 @@ export default function CategoriesManagement({ categories, services }: Categorie
                 ? 'Aucune catégorie ne correspond à votre recherche.'
                 : 'Commencez par créer votre première catégorie.'}
             </p>
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Créer votre première catégorie
-            </button>
+            {canManageCategories && (
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-[12px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Créer votre première catégorie
+              </button>
+            )}
           </div>
         )}
       </div>

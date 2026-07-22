@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSalon } from '@/hooks/useSalon'
+import { useSalonMember } from '@/hooks/useSalonMember'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchCollection, editDocument, getDocument } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
@@ -25,6 +26,7 @@ interface SalonCheckerProps {
 
 export default function SalonChecker({ children }: SalonCheckerProps) {
   const { isConnected, salon, salonId, isLoading } = useSalon()
+  const { member } = useSalonMember()
   const router = useRouter()
   const queryClient = useQueryClient()
   const [isChecking, setIsChecking] = useState(true)
@@ -115,6 +117,18 @@ export default function SalonChecker({ children }: SalonCheckerProps) {
     const t = setTimeout(() => setIsChecking(false), 500)
     return () => clearTimeout(t)
   }, [])
+
+  // ── Membre : suspension / mot de passe non changé ──────────────────────────
+
+  useEffect(() => {
+    if (!member) return
+    if (member.status === 'suspended') {
+      signOut(auth); sessionStorage.clear(); router.push('/auth/login'); return
+    }
+    if (member.mustChangePassword) {
+      router.push('/auth/change-password')
+    }
+  }, [member, router])
 
   // ── Auth + subscription guards ─────────────────────────────────────────────
 

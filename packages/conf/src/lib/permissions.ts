@@ -12,7 +12,11 @@ export async function seedSalonRolePermissions(salonId: string): Promise<void> {
         'salons',
         salonId,
         ROLE_PERMISSIONS_SUBCOLLECTION,
-        { roleId: role.id, permissionKeys: DEFAULT_ROLE_PERMISSIONS[role.id] },
+        {
+          roleId: role.id,
+          permissionKeys: DEFAULT_ROLE_PERMISSIONS[role.id],
+          knownPermissionKeys: DEFAULT_ROLE_PERMISSIONS[role.id],
+        },
         role.id
       )
     )

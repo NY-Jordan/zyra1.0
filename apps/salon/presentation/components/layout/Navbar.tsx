@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from "@zyra/ui/components/button"
 import {
@@ -28,9 +28,11 @@ import { auth } from '@zyra/conf/lib/firebase'
 import { toast } from 'sonner'
 import { useOwner } from '@/hooks/useOwner'
 import { useSalon } from '@/hooks/useSalon'
+import { useSalonMember } from '@/hooks/useSalonMember'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from 'next-themes'
 import { LogoutauthSalon } from '@/services/ownerAuthService'
+import { setCachedActorName } from '@/usecases/notificationsUseCases'
 
 interface NavbarProps {
   onToggleSidebar?: () => void
@@ -40,14 +42,22 @@ interface NavbarProps {
 export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
   const router = useRouter()
   const { owner } = useOwner()
+  const { member } = useSalonMember()
   const { salon, isConnected } = useSalon()
   const { theme, setTheme } = useTheme()
   const queryClient = useQueryClient()
+
+  // Tient à jour le nom affiché comme "auteur" dans le journal d'activité
+  // (voir `getCurrentActor`), owner ou membre.
+  useEffect(() => {
+    setCachedActorName(member?.name || owner?.name || null)
+  }, [member?.name, owner?.name])
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       queryClient.clear();
+      setCachedActorName(null);
       LogoutauthSalon();
       toast.success('Déconnexion réussie')
       router.push('/auth/login')
@@ -233,21 +243,25 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }: NavbarProps) {
                     Paramètres
                   </Link>
 
-                  <Link
-                    href="/salon/administration"
-                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    <ShieldCheck className="h-4 w-4 mr-3" />
-                    Administration
-                  </Link>
+                  {!member && (
+                    <Link
+                      href="/salon/administration"
+                      className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <ShieldCheck className="h-4 w-4 mr-3" />
+                      Administration
+                    </Link>
+                  )}
 
-                  <Link
-                    href="/salon/switch"
-                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    <Building2 className="h-4 w-4 mr-3" />
-                    Switcher de salon
-                  </Link>
+                  {!member && (
+                    <Link
+                      href="/salon/switch"
+                      className="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-[#F5F2EF] dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <Building2 className="h-4 w-4 mr-3" />
+                      Switcher de salon
+                    </Link>
+                  )}
 
                   <div className="my-1 border-t border-[#F0EAE4] dark:border-slate-800/50"></div>
 

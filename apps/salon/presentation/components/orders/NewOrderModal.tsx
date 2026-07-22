@@ -30,7 +30,7 @@ import { fetchCollection, createDocument, editDocument } from '@zyra/conf/lib/qu
 import { where } from 'firebase/firestore'
 import { useSalon } from '@/hooks/useSalon'
 import { toast } from 'sonner'
-import { logActivity } from '@/usecases/notificationsUseCases'
+import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
 import { getPhonePrefix } from '@/utils/phonePrefix'
 import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 import { useHairDressers } from '@/usecases/useHairDressers'
@@ -281,8 +281,7 @@ export default function NewOrderModal({ open, onOpenChange }: NewOrderModalProps
       await logActivity({
         salonId: salon.id,
         type: 'order_created',
-        actorId: 'system',
-        actorName: 'Système',
+        ...getCurrentActor(),
         action: 'created',
         resourceId: orderId,
         resourceType: 'order',

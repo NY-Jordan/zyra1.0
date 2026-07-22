@@ -29,8 +29,8 @@ export default function PermissionsManagement() {
 
   const handleSeed = () => {
     seedMutation.mutate(undefined, {
-      onSuccess: () => toast.success('Permissions par défaut chargées avec succès'),
-      onError: (error: any) => toast.error('Erreur lors du chargement : ' + error.message),
+      onSuccess: () => toast.success('Catalogue synchronisé avec succès'),
+      onError: (error: any) => toast.error('Erreur lors de la synchronisation : ' + error.message),
     })
   }
 
@@ -90,11 +90,9 @@ export default function PermissionsManagement() {
             (propriétaire, manager, réceptionniste, coiffeur).
           </p>
         </div>
-        {!isLoading && permissions.length === 0 && (
-          <Button type="button" variant="outline" onClick={handleSeed} disabled={seedMutation.isPending}>
-            {seedMutation.isPending ? 'Chargement...' : 'Charger les permissions par défaut'}
-          </Button>
-        )}
+        <Button type="button" variant="outline" onClick={handleSeed} disabled={isLoading || seedMutation.isPending}>
+          {seedMutation.isPending ? 'Synchronisation...' : 'Synchroniser le catalogue par défaut'}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
@@ -138,7 +136,7 @@ export default function PermissionsManagement() {
             ) : permissions.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center py-6 text-gray-500">
-                  Aucune permission. Cliquez sur « Charger les permissions par défaut » pour commencer.
+                  Aucune permission. Cliquez sur « Synchroniser le catalogue par défaut » pour commencer.
                 </td>
               </tr>
             ) : (

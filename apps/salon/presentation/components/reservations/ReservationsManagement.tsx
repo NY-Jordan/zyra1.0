@@ -17,6 +17,7 @@ import {
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import useSalon from '@/hooks/useSalon'
+import { useHasPermission } from '@/hooks/useHasPermission'
 import ReservationCard from './ReservationCard'
 import Pagination from '../common/Pagination'
 import ConfirmReservationModal from './ConfirmReservationModal'
@@ -35,6 +36,7 @@ export default function ReservationsManagement() {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [showCalendarModal, setShowCalendarModal] = useState(false)
   const [showNewReservationSheet, setShowNewReservationSheet] = useState(false)
+  const { hasPermission } = useHasPermission()
   const PAGE_SIZE = 10
 
   // Utiliser le useCase pour récupérer les réservations
@@ -88,15 +90,17 @@ export default function ReservationsManagement() {
           <p className="text-sm text-muted-foreground mt-0.5">{stats.total} réservation{stats.total !== 1 ? 's' : ''} au total</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setShowConfirmModal(true)}
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-          >
-            <CheckCircle className="h-4 w-4" />
-            Confirmer
-          </Button>
+          {hasPermission('bookings.edit') && (
+            <Button
+              onClick={() => setShowConfirmModal(true)}
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Confirmer
+            </Button>
+          )}
           <Button
             onClick={() => setShowCalendarModal(true)}
             variant="outline"
@@ -106,14 +110,16 @@ export default function ReservationsManagement() {
             <Calendar className="h-4 w-4" />
             Calendrier
           </Button>
-          <Button
-            onClick={() => setShowNewReservationSheet(true)}
-            size="sm"
-            className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-          >
-            <Plus className="h-4 w-4" />
-            Nouvelle
-          </Button>
+          {hasPermission('bookings.create') && (
+            <Button
+              onClick={() => setShowNewReservationSheet(true)}
+              size="sm"
+              className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            >
+              <Plus className="h-4 w-4" />
+              Nouvelle
+            </Button>
+          )}
         </div>
       </div>
 
