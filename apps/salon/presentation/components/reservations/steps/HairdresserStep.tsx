@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
+import { HairDresserWithSalonAssociation } from '@zyra/core/usecases/useHairDressers'
 import { FieldLabel, SelectableRow } from '../ui/ReservationWizardPrimitives'
 
 interface HairdresserStepProps {

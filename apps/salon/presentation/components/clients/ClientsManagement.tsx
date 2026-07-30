@@ -26,14 +26,14 @@ import {
   ChevronRight,
   History,
 } from 'lucide-react'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import ClientFormModal from './ClientFormModal'
 import { ClientActivitySheet } from './ClientActivitySheet'
-import { useDeleteClient } from '@/usecases/clientsUseCases'
+import { useDeleteClient } from '@zyra/core/usecases/clientsUseCases'
 import { useHasPermission } from '@/hooks/useHasPermission'
 
 const ITEMS_PER_PAGE = 9

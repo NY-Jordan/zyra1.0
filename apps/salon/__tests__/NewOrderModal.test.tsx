@@ -11,11 +11,11 @@ const { mockSalon, mockHairDressers } = vi.hoisted(() => ({
 }));
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
-vi.mock('@/hooks/useSalon', () => ({
+vi.mock('@zyra/core/hooks/useSalon', () => ({
   useSalon: () => ({ salon: mockSalon.value }),
 }));
 
-vi.mock('@/usecases/useHairDressers', () => ({
+vi.mock('@zyra/core/usecases/useHairDressers', () => ({
   useHairDressers: () => ({ hairDressers: mockHairDressers.value }),
 }));
 

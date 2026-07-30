@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where, orderBy } from 'firebase/firestore'
-import { IActivity, ActivityType, ResourceType } from '@/types/notifications.types'
+import { IActivity, ActivityType, ResourceType } from '@zyra/core/types/notifications.types'
 
 export interface ActivityFilters {
   salonId: string | null

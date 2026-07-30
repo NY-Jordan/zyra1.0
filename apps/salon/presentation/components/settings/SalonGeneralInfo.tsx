@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
-import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
+import { logActivity, getCurrentActor } from '@zyra/core/usecases/notificationsUseCases'
 import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface SalonFormData {

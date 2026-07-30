@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import SalonChecker from "@/presentation/components/layout/SalonChecker"
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useRealtimeReservations } from '@/hooks/useRealtimeReservations'
 
 export default function SalonLayoutClient({

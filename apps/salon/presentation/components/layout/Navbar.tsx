@@ -27,12 +27,12 @@ import { signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
 import { toast } from 'sonner'
 import { useOwner } from '@/hooks/useOwner'
-import { useSalon } from '@/hooks/useSalon'
-import { useSalonMember } from '@/hooks/useSalonMember'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from 'next-themes'
 import { LogoutauthSalon } from '@/services/ownerAuthService'
-import { setCachedActorName } from '@/usecases/notificationsUseCases'
+import { setCachedActorName } from '@zyra/core/usecases/notificationsUseCases'
+import useSalonMember from '@/hooks/useSalonMember'
 
 interface NavbarProps {
   onToggleSidebar?: () => void

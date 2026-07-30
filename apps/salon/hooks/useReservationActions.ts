@@ -6,11 +6,11 @@ import { editDocument } from '@zyra/conf/lib/query'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import { useUpdateReservationStatus, useUpdateReservationPayment } from '@/usecases/useReservations'
-import { useSalon } from '@/hooks/useSalon'
+import { useUpdateReservationStatus, useUpdateReservationPayment } from '@zyra/core/usecases/useReservations'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useNow } from '@/hooks/useNow'
 import { useHasPermission } from '@/hooks/useHasPermission'
-import { logActivity, createNotification, getCurrentActor } from '@/usecases/notificationsUseCases'
+import { logActivity, createNotification, getCurrentActor } from '@zyra/core/usecases/notificationsUseCases'
 
 /**
  * Toute la logique métier des actions sur une réservation (machine à états +

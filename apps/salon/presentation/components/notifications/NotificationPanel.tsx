@@ -1,7 +1,7 @@
 import React from 'react'
 import { CheckCheck, Bell } from 'lucide-react'
-import { INotification } from '@/types/notifications.types'
-import { useMarkAllNotificationsRead } from '@/usecases/notificationsUseCases'
+import { INotification } from '@zyra/core/types/notifications.types'
+import { useMarkAllNotificationsRead } from '@zyra/core/usecases/notificationsUseCases'
 import { NotificationItem } from './NotificationItem'
 
 interface NotificationPanelProps {

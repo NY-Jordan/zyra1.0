@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@zyra/ui/components/ta
 import { Avatar, AvatarFallback, AvatarImage } from '@zyra/ui/components/avatar'
 import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import {
   Store,
   MapPin,

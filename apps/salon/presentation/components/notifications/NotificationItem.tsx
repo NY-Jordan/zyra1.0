@@ -1,7 +1,7 @@
 import React from 'react'
-import { INotification } from '@/types/notifications.types'
+import { INotification } from '@zyra/core/types/notifications.types'
 import { ACTIVITY_CONFIG, formatRelativeTime, getDefaultFallback } from '../activities/activityConfig'
-import { useMarkNotificationRead } from '@/usecases/notificationsUseCases'
+import { useMarkNotificationRead } from '@zyra/core/usecases/notificationsUseCases'
 
 interface NotificationItemProps {
   notification: INotification

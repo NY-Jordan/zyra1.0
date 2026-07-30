@@ -12,9 +12,9 @@ import {
   TrendingUp,
   Calendar as CalendarIcon,
 } from 'lucide-react'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useHasPermission } from '@/hooks/useHasPermission'
-import { useHairDressers } from '@/usecases/useHairDressers'
+import { useHairDressers } from '@zyra/core/usecases/useHairDressers'
 import { useQuery } from '@tanstack/react-query'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
 import OrderCard from './OrderCard'

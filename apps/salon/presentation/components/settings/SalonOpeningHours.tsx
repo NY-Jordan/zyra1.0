@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { ISalon, OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
 import { DAYS_OF_WEEK } from '@zyra/conf/lib/utils'
-import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases'
+import { logActivity, getCurrentActor } from '@zyra/core/usecases/notificationsUseCases'
 import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface SalonOpeningHoursProps {

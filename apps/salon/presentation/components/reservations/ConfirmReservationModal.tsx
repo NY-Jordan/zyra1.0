@@ -16,7 +16,7 @@ import { CheckCircle, AlertCircle, Loader } from 'lucide-react'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
-import useSalon from '@/hooks/useSalon'
+import useSalon from '@zyra/core/hooks/useSalon'
 
 interface ConfirmReservationModalProps {
   open: boolean

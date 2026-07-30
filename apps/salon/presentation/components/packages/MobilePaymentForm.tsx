@@ -10,7 +10,7 @@ import { getCurrentConfig } from '@zyra/conf/lib/korapay-config'
 import { useMobilePayment } from '../../../hooks/useMobilePayment'
 import PaymentAlertModal, { createAlertData } from './PaymentAlertModal'
 import MobileOtpForm from './MobileOtpForm'
-import { TransactionService } from '@/services/TransactionService'
+import { TransactionService } from '@zyra/core/services/TransactionService'
 import { PackageData } from '@zyra/conf/domain/entities/packages.entities'
 
 interface MobilePaymentFormProps {

@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from '@zyra/ui/components/form'
 import { toast } from 'sonner'
-import { useServiceCategories } from '@/usecases/useServiceCategories'
+import { useServiceCategories } from '@zyra/core/usecases/useServiceCategories'
 import { Palette, Loader2, X } from 'lucide-react'
 import { IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
 

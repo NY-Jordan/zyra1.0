@@ -8,7 +8,7 @@ import Step1 from '../../../presentation/components/register/Step1';
 import Step2 from '../../../presentation/components/register/Step2';
 import Step3 from '../../../presentation/components/register/Step3';
 import { ChevronLeft } from 'lucide-react';
-import { AuthSalonOwner, checkEmailSalonAlreadyExists, checkOwnerExists, registerSalon } from '@/services/SalonServices';
+import { AuthSalonOwner, checkEmailSalonAlreadyExists, checkOwnerExists, registerSalon } from '@zyra/core/services/SalonServices';
 import { IRegisterSalon } from '@zyra/conf/domain/entities/salons.entities';
 import { IRegisterOwner } from '@zyra/conf/domain/entities/owners.entities';
 import { authSalonProcess } from '@/services/AuthService';

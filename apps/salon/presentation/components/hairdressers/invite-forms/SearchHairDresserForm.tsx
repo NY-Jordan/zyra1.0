@@ -17,7 +17,7 @@ import {
 import { fetchCollection, fetchSubCollection } from '@zyra/conf/lib/query'
 import { IHairDresser, hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { where, or, and } from 'firebase/firestore'
-import useSalon from '@/hooks/useSalon'
+import useSalon from '@zyra/core/hooks/useSalon'
 
 interface SearchHairDresserFormProps {
   searchTerm: string

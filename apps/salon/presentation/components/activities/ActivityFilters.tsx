@@ -1,5 +1,5 @@
 import React from 'react'
-import { ResourceType } from '@/types/notifications.types'
+import { ResourceType } from '@zyra/core/types/notifications.types'
 import { RESOURCE_TYPE_LABELS } from './activityConfig'
 
 const RESOURCE_TABS: Array<ResourceType | 'all'> = [

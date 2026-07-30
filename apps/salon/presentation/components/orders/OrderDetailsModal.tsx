@@ -21,7 +21,7 @@ import {
   Receipt,
 } from 'lucide-react'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
-import { useHairDressers } from '@/usecases/useHairDressers'
+import { useHairDressers } from '@zyra/core/usecases/useHairDressers'
 
 interface OrderDetailsModalProps {
   order: IOrder | null

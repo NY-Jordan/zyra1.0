@@ -1,7 +1,7 @@
 import React from 'react'
 import { Loader2, Plus, Check, AlertTriangle, ShieldAlert } from 'lucide-react'
 import { IService } from '@zyra/conf/domain/entities/services.entities'
-import { ServiceAnalysisResult } from '@/services/ServiceValidationService'
+import { ServiceAnalysisResult } from '@zyra/core/services/ServiceValidationService'
 
 interface ServiceValidationZoneProps {
   analysisResult: ServiceAnalysisResult

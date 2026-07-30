@@ -16,7 +16,7 @@ import { Search, User, Phone, Mail, Loader2, UserCircle } from 'lucide-react'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
-import useSalon from '@/hooks/useSalon'
+import useSalon from '@zyra/core/hooks/useSalon'
 
 interface ClientSearchModalProps {
   open: boolean

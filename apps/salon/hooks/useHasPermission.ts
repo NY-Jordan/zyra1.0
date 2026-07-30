@@ -1,6 +1,6 @@
 'use client'
 import { useSalonMember } from './useSalonMember'
-import { useSalonRolePermissions } from '@/usecases/administrationUseCases'
+import { useSalonRolePermissions } from '@zyra/core/usecases/administrationUseCases'
 
 /**
  * Centralise la vérification "l'utilisateur connecté a-t-il telle permission ?"

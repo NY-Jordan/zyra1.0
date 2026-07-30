@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { KoraPaymentService, ChargeResponse, MobileMoneyChargeRequest } from '@zyra/conf/services/KoraPaymentService'
 import { PaymentAuthTypeEnum } from '@zyra/conf/domain/enums/PaymentAuthTypeEnum'
-import { TransactionService } from '@/services/TransactionService'
+import { TransactionService } from '@zyra/core/services/TransactionService'
 import { auth } from '@zyra/conf/lib/firebase'
 
 export interface MobilePaymentState {

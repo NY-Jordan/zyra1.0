@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@zyra/ui/components/dialog'
 import { Clock, Sparkles } from 'lucide-react'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { editDocument } from '@zyra/conf/lib/query'
 import { toast } from 'sonner'
 import { ISalon, OpeningHour } from '@zyra/conf/domain/entities/salons.entities'

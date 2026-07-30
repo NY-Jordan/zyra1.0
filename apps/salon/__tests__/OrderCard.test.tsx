@@ -9,7 +9,7 @@ const { mockMarkAsPaidMutate, mockDeleteMutate } = vi.hoisted(() => ({
 }));
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
-vi.mock('@/usecases/ordersUseCases', () => ({
+vi.mock('@zyra/core/usecases/ordersUseCases', () => ({
   useMarkOrderAsPaid: () => ({ mutate: mockMarkAsPaidMutate, isPending: false }),
   useDeleteOrder: () => ({ mutate: mockDeleteMutate, isPending: false }),
 }));

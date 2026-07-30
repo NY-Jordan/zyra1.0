@@ -12,9 +12,9 @@ import {
 } from '@zyra/ui/components/dialog';
 import { X, MapPin, Navigation } from 'lucide-react';
 import { editDocument } from '@zyra/conf/lib/query';
-import { useSalon } from '@/hooks/useSalon';
+import { useSalon } from '@zyra/core/hooks/useSalon';
 import { toast } from 'sonner';
-import { logActivity, getCurrentActor } from '@/usecases/notificationsUseCases';
+import { logActivity, getCurrentActor } from '@zyra/core/usecases/notificationsUseCases';
 
 interface Location {
   lat: number;

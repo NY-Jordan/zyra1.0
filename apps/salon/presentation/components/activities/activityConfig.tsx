@@ -4,7 +4,7 @@ import {
   UserPlus, User, UserMinus, Store, Wrench, Plus, Clock, CreditCard,
   Trash2, ToggleLeft, Tag, MapPin, Image, Info, Send, Bell,
 } from 'lucide-react'
-import { ActivityType, ResourceType } from '@/types/notifications.types'
+import { ActivityType, ResourceType } from '@zyra/core/types/notifications.types'
 
 interface ActivityConfig {
   icon: React.ReactNode

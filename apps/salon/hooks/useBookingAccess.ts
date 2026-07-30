@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchCollection, fetchAllSubCollections } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { hairDresserAssociationNameEnum, hairDresserInvitationStatusEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 
 export interface BookingAccessState {
   /** Étape 1 : au moins un service créé */

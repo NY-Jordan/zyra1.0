@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useOwner } from '@/hooks/useOwner'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import LoadingScreen from '@/presentation/components/common/LoadingScreen'
 
 interface SetupWrapperProps {

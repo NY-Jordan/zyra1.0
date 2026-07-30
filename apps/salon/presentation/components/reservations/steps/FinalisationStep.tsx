@@ -5,7 +5,7 @@ import { Banknote, CreditCard, Smartphone } from 'lucide-react'
 import { Textarea } from '@zyra/ui/components/textarea'
 import { ISalonService } from '@zyra/conf/domain/entities/salons.entities'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
+import { HairDresserWithSalonAssociation } from '@zyra/core/usecases/useHairDressers'
 import { PersonBooking } from '../types'
 import { FieldLabel, SelectableRow, Toggle } from '../ui/ReservationWizardPrimitives'
 

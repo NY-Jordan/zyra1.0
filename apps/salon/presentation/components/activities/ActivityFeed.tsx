@@ -1,5 +1,5 @@
 import React from 'react'
-import { IActivity } from '@/types/notifications.types'
+import { IActivity } from '@zyra/core/types/notifications.types'
 import { ActivityItem } from './ActivityItem'
 
 interface ActivityFeedProps {

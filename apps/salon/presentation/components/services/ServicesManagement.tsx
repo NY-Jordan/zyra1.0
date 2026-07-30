@@ -23,7 +23,7 @@ import {
 } from '@zyra/ui/components/dropdown-menu'
 import { formatPrice } from '@zyra/conf/lib/utils'
 import { useHasPermission } from '@/hooks/useHasPermission'
-import { useServices } from '@/usecases/useServices'
+import { useServices } from '@zyra/core/usecases/useServices'
 import CreateServiceModal from './CreateServiceModal'
 import ConfirmModal from '../../../../admin/presentation/components/CofirmModal'
 import UpdateServiceModal from './UpdateServiceModal'

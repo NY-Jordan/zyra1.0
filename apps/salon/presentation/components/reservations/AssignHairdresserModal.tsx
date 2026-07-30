@@ -14,10 +14,10 @@ import { Button } from '@zyra/ui/components/button'
 import { ScrollArea } from '@zyra/ui/components/scroll-area'
 import { Loader2, AlertCircle } from 'lucide-react'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import useSalon from '@/hooks/useSalon'
+import useSalon from '@zyra/core/hooks/useSalon'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
-import { useHairDressers } from '@/usecases/useHairDressers'
+import { useHairDressers } from '@zyra/core/usecases/useHairDressers'
 
 interface AssignHairdresserModalProps {
   open: boolean

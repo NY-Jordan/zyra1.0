@@ -10,7 +10,7 @@ import { where } from 'firebase/firestore'
 import { auth } from '@zyra/conf/lib/firebase'
 import { fetchCollection, editDocument } from '@zyra/conf/lib/query'
 import { ISalonMember } from '@zyra/conf/domain/entities/permissions.entities'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 
 export default function ChangePassword() {
   const { register, handleSubmit, formState: { errors }, watch } = useForm()

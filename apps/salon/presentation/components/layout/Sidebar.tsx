@@ -24,7 +24,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { useBookingAccess, BookingAccessState } from '@/hooks/useBookingAccess'
-import { useSalonMember } from '@/hooks/useSalonMember'
+import useSalonMember from '@/hooks/useSalonMember'
 import { useHasPermission } from '@/hooks/useHasPermission'
 
 // ── Portal tooltip ────────────────────────────────────────────────────────────

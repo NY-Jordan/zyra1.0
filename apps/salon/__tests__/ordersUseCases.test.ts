@@ -13,13 +13,13 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock('@/usecases/notificationsUseCases', () => ({
+vi.mock('@zyra/core/usecases/notificationsUseCases', () => ({
   logActivity: vi.fn().mockResolvedValue(undefined),
   createNotification: vi.fn().mockResolvedValue(undefined),
   getCurrentActor: vi.fn().mockReturnValue({ actorId: 'user-1', actorName: 'Test User' }),
 }));
 
-vi.mock('@/hooks/useSalon', () => ({
+vi.mock('@zyra/core/hooks/useSalon', () => ({
   useSalon: vi.fn().mockReturnValue({ salonId: 'salon-1', salon: { id: 'salon-1', name: 'Test Salon' } }),
 }));
 
@@ -31,7 +31,7 @@ import {
   useCancelOrder,
   useUpdateOrderStatus,
   useDeleteOrder,
-} from '@/usecases/ordersUseCases';
+} from '@zyra/core/usecases/ordersUseCases';
 
 const mockEditDocument = vi.mocked(editDocument);
 const mockDeleteDocument = vi.mocked(deleteDocument);

@@ -6,7 +6,7 @@ import { Checkbox } from '@zyra/ui/components/checkbox'
 import { Badge } from '@zyra/ui/components/badge'
 import { Scissors, Layers } from 'lucide-react'
 import { IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
-import useSalon from '@/hooks/useSalon'
+import useSalon from '@zyra/core/hooks/useSalon'
 
 interface ServiceSelectionFormProps {
   selectedCategoryIds: string[]

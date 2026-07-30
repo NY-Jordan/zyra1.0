@@ -1,8 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSalon } from '@/hooks/useSalon'
-import { useSalonMember } from '@/hooks/useSalonMember'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchCollection, editDocument, getDocument } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
@@ -17,6 +16,7 @@ import OnboardingBanner from '@/presentation/components/onboarding/OnboardingBan
 import { signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
 import { toast } from 'sonner'
+import useSalonMember from '@/hooks/useSalonMember'
 
 const SESSION_DURATION = 2 * 60 * 60 * 1000
 

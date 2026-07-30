@@ -3,8 +3,8 @@
 import React, { useState } from 'react'
 import { Activity, RefreshCw } from 'lucide-react'
 import { useActivities } from '@/hooks/useActivities'
-import { useSalon } from '@/hooks/useSalon'
-import { ResourceType } from '@/types/notifications.types'
+import { useSalon } from '@zyra/core/hooks/useSalon'
+import { ResourceType } from '@zyra/core/types/notifications.types'
 import { ActivityFeed } from './ActivityFeed'
 import { ActivityFilters } from './ActivityFilters'
 

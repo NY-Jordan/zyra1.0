@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
-import useSalon from '@/hooks/useSalon'
+import useSalon from '@zyra/core/hooks/useSalon'
 import { toast } from 'sonner'
 import { hairDresserInvitationStatusEnum, IHairDresserInvitation } from '@zyra/conf/domain/entities/hairdressers.entities'
 import EditInvitationModal from './EditInvitationModal'

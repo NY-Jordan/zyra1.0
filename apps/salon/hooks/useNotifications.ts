@@ -10,7 +10,7 @@ import {
   limit,
   onSnapshot,
 } from 'firebase/firestore'
-import { INotification } from '@/types/notifications.types'
+import { INotification } from '@zyra/core/types/notifications.types'
 
 function playNotificationSound() {
   try {

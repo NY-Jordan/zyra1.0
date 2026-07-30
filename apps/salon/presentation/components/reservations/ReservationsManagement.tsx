@@ -16,14 +16,14 @@ import {
 } from 'lucide-react'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import useSalon from '@/hooks/useSalon'
+import useSalon from '@zyra/core/hooks/useSalon'
 import { useHasPermission } from '@/hooks/useHasPermission'
 import ReservationCard from './ReservationCard'
 import Pagination from '../common/Pagination'
 import ConfirmReservationModal from './ConfirmReservationModal'
 import CalendarReservationsModal from './CalendarReservationsModal'
 import NewReservationSheet from './NewReservationSheet'
-import { useReservations } from '@/usecases/useReservations'
+import { useReservations } from '@zyra/core/usecases/useReservations'
 
 export default function ReservationsManagement() {
   const { salon } = useSalon()

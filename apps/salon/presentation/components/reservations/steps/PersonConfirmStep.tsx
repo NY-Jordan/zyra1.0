@@ -3,7 +3,7 @@
 import React from 'react'
 import { Plus } from 'lucide-react'
 import { ISalonService } from '@zyra/conf/domain/entities/salons.entities'
-import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
+import { HairDresserWithSalonAssociation } from '@zyra/core/usecases/useHairDressers'
 import { PersonBooking } from '../types'
 import { PersonSummaryCard } from '../ui/ReservationWizardPrimitives'
 

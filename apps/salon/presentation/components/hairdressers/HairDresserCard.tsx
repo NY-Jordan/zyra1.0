@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@zyra/ui/components/dropdown-menu'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
+import { HairDresserWithSalonAssociation } from '@zyra/core/usecases/useHairDressers'
 import { useHasPermission } from '@/hooks/useHasPermission'
 
 interface HairDresserCardProps {

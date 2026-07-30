@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { Store, Settings, AlertCircle } from 'lucide-react'
 import { Button } from '@zyra/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@zyra/ui/components/card'

@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import { useOwner } from '@/hooks/useOwner'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'

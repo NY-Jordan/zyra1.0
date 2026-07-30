@@ -28,8 +28,8 @@ import {
 import { fetchCollection, createDocument } from '@zyra/conf/lib/query'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { toast } from 'sonner'
-import useSalon from '@/hooks/useSalon'
-import { logActivity, createNotification, getCurrentActor } from '@/usecases/notificationsUseCases'
+import useSalon from '@zyra/core/hooks/useSalon'
+import { logActivity, createNotification, getCurrentActor } from '@zyra/core/usecases/notificationsUseCases'
 import {
   SearchHairDresserForm,
   ServiceSelectionForm,

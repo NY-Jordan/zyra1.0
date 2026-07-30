@@ -13,8 +13,8 @@ import {
   Loader2,
   X,
 } from 'lucide-react'
-import { useSalon } from '@/hooks/useSalon'
-import { useCreateClient, useUpdateClient } from '@/usecases/clientsUseCases'
+import { useSalon } from '@zyra/core/hooks/useSalon'
+import { useCreateClient, useUpdateClient } from '@zyra/core/usecases/clientsUseCases'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { getPhonePrefix } from '@/utils/phonePrefix'
 

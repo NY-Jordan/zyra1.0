@@ -10,7 +10,7 @@ import {
   HairDresserSalonAssociation,
   hairDresserAssociationNameEnum,
 } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
+import { HairDresserWithSalonAssociation } from '@zyra/core/usecases/useHairDressers'
 import { useSalon } from './useSalon'
 
 export interface CalendarEvent {

@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@zyra/ui/components/dropdown-menu'
-import { useServiceCategories } from '@/usecases/useServiceCategories'
+import { useServiceCategories } from '@zyra/core/usecases/useServiceCategories'
 import { useHasPermission } from '@/hooks/useHasPermission'
 import CreateCategoryModal from './CreateCategoryModal'
 import ConfirmModal from '../../../../../admin/presentation/components/CofirmModal'

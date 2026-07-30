@@ -14,6 +14,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
       '@zyra/ui': path.resolve(__dirname, '../../packages/ui/src'),
       '@zyra/conf': path.resolve(__dirname, '../../packages/conf/src'),
+      '@zyra/core': path.resolve(__dirname, '../../packages/core/src'),
     },
   },
 });

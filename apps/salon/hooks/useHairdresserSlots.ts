@@ -7,8 +7,8 @@ import { fetchCollection } from '@zyra/conf/lib/query'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import { useSalon } from '@/hooks/useSalon'
-import { useHairDressers } from '@/usecases/useHairDressers'
+import { useSalon } from '@zyra/core/hooks/useSalon'
+import { useHairDressers } from '@zyra/core/usecases/useHairDressers'
 import {
   generateTimeSlots,
   filterByHairdresserHours,

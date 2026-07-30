@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
 import AdministrationManagement from '@/presentation/components/administration/AdministrationManagement'
-import { useSalonMember } from '@/hooks/useSalonMember'
+import useSalonMember from '@/hooks/useSalonMember'
 
 export default function AdministrationPage() {
   const { member, isLoading } = useSalonMember()

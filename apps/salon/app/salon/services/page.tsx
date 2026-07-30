@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import CategoriesManagement from '@/presentation/components/services/Categories/CategoriesManagement'
 import ServicesManagement from '@/presentation/components/services/ServicesManagement'
 import { formatPrice } from '@zyra/conf/lib/utils'

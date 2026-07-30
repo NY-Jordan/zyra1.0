@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@zyra/ui/components/ca
 import { Badge } from '@zyra/ui/components/badge'
 import { Button } from '@zyra/ui/components/button'
 import { Calendar, CreditCard, Crown, AlertTriangle } from 'lucide-react'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useOwner } from '@/hooks/useOwner'
 
 export default function SubscriptionInfo() {

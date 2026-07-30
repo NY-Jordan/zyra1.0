@@ -8,7 +8,7 @@ const { mockHairDressers } = vi.hoisted(() => ({
 }));
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
-vi.mock('@/usecases/useHairDressers', () => ({
+vi.mock('@zyra/core/usecases/useHairDressers', () => ({
   useHairDressers: () => ({ hairDressers: mockHairDressers.value }),
 }));
 

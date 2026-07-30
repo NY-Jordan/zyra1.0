@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@zyra/ui/components/radio-group'
 import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
 import {Form,FormControl,FormDescription,FormField,FormItem,FormLabel,FormMessage} from '@zyra/ui/components/form'
 import { toast } from 'sonner'
-import { useServiceCategories } from '@/usecases/useServiceCategories'
+import { useServiceCategories } from '@zyra/core/usecases/useServiceCategories'
 import { Edit, Loader2, X } from 'lucide-react'
 import { IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
 

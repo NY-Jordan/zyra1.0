@@ -4,7 +4,7 @@ import { Input } from '@zyra/ui/components/input'
 import PageHeader from '@/presentation/components/common/PageHeader'
 import ProtectedLayout from '@/presentation/layouts/ProtectedLayout'
 import QRCodeDialog from '@/presentation/components/dashboard/QRCodeDialog'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useDashboard } from '@/hooks/useDashboard'
 import { useBookingAccess } from '@/hooks/useBookingAccess'
 import {

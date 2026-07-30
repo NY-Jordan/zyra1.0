@@ -22,5 +22,11 @@
   "packageManager": "pnpm@10.4.1",
   "engines": {
     "node": ">=20"
+  },
+  "pnpm": {
+    "overrides": {
+      "@zyra/core>react": "19.1.0",
+      "@zyra/core>react-dom": "19.1.0"
+    }
   }
 }

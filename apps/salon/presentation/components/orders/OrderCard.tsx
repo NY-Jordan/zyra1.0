@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from '@zyra/ui/components/alert-dialog'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
-import { useMarkOrderAsPaid, useDeleteOrder } from '@/usecases/ordersUseCases'
+import { useMarkOrderAsPaid, useDeleteOrder } from '@zyra/core/usecases/ordersUseCases'
 import { useHasPermission } from '@/hooks/useHasPermission'
 import OrderDetailsModal from './OrderDetailsModal'
 import { formatDateTime } from '@zyra/conf/lib/utils'

@@ -23,13 +23,13 @@ import {
 } from '@zyra/ui/components/dialog'
 import { Badge } from '@zyra/ui/components/badge'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import {  HairDresserWithSalonAssociation, useHairDressers } from '@/usecases/useHairDressers'
+import {  HairDresserWithSalonAssociation, useHairDressers } from '@zyra/core/usecases/useHairDressers'
 import ConfirmModal from '../../../../admin/presentation/components/CofirmModal'
 import HairDresserCard from './HairDresserCard'
 import HairDresserDetailsModal from './HairDresserDetailsModal'
 import InviteHairDresserModal from './InviteHairDresserModal'
 import InvitationsSheet from './InvitationsSheet'
-import { useSalon } from '@/hooks/useSalon'
+import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useHasPermission } from '@/hooks/useHasPermission'
 
 

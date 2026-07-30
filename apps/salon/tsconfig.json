@@ -22,6 +22,7 @@
       "@/*": ["./*"],
       "@zyra/ui/*": ["../../packages/ui/src/*"],
       "@zyra/conf/*": ["../../packages/conf/src/*"],
+      "@zyra/core/*": ["../../packages/core/src/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

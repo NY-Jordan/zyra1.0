@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@zyra/ui/components/dialog'
-import { HairDresserWithSalonAssociation } from '@/usecases/useHairDressers'
+import { HairDresserWithSalonAssociation } from '@zyra/core/usecases/useHairDressers'
 import { IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
 import {
   Select,
