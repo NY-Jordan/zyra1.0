@@ -1,10 +1,11 @@
+import { getRole } from '@zyra/conf/domain/entities/permissions.entities';
 import { Text, View } from 'react-native';
 
 import { Avatar } from '@/components/ui/Avatar';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CARD_CLASS } from '@/components/ui/shared';
 
-import { MEMBER_STATUS_LABELS, MEMBER_STATUS_TONES, ROLE_LABELS, type TeamMember } from './types';
+import { MEMBER_STATUS_LABELS, MEMBER_STATUS_TONES, type TeamMember } from './types';
 
 export function MemberCard({ member }: { member: TeamMember }) {
   return (
@@ -16,7 +17,7 @@ export function MemberCard({ member }: { member: TeamMember }) {
         <View className="mt-1.5 flex-row items-center gap-1.5">
           <View className="rounded-full bg-[#F5F2EF] px-2 py-0.5 dark:bg-slate-700/50">
             <Text className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-              {ROLE_LABELS[member.role]}
+              {getRole(member.role).label}
             </Text>
           </View>
           <StatusBadge label={MEMBER_STATUS_LABELS[member.status]} tone={MEMBER_STATUS_TONES[member.status]} />

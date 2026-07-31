@@ -17,6 +17,7 @@ import { signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
 import { toast } from 'sonner'
 import useSalonMember from '@/hooks/useSalonMember'
+import { memberStatusEnum } from '@zyra/conf/domain/enums/MemberEnum'
 
 const SESSION_DURATION = 2 * 60 * 60 * 1000
 
@@ -122,7 +123,7 @@ export default function SalonChecker({ children }: SalonCheckerProps) {
 
   useEffect(() => {
     if (!member) return
-    if (member.status === 'suspended') {
+    if (member.status === memberStatusEnum.suspended) {
       signOut(auth); sessionStorage.clear(); router.push('/auth/login'); return
     }
     if (member.mustChangePassword) {

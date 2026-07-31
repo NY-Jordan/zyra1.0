@@ -42,6 +42,7 @@ import { usePermissionsCatalog, useSalonMembers, useSalonRolePermissions } from 
 import AddMemberModal from './AddMemberModal'
 import RolesPermissions from './RolesPermissions'
 import { getRole, MemberStatus, RoleId, ROLES, TeamMember } from './types'
+import { memberStatusEnum } from '@zyra/conf/domain/enums/MemberEnum'
 
 const card = 'bg-white dark:bg-[#161B24] border border-[#F0EAE4] dark:border-slate-800/50 rounded-2xl'
 
@@ -131,7 +132,7 @@ function MemberCard({ member, locked, onChangeRole, onToggleStatus, onRemove }: 
 
       {!locked && (
         <div className="mt-3 pt-3 border-t border-[#F0EAE4] dark:border-slate-800/50 flex justify-center">
-          {member.status === 'invited' ? (
+          {member.status === memberStatusEnum.invited ? (
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
               <Mail className="h-3.5 w-3.5" />
               En attente de réponse
@@ -142,7 +143,7 @@ function MemberCard({ member, locked, onChangeRole, onToggleStatus, onRemove }: 
               onClick={onToggleStatus}
               className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full border border-[#E8E0D8] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-[#F5F2EF] dark:hover:bg-slate-800 transition-colors"
             >
-              {member.status === 'active' ? (
+              {member.status === memberStatusEnum.active ? (
                 <>
                   <UserX className="h-3.5 w-3.5" />
                   Suspendre l'accès
@@ -189,15 +190,15 @@ export default function AdministrationManagement() {
     name: owner?.name || 'Vous',
     email: owner?.email || '—',
     roleId: 'owner',
-    status: 'active',
+    status: memberStatusEnum.active,
     mustChangePassword: false,
     addedAt: '—',
   }
 
   const statistics = useMemo(() => {
     const total = members.length + 1
-    const active = members.filter(m => m.status === 'active').length + 1
-    const pending = members.filter(m => m.status === 'invited').length
+    const active = members.filter(m => m.status === memberStatusEnum.active).length + 1
+    const pending = members.filter(m => m.status === memberStatusEnum.invited).length
     return { total, active, pending }
   }, [members])
 

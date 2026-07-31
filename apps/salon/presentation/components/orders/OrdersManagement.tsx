@@ -17,6 +17,7 @@ import { useHasPermission } from '@/hooks/useHasPermission'
 import { useHairDressers } from '@zyra/core/usecases/useHairDressers'
 import { useQuery } from '@tanstack/react-query'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
+import { orderStatusEnum } from '@zyra/conf/domain/enums/OrderEnum'
 import OrderCard from './OrderCard'
 import NewOrderModal from './NewOrderModal'
 import { fetchCollection } from '@zyra/conf/lib/query'
@@ -123,8 +124,8 @@ export default function OrdersManagement() {
 
   const statistics = useMemo(() => {
     const total = orders.length
-    const completed = orders.filter((o: any) => o.status === 'completed').length
-    const pending = orders.filter((o: any) => o.status === 'pending').length
+    const completed = orders.filter((o: any) => o.status === orderStatusEnum.completed).length
+    const pending = orders.filter((o: any) => o.status === orderStatusEnum.pending).length
     const paid = orders.filter((o: any) => o.isPaid).length
     const totalRevenue = orders
       .filter((o: any) => o.isPaid)
@@ -294,9 +295,9 @@ export default function OrdersManagement() {
             className="h-10 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
           >
             <option value="all">Tous les statuts</option>
-            <option value="pending">En attente</option>
-            <option value="completed">Terminées</option>
-            <option value="canceled">Annulées</option>
+            <option value={orderStatusEnum.pending}>En attente</option>
+            <option value={orderStatusEnum.completed}>Terminées</option>
+            <option value={orderStatusEnum.canceled}>Annulées</option>
           </select>
 
           <select

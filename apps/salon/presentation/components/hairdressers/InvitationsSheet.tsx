@@ -95,10 +95,10 @@ export default function InvitationsSheet({ open, onOpenChange }: InvitationsShee
 
   const groupedInvitations = React.useMemo(() => {
     const groups = {
-      pending: invitations.filter(inv => inv.status === 'pending' && !isExpired(inv.expiresAt)),
-      accepted: invitations.filter(inv => inv.status === 'accepted'),
-      rejected: invitations.filter(inv => inv.status === 'rejected'),
-      expired: invitations.filter(inv => inv.status === 'expired' || (inv.status === 'pending' && isExpired(inv.expiresAt)))
+      pending: invitations.filter(inv => inv.status === hairDresserInvitationStatusEnum.PENDING && !isExpired(inv.expiresAt)),
+      accepted: invitations.filter(inv => inv.status === hairDresserInvitationStatusEnum.ACCEPTED),
+      rejected: invitations.filter(inv => inv.status === hairDresserInvitationStatusEnum.REJECTED),
+      expired: invitations.filter(inv => inv.status === hairDresserInvitationStatusEnum.EXPIRED || (inv.status === hairDresserInvitationStatusEnum.PENDING && isExpired(inv.expiresAt)))
     }
     return groups
   }, [invitations])
@@ -226,7 +226,7 @@ function InvitationCard({
 }) {
   const getStatusBadge = (status: string, expiresAt: string) => {
     const expired = new Date(expiresAt) < new Date()
-    if (status === 'pending' && expired) {
+    if (status === hairDresserInvitationStatusEnum.PENDING && expired) {
       return <Badge variant="outline" className="text-gray-500 dark:text-slate-400">Expirée</Badge>
     }
     switch (status) {
@@ -262,7 +262,7 @@ function InvitationCard({
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(invitation.status, invitation.expiresAt)}
-              {invitation.status === 'pending' && onEdit && (
+              {invitation.status === hairDresserInvitationStatusEnum.PENDING && onEdit && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -283,7 +283,7 @@ function InvitationCard({
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span>Envoyée le {formatDate(invitation.createdAt)}</span>
             </div>
-            {invitation.status === 'pending' && (
+            {invitation.status === hairDresserInvitationStatusEnum.PENDING && (
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span>Expire le {formatDate(invitation.expiresAt)}</span>

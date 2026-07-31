@@ -1,22 +1,23 @@
+import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum';
+import { Calendar } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReservationCard } from '@/components/reservations/ReservationCard';
 import { ReservationDetailsModal } from '@/components/reservations/ReservationDetailsModal';
-import { MOCK_RESERVATIONS, STATUS_LABELS, type Reservation, type ReservationStatus } from '@/components/reservations/types';
+import { MOCK_RESERVATIONS, STATUS_LABELS, type Reservation } from '@/components/reservations/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { CARD_CLASS } from '@/components/ui/shared';
-import { Calendar } from 'lucide-react-native';
 
-const FILTERS: { label: string; value: ReservationStatus | 'all' }[] = [
+const FILTERS: { label: string; value: reservationStatusEnum | 'all' }[] = [
   { label: 'Toutes', value: 'all' },
-  { label: STATUS_LABELS.pending, value: 'pending' },
-  { label: STATUS_LABELS.confirmed, value: 'confirmed' },
-  { label: STATUS_LABELS.checked_in, value: 'checked_in' },
-  { label: STATUS_LABELS.completed, value: 'completed' },
-  { label: STATUS_LABELS.canceled, value: 'canceled' },
+  { label: STATUS_LABELS[reservationStatusEnum.pending], value: reservationStatusEnum.pending },
+  { label: STATUS_LABELS[reservationStatusEnum.confirmed], value: reservationStatusEnum.confirmed },
+  { label: STATUS_LABELS[reservationStatusEnum.checked_in], value: reservationStatusEnum.checked_in },
+  { label: STATUS_LABELS[reservationStatusEnum.completed], value: reservationStatusEnum.completed },
+  { label: STATUS_LABELS[reservationStatusEnum.canceled], value: reservationStatusEnum.canceled },
 ];
 
 function StatPill({ label, value }: { label: string; value: string }) {
@@ -30,7 +31,7 @@ function StatPill({ label, value }: { label: string; value: string }) {
 
 export default function ReservationsScreen() {
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<ReservationStatus | 'all'>('all');
+  const [filter, setFilter] = useState<reservationStatusEnum | 'all'>('all');
   const [selected, setSelected] = useState<Reservation | null>(null);
 
   const filtered = useMemo(() => {
@@ -56,8 +57,8 @@ export default function ReservationsScreen() {
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2.5">
               <StatPill label="Total" value={String(MOCK_RESERVATIONS.length)} />
-              <StatPill label="En attente" value={String(MOCK_RESERVATIONS.filter((r) => r.status === 'pending').length)} />
-              <StatPill label="Confirmées" value={String(MOCK_RESERVATIONS.filter((r) => r.status === 'confirmed').length)} />
+              <StatPill label="En attente" value={String(MOCK_RESERVATIONS.filter((r) => r.status === reservationStatusEnum.pending).length)} />
+              <StatPill label="Confirmées" value={String(MOCK_RESERVATIONS.filter((r) => r.status === reservationStatusEnum.confirmed).length)} />
               <StatPill label="Revenus" value={`${totalRevenue.toLocaleString('fr-FR')} XAF`} />
             </ScrollView>
 

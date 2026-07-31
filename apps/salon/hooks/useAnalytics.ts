@@ -6,6 +6,7 @@ import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
+import { orderStatusEnum } from '@zyra/conf/domain/enums/OrderEnum'
 import { useSalon } from './useSalon'
 
 export type AnalyticsPeriod = 'today' | '7d' | '30d' | '3m' | '6m' | 'all'
@@ -168,8 +169,8 @@ export const useAnalytics = (period: AnalyticsPeriod = 'all') => {
 
       // ── Orders ─────────────────────────────────────────────────────────────────
 
-      const ordersCompleted = orders.filter(o => o.status === 'completed').length
-      const ordersCanceled = orders.filter(o => o.status === 'canceled').length
+      const ordersCompleted = orders.filter(o => o.status === orderStatusEnum.completed).length
+      const ordersCanceled = orders.filter(o => o.status === orderStatusEnum.canceled).length
       const ordersRevenue = paidOrders.reduce((s, o) => s + o.totalPrice, 0)
 
       // ── Clients ────────────────────────────────────────────────────────────────

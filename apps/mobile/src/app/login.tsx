@@ -1,3 +1,4 @@
+import { memberStatusEnum } from '@zyra/conf/domain/enums/MemberEnum';
 import { useRouter } from 'expo-router';
 import { AlertCircle, ArrowLeft, ArrowRight, Lock, Mail } from 'lucide-react-native';
 import { useState } from 'react';
@@ -15,6 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/services/authService';
+
 const EMAIL_PATTERN = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
 type FormErrors = {
@@ -25,6 +29,7 @@ type FormErrors = {
 export default function LoginScreen() {
   const router = useRouter();
   const isDark = useColorScheme() === 'dark';
+  const { setSalonId } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,9 +62,28 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      // TODO: brancher l'authentification réelle (Firebase / ownerAuthService)
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      router.replace('/');
+      const user = await authService.login(email, password);
+      const context = await authService.getAccountContext(user.uid);
+
+      if (context.type === 'unknown') {
+        await authService.logout();
+        setConnectionError('Ce compte est introuvable. Contactez le support Zyra.');
+        return;
+      }
+
+      if (context.type === 'member') {
+        if (context.member.status === memberStatusEnum.suspended) {
+          await authService.logout();
+          setConnectionError('Votre accès a été suspendu. Contactez le propriétaire du salon.');
+          return;
+        }
+        await setSalonId(context.member.salonId);
+      } else if (context.type === 'owner') {
+        // Force the salon picker on every explicit login, even if one was chosen before.
+        await setSalonId(null);
+      }
+
+      // AuthProvider picks up the signed-in user and redirects to the dashboard (or setup, for owners).
     } catch (error: any) {
       setConnectionError(error?.message || 'Une erreur est survenue. Vérifiez votre connexion internet.');
     } finally {

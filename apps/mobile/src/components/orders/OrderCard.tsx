@@ -1,15 +1,19 @@
+import type { IOrder } from '@zyra/conf/domain/entities/orders.entities';
+import { orderStatusEnum } from '@zyra/conf/domain/enums/OrderEnum';
 import { Pressable, Text, View } from 'react-native';
 
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CARD_CLASS } from '@/components/ui/shared';
+import { formatDateTime } from '@/lib/formatDate';
 
-import { ORDER_STATUS_LABELS, ORDER_STATUS_TONES, type Order } from './types';
+import { ORDER_STATUS_LABELS, ORDER_STATUS_TONES } from './types';
 
-export function OrderCard({ order, onPress }: { order: Order; onPress: () => void }) {
+export function OrderCard({ order, onPress }: { order: IOrder; onPress: () => void }) {
+  const status = order.status as orderStatusEnum;
   return (
     <Pressable onPress={onPress} className={`${CARD_CLASS} p-4 active:opacity-80`}>
       <View className="mb-2 flex-row items-center justify-between">
-        <StatusBadge label={ORDER_STATUS_LABELS[order.status]} tone={ORDER_STATUS_TONES[order.status]} />
+        <StatusBadge label={ORDER_STATUS_LABELS[status]} tone={ORDER_STATUS_TONES[status]} />
         <StatusBadge label={order.isPaid ? 'Payé' : 'Non payé'} tone={order.isPaid ? 'emerald' : 'rose'} />
       </View>
       <View className="mb-2 flex-row items-center justify-between">
@@ -22,8 +26,8 @@ export function OrderCard({ order, onPress }: { order: Order; onPress: () => voi
         </Text>
       </View>
       <View className="flex-row items-center justify-between">
-        <Text className="text-[11px] text-slate-400">{order.hairdresserName}</Text>
-        <Text className="text-[11px] text-slate-400">{order.createdAt}</Text>
+        <Text className="text-[11px] text-slate-400">{order.hairDresserName}</Text>
+        <Text className="text-[11px] text-slate-400">{formatDateTime(order.createdAt)}</Text>
       </View>
     </Pressable>
   );

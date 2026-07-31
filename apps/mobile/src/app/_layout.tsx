@@ -12,6 +12,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { Text, TextInput, useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { useProtectedRoute } from '@/hooks/use-protected-route';
 
 import '@/global.css';
 
@@ -24,8 +26,31 @@ anyText.defaultProps.style = [{ fontFamily: 'Geist_400Regular' }, anyText.defaul
 anyTextInput.defaultProps = anyTextInput.defaultProps || {};
 anyTextInput.defaultProps.style = [{ fontFamily: 'Geist_400Regular' }, anyTextInput.defaultProps.style];
 
-export default function RootLayout() {
+function RootNavigator() {
   const colorScheme = useColorScheme();
+  useProtectedRoute();
+
+  return (
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <AnimatedSplashOverlay />
+      <Stack initialRouteName="login" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="login" />
+        <Stack.Screen name="setup" />
+        <Stack.Screen name="change-password" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="services" options={{ headerShown: true, title: 'Services' }} />
+        <Stack.Screen name="hairdressers" options={{ headerShown: true, title: 'Coiffeurs' }} />
+        <Stack.Screen name="activities" options={{ headerShown: true, title: 'Activités' }} />
+        <Stack.Screen name="analytics" options={{ headerShown: true, title: 'Statistiques' }} />
+        <Stack.Screen name="administration" options={{ headerShown: true, title: 'Administration' }} />
+        <Stack.Screen name="settings" options={{ headerShown: true, title: 'Paramètres du salon' }} />
+        <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil' }} />
+      </Stack>
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
   useFonts({
     Geist_400Regular,
     Geist_500Medium,
@@ -35,19 +60,8 @@ export default function RootLayout() {
   });
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <Stack initialRouteName="login" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="login" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="orders" options={{ headerShown: true, title: 'Commandes' }} />
-        <Stack.Screen name="hairdressers" options={{ headerShown: true, title: 'Coiffeurs' }} />
-        <Stack.Screen name="activities" options={{ headerShown: true, title: 'Activités' }} />
-        <Stack.Screen name="analytics" options={{ headerShown: true, title: 'Statistiques' }} />
-        <Stack.Screen name="administration" options={{ headerShown: true, title: 'Administration' }} />
-        <Stack.Screen name="settings" options={{ headerShown: true, title: 'Paramètres du salon' }} />
-        <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profil' }} />
-      </Stack>
-    </ThemeProvider>
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
   );
 }

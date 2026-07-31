@@ -11,6 +11,7 @@ import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useRouter } from 'next/navigation'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
+import { memberStatusEnum } from '@zyra/conf/domain/enums/MemberEnum'
 
 export default function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm()
@@ -41,7 +42,7 @@ export default function Login() {
       }
 
       if (context.type === 'member') {
-        if (context.member.status === 'suspended') {
+        if (context.member.status === memberStatusEnum.suspended) {
           await signOut(auth)
           setConnectionError('Votre accès a été suspendu. Contactez le propriétaire du salon.')
           return

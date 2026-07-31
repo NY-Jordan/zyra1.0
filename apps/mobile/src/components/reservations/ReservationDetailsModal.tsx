@@ -1,9 +1,10 @@
+import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum';
 import { Calendar, Mail, Phone, Scissors, User2 } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
-import { STATUS_LABELS, STATUS_TONES, type Reservation, type ReservationStatus } from './types';
+import { STATUS_LABELS, STATUS_TONES, type Reservation } from './types';
 import { SheetModal } from '@/components/ui/SheetModal';
 
 function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
@@ -31,20 +32,20 @@ function ActionButton({ label, tone, onPress }: { label: string; tone: 'emerald'
   );
 }
 
-function nextActions(status: ReservationStatus): { label: string; tone: 'emerald' | 'sky' | 'rose' | 'violet' }[] {
+function nextActions(status: reservationStatusEnum): { label: string; tone: 'emerald' | 'sky' | 'rose' | 'violet' }[] {
   switch (status) {
-    case 'pending':
+    case reservationStatusEnum.pending:
       return [
         { label: 'Confirmer', tone: 'sky' },
         { label: 'Annuler', tone: 'rose' },
       ];
-    case 'confirmed':
+    case reservationStatusEnum.confirmed:
       return [
         { label: 'Client arrivé', tone: 'emerald' },
         { label: 'Reprogrammer', tone: 'violet' },
         { label: 'Annuler', tone: 'rose' },
       ];
-    case 'checked_in':
+    case reservationStatusEnum.checked_in:
       return [
         { label: 'Marquer comme payé', tone: 'emerald' },
         { label: 'Terminer', tone: 'sky' },

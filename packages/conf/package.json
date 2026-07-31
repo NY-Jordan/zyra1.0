@@ -13,6 +13,10 @@
     "./subtract": {
       "types": "./src/subtract.ts",
       "default": "./dist/subtract.js"
+    },
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./src/*.ts"
     }
   },
   "devDependencies": {

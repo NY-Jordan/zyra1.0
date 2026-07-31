@@ -13,6 +13,7 @@ import { Input } from '@zyra/ui/components/input'
 import { Button } from '@zyra/ui/components/button'
 import { Badge } from '@zyra/ui/components/badge'
 import { CheckCircle, AlertCircle, Loader } from 'lucide-react'
+import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
@@ -163,7 +164,7 @@ export default function ConfirmReservationModal({
                 )}
                 <div className="flex items-center gap-2 pt-1">
                   <span className="font-medium">Statut:</span>
-                  <Badge variant={foundReservation.status === 'pending' ? 'secondary' : 'default'}>
+                  <Badge variant={foundReservation.status === reservationStatusEnum.pending ? 'secondary' : 'default'}>
                     {foundReservation.status}
                   </Badge>
                 </div>

@@ -1,9 +1,8 @@
+import { getRole, type RoleId } from '@zyra/conf/domain/entities/permissions.entities';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { SheetModal } from '@/components/ui/SheetModal';
-
-import { ROLE_LABELS, type RoleId } from './types';
 
 const ASSIGNABLE_ROLES: RoleId[] = ['manager', 'receptionist'];
 
@@ -62,7 +61,7 @@ export function AddMemberModal({ visible, onClose }: { visible: boolean; onClose
                 role === r ? 'border-emerald-500 bg-emerald-500' : 'border-[#E8E0D8] bg-white dark:border-slate-700 dark:bg-slate-900'
               }`}>
               <Text className={`text-[12px] font-semibold ${role === r ? 'text-white' : 'text-slate-600 dark:text-slate-300'}`}>
-                {ROLE_LABELS[r]}
+                {getRole(r).label}
               </Text>
             </Pressable>
           ))}

@@ -1,3 +1,6 @@
+import type { ContractType } from '@zyra/conf/domain/entities/hairdressers.entities';
+import { hairDresserInvitationStatusEnum } from '@zyra/conf/domain/entities/hairdressers.entities';
+
 export type Hairdresser = {
   id: string;
   name: string;
@@ -10,19 +13,17 @@ export type Hairdresser = {
   reservationsConfirmed: number;
   reservationsDone: number;
   services: string[];
-  contractType: 'commission' | 'salary';
+  contractType: ContractType;
   contractValue: number;
 };
-
-export type InvitationStatus = 'pending' | 'accepted' | 'rejected' | 'expired';
 
 export type Invitation = {
   id: string;
   name: string;
   email: string;
-  status: InvitationStatus;
+  status: hairDresserInvitationStatusEnum;
   sentDate: string;
-  contractType: 'commission' | 'salary';
+  contractType: ContractType;
   contractValue: number;
 };
 
@@ -79,7 +80,7 @@ export const MOCK_INVITATIONS: Invitation[] = [
     id: 'i1',
     name: 'Grace Mballa',
     email: 'grace.mballa@example.com',
-    status: 'pending',
+    status: hairDresserInvitationStatusEnum.PENDING,
     sentDate: '20 Juil 2026',
     contractType: 'commission',
     contractValue: 30,
@@ -88,7 +89,7 @@ export const MOCK_INVITATIONS: Invitation[] = [
     id: 'i2',
     name: 'Eric Tabi',
     email: 'eric.tabi@example.com',
-    status: 'accepted',
+    status: hairDresserInvitationStatusEnum.ACCEPTED,
     sentDate: '10 Juil 2026',
     contractType: 'salary',
     contractValue: 120000,

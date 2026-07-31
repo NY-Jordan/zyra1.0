@@ -1,12 +1,11 @@
+import type { IClient } from '@zyra/conf/domain/entities/clients.entities';
 import { Mail, Phone } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/ui/Avatar';
 import { CARD_CLASS } from '@/components/ui/shared';
 
-import type { Client } from './types';
-
-export function ClientCard({ client, onPress }: { client: Client; onPress: () => void }) {
+export function ClientCard({ client, onPress }: { client: IClient; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} className={`${CARD_CLASS} flex-row items-center gap-3 p-4 active:opacity-80`}>
       <Avatar name={client.name} size={44} />
@@ -15,7 +14,7 @@ export function ClientCard({ client, onPress }: { client: Client; onPress: () =>
           <Text className="text-[14px] font-bold text-slate-800 dark:text-white">{client.name}</Text>
           <View className="rounded-full bg-emerald-50 px-2 py-0.5 dark:bg-emerald-950/20">
             <Text className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
-              {client.ordersCount} cmd
+              {client.history.length} cmd
             </Text>
           </View>
         </View>

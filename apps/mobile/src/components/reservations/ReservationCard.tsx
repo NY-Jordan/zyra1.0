@@ -1,3 +1,4 @@
+import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum';
 import { Banknote, Calendar, Clock, Smartphone, UserX } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
@@ -17,7 +18,7 @@ export function ReservationCard({ reservation, onPress }: { reservation: Reserva
         <StatusBadge label={reservation.isPaid ? 'Payé' : 'Non payé'} tone={reservation.isPaid ? 'emerald' : 'rose'} />
       </View>
 
-      {!reservation.hairdresserName && reservation.status !== 'canceled' ? (
+      {!reservation.hairdresserName && reservation.status !== reservationStatusEnum.canceled ? (
         <View className="mb-3 flex-row items-center gap-1.5 self-start rounded-full bg-amber-50 px-2.5 py-1 dark:bg-amber-950/20">
           <UserX size={11} color="#d97706" />
           <Text className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">Sans coiffeur</Text>
@@ -44,13 +45,13 @@ export function ReservationCard({ reservation, onPress }: { reservation: Reserva
           <Text className="text-[11px] font-bold text-slate-700 dark:text-slate-300">{reservation.time}</Text>
         </View>
         <View className="flex-row items-center gap-1.5">
-          {reservation.paymentMethod === 'mobile' ? (
+          {reservation.paymentMethod === reservationPaymentMethodEnum.mobile ? (
             <Smartphone size={12} color="#94a3b8" />
           ) : (
             <Banknote size={12} color="#94a3b8" />
           )}
           <Text className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-            {reservation.paymentMethod === 'mobile' ? 'Mobile Money' : 'Espèces'}
+            {reservation.paymentMethod === reservationPaymentMethodEnum.mobile ? 'Mobile Money' : 'Espèces'}
           </Text>
         </View>
       </View>

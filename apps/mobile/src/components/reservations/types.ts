@@ -1,11 +1,6 @@
-export type ReservationStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'checked_in'
-  | 'no_show'
-  | 'rescheduled'
-  | 'completed'
-  | 'canceled';
+import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum';
+
+import type { StatusTone } from '@/components/ui/shared';
 
 export type Reservation = {
   id: string;
@@ -15,9 +10,9 @@ export type Reservation = {
   clientEmail?: string;
   date: string;
   time: string;
-  status: ReservationStatus;
+  status: reservationStatusEnum;
   isPaid: boolean;
-  paymentMethod: 'cash' | 'mobile';
+  paymentMethod: reservationPaymentMethodEnum;
   totalPrice: number;
   peopleCount: number;
   hairdresserName?: string;
@@ -25,24 +20,24 @@ export type Reservation = {
   notes?: string;
 };
 
-export const STATUS_LABELS: Record<ReservationStatus, string> = {
-  pending: 'En attente',
-  confirmed: 'Confirmée',
-  checked_in: 'Client arrivé',
-  no_show: 'Absent',
-  rescheduled: 'Reprogrammée',
-  completed: 'Terminée',
-  canceled: 'Annulée',
+export const STATUS_LABELS: Record<reservationStatusEnum, string> = {
+  [reservationStatusEnum.pending]: 'En attente',
+  [reservationStatusEnum.confirmed]: 'Confirmée',
+  [reservationStatusEnum.checked_in]: 'Client arrivé',
+  [reservationStatusEnum.no_show]: 'Absent',
+  [reservationStatusEnum.rescheduled]: 'Reprogrammée',
+  [reservationStatusEnum.completed]: 'Terminée',
+  [reservationStatusEnum.canceled]: 'Annulée',
 };
 
-export const STATUS_TONES: Record<ReservationStatus, 'amber' | 'sky' | 'emerald' | 'rose' | 'slate'> = {
-  pending: 'amber',
-  confirmed: 'sky',
-  checked_in: 'emerald',
-  no_show: 'slate',
-  rescheduled: 'sky',
-  completed: 'emerald',
-  canceled: 'rose',
+export const STATUS_TONES: Record<reservationStatusEnum, StatusTone> = {
+  [reservationStatusEnum.pending]: 'amber',
+  [reservationStatusEnum.confirmed]: 'sky',
+  [reservationStatusEnum.checked_in]: 'emerald',
+  [reservationStatusEnum.no_show]: 'slate',
+  [reservationStatusEnum.rescheduled]: 'sky',
+  [reservationStatusEnum.completed]: 'emerald',
+  [reservationStatusEnum.canceled]: 'rose',
 };
 
 export const MOCK_RESERVATIONS: Reservation[] = [
@@ -54,9 +49,9 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     clientEmail: 'aicha.ndongo@example.com',
     date: "Aujourd'hui",
     time: '09:30',
-    status: 'confirmed',
+    status: reservationStatusEnum.confirmed,
     isPaid: false,
-    paymentMethod: 'mobile',
+    paymentMethod: reservationPaymentMethodEnum.mobile,
     totalPrice: 15000,
     peopleCount: 1,
     hairdresserName: 'Junior Foka',
@@ -69,9 +64,9 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     clientPhone: '+237 6 90 44 55 66',
     date: "Aujourd'hui",
     time: '11:00',
-    status: 'pending',
+    status: reservationStatusEnum.pending,
     isPaid: false,
-    paymentMethod: 'cash',
+    paymentMethod: reservationPaymentMethodEnum.cash,
     totalPrice: 5000,
     peopleCount: 1,
     services: [{ name: 'Dégradé', price: 5000, duration: 30 }],
@@ -83,9 +78,9 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     clientPhone: '+237 6 90 77 88 99',
     date: "Aujourd'hui",
     time: '14:15',
-    status: 'checked_in',
+    status: reservationStatusEnum.checked_in,
     isPaid: true,
-    paymentMethod: 'mobile',
+    paymentMethod: reservationPaymentMethodEnum.mobile,
     totalPrice: 25000,
     peopleCount: 1,
     hairdresserName: 'Sarah Biya',
@@ -98,9 +93,9 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     clientPhone: '+237 6 90 00 11 22',
     date: 'Hier',
     time: '16:00',
-    status: 'completed',
+    status: reservationStatusEnum.completed,
     isPaid: true,
-    paymentMethod: 'cash',
+    paymentMethod: reservationPaymentMethodEnum.cash,
     totalPrice: 3000,
     peopleCount: 1,
     hairdresserName: 'Junior Foka',
@@ -113,9 +108,9 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     clientPhone: '+237 6 90 33 22 11',
     date: 'Hier',
     time: '10:00',
-    status: 'canceled',
+    status: reservationStatusEnum.canceled,
     isPaid: false,
-    paymentMethod: 'mobile',
+    paymentMethod: reservationPaymentMethodEnum.mobile,
     totalPrice: 18000,
     peopleCount: 1,
     services: [{ name: 'Coloration', price: 18000, duration: 90 }],

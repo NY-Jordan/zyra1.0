@@ -1,16 +1,19 @@
+import type { IClient } from '@zyra/conf/domain/entities/clients.entities';
 import { User2 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
-import { FlatList, ScrollView, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ClientActivitySheet } from '@/components/clients/ClientActivitySheet';
 import { ClientCard } from '@/components/clients/ClientCard';
-import { ClientDetailsSheet } from '@/components/clients/ClientDetailsSheet';
 import { ClientFormModal } from '@/components/clients/ClientFormModal';
-import { MOCK_CLIENTS, type Client } from '@/components/clients/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FAB } from '@/components/ui/FAB';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { CARD_CLASS } from '@/components/ui/shared';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAsyncData } from '@/hooks/use-async-data';
+import { clientService } from '@/services/clientService';
 
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
@@ -22,16 +25,35 @@ function StatPill({ label, value }: { label: string; value: string }) {
 }
 
 export default function ClientsScreen() {
+  const { salonId, refreshAccountContext } = useAuth();
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Client | null>(null);
+  const [selected, setSelected] = useState<IClient | null>(null);
   const [formVisible, setFormVisible] = useState(false);
 
+  const fetchClients = useCallback(
+    () => (salonId ? clientService.getClientsBySalon(salonId) : Promise.resolve([])),
+    [salonId]
+  );
+  const { data: clients, isLoading, isRefreshing, refresh } = useAsyncData<IClient[]>(fetchClients, [salonId], []);
+
+  const onRefresh = async () => {
+    await Promise.all([refresh(), refreshAccountContext()]);
+  };
+
   const filtered = useMemo(
-    () => MOCK_CLIENTS.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())),
-    [search]
+    () => clients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())),
+    [clients, search]
   );
 
-  const totalOrders = MOCK_CLIENTS.reduce((s, c) => s + c.ordersCount, 0);
+  const totalOrders = clients.reduce((s, c) => s + c.history.length, 0);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-[#FAF8F6] dark:bg-[#0B0E12]">
+        <ActivityIndicator color="#059669" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAF8F6] dark:bg-[#0B0E12]" edges={['top', 'bottom']}>
@@ -40,11 +62,12 @@ export default function ClientsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-3 p-4"
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#059669" />}
         ListHeaderComponent={
           <View className="mb-1 gap-3">
             <Text className="text-[20px] font-extrabold text-slate-900 dark:text-white">Clients</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2.5">
-              <StatPill label="Total clients" value={String(MOCK_CLIENTS.length)} />
+              <StatPill label="Total clients" value={String(clients.length)} />
               <StatPill label="Commandes cumulées" value={String(totalOrders)} />
             </ScrollView>
             <SearchInput value={search} onChangeText={setSearch} placeholder="Rechercher un client..." />
@@ -57,7 +80,7 @@ export default function ClientsScreen() {
       />
 
       <FAB onPress={() => setFormVisible(true)} />
-      <ClientDetailsSheet client={selected} onClose={() => setSelected(null)} />
+      <ClientActivitySheet client={selected} onClose={() => setSelected(null)} />
       <ClientFormModal visible={formVisible} onClose={() => setFormVisible(false)} />
     </SafeAreaView>
   );

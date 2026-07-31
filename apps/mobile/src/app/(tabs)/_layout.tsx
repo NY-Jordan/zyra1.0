@@ -1,11 +1,17 @@
 import { Tabs } from 'expo-router';
-import { Calendar, LayoutDashboard, Menu, Scissors, User2 } from 'lucide-react-native';
+import { Calendar, LayoutDashboard, Menu, ShoppingBag, User2 } from 'lucide-react-native';
 import { useColorScheme } from 'react-native';
+
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function TabsLayout() {
   const isDark = useColorScheme() === 'dark';
+  const { hasPermission, accountContext } = useAuth();
   const active = '#059669';
   const inactive = isDark ? '#64748b' : '#94a3b8';
+
+  const isOwner = accountContext?.type === 'owner';
+  const tabHref = (permissionKey: string) => (isOwner || hasPermission(permissionKey) ? undefined : null);
 
   return (
     <Tabs
@@ -30,21 +36,24 @@ export default function TabsLayout() {
         name="reservations"
         options={{
           title: 'Rendez-vous',
+          href: tabHref('bookings.view'),
           tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'Commandes',
+          href: tabHref('orders.view'),
+          tabBarIcon: ({ color, size }) => <ShoppingBag size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="clients"
         options={{
           title: 'Clients',
+          href: tabHref('clients.view'),
           tabBarIcon: ({ color, size }) => <User2 size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="services"
-        options={{
-          title: 'Services',
-          tabBarIcon: ({ color, size }) => <Scissors size={size} color={color} />,
         }}
       />
       <Tabs.Screen

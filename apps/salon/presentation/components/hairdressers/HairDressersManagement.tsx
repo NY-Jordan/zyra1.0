@@ -23,6 +23,7 @@ import {
 } from '@zyra/ui/components/dialog'
 import { Badge } from '@zyra/ui/components/badge'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { memberStatusEnum } from '@zyra/conf/domain/enums/MemberEnum'
 import {  HairDresserWithSalonAssociation, useHairDressers } from '@zyra/core/usecases/useHairDressers'
 import ConfirmModal from '../../../../admin/presentation/components/CofirmModal'
 import HairDresserCard from './HairDresserCard'
@@ -39,7 +40,7 @@ export default function HairDressersManagement() {
   const { hasPermission } = useHasPermission()
   const canInvite = hasPermission('hairdressers.invite')
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | memberStatusEnum>('all')
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const [invitationsSheetOpen, setInvitationsSheetOpen] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
@@ -250,8 +251,8 @@ export default function HairDressersManagement() {
                   className="px-3 py-2 border dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                 >
                   <option value="all">Tous les statuts</option>
-                  <option value="active">Actifs</option>
-                  <option value="suspended">Suspendus</option>
+                  <option value={memberStatusEnum.active}>Actifs</option>
+                  <option value={memberStatusEnum.suspended}>Suspendus</option>
                 </select>
                 <Button 
                   variant="outline" 
@@ -329,16 +330,16 @@ export default function HairDressersManagement() {
       {/* Modal de confirmation de changement de statut */}
       <ConfirmModal
         open={statusModal.open}
-        title={statusModal.hairDresser?.status === 'active' ? 'Suspendre le coiffeur' : 'Activer le coiffeur'}
+        title={statusModal.hairDresser?.status === memberStatusEnum.active ? 'Suspendre le coiffeur' : 'Activer le coiffeur'}
         description={
-          statusModal.hairDresser?.status === 'active'
+          statusModal.hairDresser?.status === memberStatusEnum.active
             ? `Voulez-vous suspendre ${statusModal.hairDresser?.name} ? Il ne pourra plus prendre de rendez-vous.`
             : `Voulez-vous activer ${statusModal.hairDresser?.name} ? Il pourra à nouveau prendre des rendez-vous.`
         }
         onCancel={handleCancelStatus}
         onConfirm={handleConfirmStatus}
-        confirmLabel={statusModal.hairDresser?.status === 'active' ? 'Suspendre' : 'Activer'}
-        confirmVariant={statusModal.hairDresser?.status === 'active' ? 'destructive' : 'default'}
+        confirmLabel={statusModal.hairDresser?.status === memberStatusEnum.active ? 'Suspendre' : 'Activer'}
+        confirmVariant={statusModal.hairDresser?.status === memberStatusEnum.active ? 'destructive' : 'default'}
       />
 
       {/* Details Modal */}

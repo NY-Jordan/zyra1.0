@@ -41,7 +41,7 @@ export default function ServicesScreen() {
   const avgPrice = Math.round(MOCK_SERVICES.reduce((s, x) => s + x.price, 0) / MOCK_SERVICES.length);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FAF8F6] dark:bg-[#0B0E12]" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-[#FAF8F6] dark:bg-[#0B0E12]" edges={['bottom']}>
       {tab === 'services' ? (
         <FlatList
           data={filteredServices}
@@ -106,7 +106,6 @@ function Header({
 }) {
   return (
     <View className="mb-1 gap-3">
-      <Text className="text-[20px] font-extrabold text-slate-900 dark:text-white">Services</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2.5">
         <StatPill label="Catégories" value={String(MOCK_CATEGORIES.length)} />
         <StatPill label="Services" value={String(MOCK_SERVICES.length)} />

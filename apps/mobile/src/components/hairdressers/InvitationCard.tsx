@@ -1,23 +1,25 @@
+import { hairDresserInvitationStatusEnum } from '@zyra/conf/domain/entities/hairdressers.entities';
 import { Text, View } from 'react-native';
 
 import { Avatar } from '@/components/ui/Avatar';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CARD_CLASS } from '@/components/ui/shared';
+import type { StatusTone } from '@/components/ui/shared';
 
-import type { Invitation, InvitationStatus } from './types';
+import type { Invitation } from './types';
 
-const LABELS: Record<InvitationStatus, string> = {
-  pending: 'En attente',
-  accepted: 'Acceptée',
-  rejected: 'Refusée',
-  expired: 'Expirée',
+const LABELS: Record<hairDresserInvitationStatusEnum, string> = {
+  [hairDresserInvitationStatusEnum.PENDING]: 'En attente',
+  [hairDresserInvitationStatusEnum.ACCEPTED]: 'Acceptée',
+  [hairDresserInvitationStatusEnum.REJECTED]: 'Refusée',
+  [hairDresserInvitationStatusEnum.EXPIRED]: 'Expirée',
 };
 
-const TONES: Record<InvitationStatus, 'amber' | 'emerald' | 'rose' | 'slate'> = {
-  pending: 'amber',
-  accepted: 'emerald',
-  rejected: 'rose',
-  expired: 'slate',
+const TONES: Record<hairDresserInvitationStatusEnum, StatusTone> = {
+  [hairDresserInvitationStatusEnum.PENDING]: 'amber',
+  [hairDresserInvitationStatusEnum.ACCEPTED]: 'emerald',
+  [hairDresserInvitationStatusEnum.REJECTED]: 'rose',
+  [hairDresserInvitationStatusEnum.EXPIRED]: 'slate',
 };
 
 export function InvitationCard({ invitation }: { invitation: Invitation }) {

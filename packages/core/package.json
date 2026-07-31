@@ -7,6 +7,12 @@
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
+  "exports": {
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./src/*.ts"
+    }
+  },
   "dependencies": {
     "@zyra/conf": "workspace:*",
     "bcryptjs": "^3.0.2",

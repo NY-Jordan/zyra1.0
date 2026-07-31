@@ -1,3 +1,4 @@
+import { memberStatusEnum } from '@zyra/conf/domain/enums/MemberEnum';
 import { useState } from 'react';
 import { FlatList, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,8 +31,8 @@ export default function AdministrationScreen() {
         ListHeaderComponent={
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="mb-1 gap-2.5">
             <StatPill label="Équipe" value={String(MOCK_MEMBERS.length)} />
-            <StatPill label="Actifs" value={String(MOCK_MEMBERS.filter((m) => m.status === 'active').length)} />
-            <StatPill label="Invitations" value={String(MOCK_MEMBERS.filter((m) => m.status === 'invited').length)} />
+            <StatPill label="Actifs" value={String(MOCK_MEMBERS.filter((m) => m.status === memberStatusEnum.active).length)} />
+            <StatPill label="Invitations" value={String(MOCK_MEMBERS.filter((m) => m.status === memberStatusEnum.invited).length)} />
           </ScrollView>
         }
         renderItem={({ item }) => <MemberCard member={item} />}
