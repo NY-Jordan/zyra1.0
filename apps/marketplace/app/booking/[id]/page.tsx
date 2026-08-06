@@ -165,10 +165,7 @@ export default function BookingPage() {
         const [hour, minute] = booking.time!.split(':').map(Number)
         startDate.setHours(hour || 0, minute || 0, 0, 0)
         const totalDuration = (booking.service?.duration || 0) +
-          booking.supplements.reduce((sum, suppId) => {
-            const supplement = booking.service?.supplements?.find(s => s.id === suppId)
-            return sum + (supplement?.duration || 0)
-          }, 0)
+          booking.supplements.reduce((sum, supplement) => sum + (supplement.duration || 0), 0)
         const endDate = addMinutesToDate(startDate, totalDuration)
         return { booking, scheduledAt: startDate, endsAt: endDate }
       })

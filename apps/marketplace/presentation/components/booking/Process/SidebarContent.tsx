@@ -51,7 +51,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                   <p className="text-gray-500">+{booking.supplements.length} supplément(s)</p>
                 )}
                 {booking.hairdresser && (
-                  <p className="text-gray-500 truncate">{booking.hairdresser.name}</p>
+                  <p className="text-gray-500 truncate">Coiffeur sélectionné</p>
                 )}
                 {booking.date && booking.time && (
                   <p className="text-gray-900 font-medium">

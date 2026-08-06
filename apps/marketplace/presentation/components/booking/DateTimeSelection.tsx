@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
-import { OpeningHour, ISalonService } from '@zyra/conf/domain/entities/salons.entities'
+import { OpeningHour, ISalonService, ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 import ErrorModal from './ErrorModal'
 import { useDatePicker } from '@/hooks/useDatePicker'
 import { HairDresserSalonAssociation } from '@zyra/conf/domain/entities/hairdressers.entities'
@@ -16,7 +16,7 @@ interface DateTimeSelectionProps {
   availableSlots: string[]
   openingHours: OpeningHour[]
   selectedService: ISalonService | null
-  selectedSupplementIds?: string[]
+  selectedSupplementIds?: ISalonServiceSupplement[]
   selectedHairdresser: HairDresserSalonAssociation | null
 }
 
@@ -44,7 +44,7 @@ export default function DateTimeSelection({
 
   const selectedSupplements = useMemo(() => {
     if (!selectedService) return []
-    return selectedService.supplements?.filter(s => selectedSupplementIds?.includes(s.id)) || []
+    return selectedService.supplements?.filter(s => selectedSupplementIds?.some(sel => sel.id === s.id)) || []
   }, [selectedService, selectedSupplementIds])
 
   const totalDuration = useMemo(() => {

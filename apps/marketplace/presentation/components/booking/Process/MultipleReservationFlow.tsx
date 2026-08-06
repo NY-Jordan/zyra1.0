@@ -9,6 +9,7 @@ import ClientInfoForm from '@/presentation/components/booking/ClientInfoForm'
 import { Booking } from '../../../../app/booking/[id]/types'
 import { ConfirmationStep } from './ConfirmationStep'
 import { HairDresserSalonAssociation, IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 
 interface MultipleReservationFlowProps {
   salon: ISalon
@@ -21,7 +22,7 @@ interface MultipleReservationFlowProps {
   clientInfo: any
   onSelectReservationType: (type: 'single' | 'multiple') => void
   onSelectService: (service: any) => void
-  onToggleSupplement: (id: string) => void
+  onToggleSupplement: (supplement: ISalonServiceSupplement) => void
   onSelectHairdresser: (hairdresser: any) => void
   onSelectDate: (date: Date) => void
   onSelectTime: (time: string) => void

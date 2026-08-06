@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchDocument, fetchCollection } from '@zyra/conf/lib/query'
+import { getDocument, fetchCollection } from '@zyra/conf/lib/query'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { where } from 'firebase/firestore'
@@ -12,7 +12,7 @@ export const useSalonDetails = (salonId: string) => {
     queryKey: ['salon-details', salonId],
     queryFn: async () => {
       if (!salonId) return null
-      const data = await fetchDocument('salons', salonId)
+      const data = await getDocument('salons', salonId)
       return data as ISalon
     },
     enabled: !!salonId,

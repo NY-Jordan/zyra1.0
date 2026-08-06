@@ -6,7 +6,7 @@ import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entit
 
 interface SupplementsSelectionProps {
   supplements: ISalonServiceSupplement[]
-  selectedSupplements: string[]
+  selectedSupplements: ISalonServiceSupplement[]
   onToggleSupplement: (supplement: ISalonServiceSupplement) => void
 }
 
@@ -16,7 +16,7 @@ export default function SupplementsSelection({
   onToggleSupplement,
 }: SupplementsSelectionProps) {
   const totalExtra = supplements
-    .filter(s => selectedSupplements.includes(s.id))
+    .filter(s => selectedSupplements.some(sel => sel.id === s.id))
     .reduce((sum, s) => sum + s.price, 0)
 
   return (
@@ -33,7 +33,7 @@ export default function SupplementsSelection({
       ) : (
         <div className="space-y-2">
           {supplements.map((supplement, key) => {
-            const isSelected = selectedSupplements.includes(supplement.name)
+            const isSelected = selectedSupplements.some(sel => sel.id === supplement.id)
             return (
               <button
                 key={key}
