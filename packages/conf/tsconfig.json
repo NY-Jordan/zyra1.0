@@ -3,12 +3,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": false,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"],

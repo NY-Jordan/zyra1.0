@@ -21,7 +21,7 @@ import {
 // Types
 type FirestoreData = Record<string, any>;
 
-interface PaginateOptions {
+export interface PaginateOptions {
   page?: number;
   pageSize?: number;
   orderByField?: string;

@@ -20,7 +20,7 @@
     }
   },
   "devDependencies": {
-    "typescript": "latest"
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "@firebase/firestore": "^4.9.0",
