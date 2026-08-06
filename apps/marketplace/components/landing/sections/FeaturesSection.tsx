@@ -1,11 +1,11 @@
 'use client'
 
-import { BarChart3, Bell, CalendarDays, Users2 } from 'lucide-react'
+import { BarChart3, CalendarDays, ShoppingBag, ShieldCheck, Users, Users2 } from 'lucide-react'
 import { Accent, SectionHeading } from '../SectionHeading'
 import { Reveal } from '../Reveal'
 import { useLanguage } from '../i18n/LanguageContext'
 
-const ICONS = [CalendarDays, Users2, Bell, BarChart3]
+const ICONS = [CalendarDays, ShoppingBag, Users2, Users, BarChart3, ShieldCheck]
 
 export function FeaturesSection() {
   const { t } = useLanguage()
@@ -24,7 +24,7 @@ export function FeaturesSection() {
           description={t.features.description}
         />
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-200/70 dark:border-white/10 dark:bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-200/70 dark:border-white/10 dark:bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
           {t.features.items.map((feature, i) => {
             const Icon = ICONS[i]!
             return (

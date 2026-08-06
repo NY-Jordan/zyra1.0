@@ -67,7 +67,7 @@ export interface LandingDictionary {
     titleAccent: string
     titlePost: string
     description: string
-    items: [TitledPoint, TitledPoint, TitledPoint, TitledPoint]
+    items: [TitledPoint, TitledPoint, TitledPoint, TitledPoint, TitledPoint, TitledPoint]
   }
   demo: {
     titlePre: string
@@ -192,25 +192,33 @@ export const dictionary: Record<Locale, LandingDictionary> = {
       titlePre: "Tout ce qu'il faut pour faire tourner votre ",
       titleAccent: 'salon',
       titlePost: '',
-      description: 'Quatre outils essentiels, réunis dans une interface simple à prendre en main dès le premier jour.',
+      description: "Toutes les fonctionnalités de votre salon, réunies dans une interface simple à prendre en main dès le premier jour.",
       items: [
         {
-          title: 'Calendrier',
+          title: 'Rendez-vous',
           description:
             "Un agenda partagé par toute l'équipe, avec créneaux, coiffeurs et services synchronisés en temps réel.",
         },
         {
-          title: 'Gestion clients',
+          title: 'Commandes & paiements',
+          description: 'Suivez chaque commande, encaissez et gardez une trace de tous les paiements du salon.',
+        },
+        {
+          title: 'Clients',
           description: 'Historique complet, coordonnées et préférences de chaque client, accessibles en un instant.',
         },
         {
-          title: 'Notifications',
-          description: 'Rappels automatiques par SMS et email pour réduire les absences et les annulations tardives.',
+          title: 'Équipe & coiffeurs',
+          description: "Invitez votre équipe, suivez les plannings et les performances de chaque coiffeur.",
         },
         {
           title: 'Statistiques',
           description:
             "Revenus, taux d'occupation et services les plus demandés — pour piloter le salon au jour le jour.",
+        },
+        {
+          title: 'Rôles & permissions',
+          description: "Donnez à chaque membre de l'équipe l'accès dont il a besoin, rien de plus.",
         },
       ],
     },
@@ -371,23 +379,31 @@ export const dictionary: Record<Locale, LandingDictionary> = {
       titlePre: 'Everything you need to run your ',
       titleAccent: 'salon',
       titlePost: '',
-      description: "Four essential tools, brought together in an interface that's easy to pick up from day one.",
+      description: "Every feature your salon needs, brought together in an interface that's easy to pick up from day one.",
       items: [
         {
-          title: 'Calendar',
+          title: 'Appointments',
           description: 'A schedule shared by the whole team, with slots, stylists and services synced in real time.',
         },
         {
-          title: 'Client management',
+          title: 'Orders & payments',
+          description: 'Track every order, take payments and keep a record of everything the salon collects.',
+        },
+        {
+          title: 'Clients',
           description: 'Full history, contact details and preferences for every client, available instantly.',
         },
         {
-          title: 'Notifications',
-          description: 'Automatic SMS and email reminders to reduce no-shows and late cancellations.',
+          title: 'Team & stylists',
+          description: 'Invite your team and track schedules and performance for every stylist.',
         },
         {
           title: 'Statistics',
           description: 'Revenue, occupancy rate and most requested services — to run the salon day to day.',
+        },
+        {
+          title: 'Roles & permissions',
+          description: "Give each team member exactly the access they need, nothing more.",
         },
       ],
     },

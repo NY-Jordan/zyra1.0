@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Geist, Geist_Mono, Bricolage_Grotesque, Inter, Montserrat } from "next/font/google"
 import localFont from "next/font/local"
 import "@zyra/ui/globals.css"
@@ -5,6 +6,52 @@ import { Providers } from "@/components/providers"
 import { Toaster } from "@zyra/ui/components/sonner";
 import ReactQueryProvider from "@/presentation/layouts/ReactQueryProvider";
 import "./../styles/salon-detail.css"
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo"
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s — ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME }],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  icons: {
+    icon: [
+      { url: "/images/icon-light.png", media: "(prefers-color-scheme: light)", type: "image/png" },
+      { url: "/images/icon-dark.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/images/icon-light.png",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
+  },
+}
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -50,7 +97,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <body
         className={`${fontSans.variable} ${fontMono.variable} ${fontBricolage.variable} ${fontInter.variable} ${fontClash.variable} ${fontHeading.variable} font-sans antialiased`}
       >
