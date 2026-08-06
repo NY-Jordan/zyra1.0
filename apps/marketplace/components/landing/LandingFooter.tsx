@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Facebook, Instagram, Twitter } from 'lucide-react'
 import { CONTACT_ANCHOR, SALON_LOGIN_URL } from './links'
 import { useLanguage } from './i18n/LanguageContext'
+import { ManageCookiesButton } from '@/components/cookies/ManageCookiesButton'
 
 export function LandingFooter() {
   const { t } = useLanguage()
@@ -88,6 +89,7 @@ export function LandingFooter() {
             <Link href="#" className="text-[12px] text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400">
               {t.footer.terms}
             </Link>
+            <ManageCookiesButton className="text-[12px] text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400" />
           </div>
         </div>
       </div>

@@ -49,14 +49,12 @@ export function SolutionSection() {
             <Image
               src={resevationsScreenshotDark}
               alt="Aperçu du calendrier de réservation"
-              placeholder="blur"
               priority
               className="hidden w-full dark:block"
             />
             <Image
               src={resevationsScreenshotLight}
               alt="Aperçu du calendrier de réservation"
-              placeholder="blur"
               priority
               className="w-full dark:hidden"
             />
