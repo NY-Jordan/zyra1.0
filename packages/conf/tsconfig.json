@@ -6,6 +6,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": false,
+    "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
     }
