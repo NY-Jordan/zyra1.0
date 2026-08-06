@@ -56,14 +56,12 @@ export function HeroSection() {
           <Image
             src={heroScreenshotDark}
             alt="Aperçu du dashboard Zyraa"
-            placeholder="blur"
             priority
             className="hidden w-full rounded-2xl border border-slate-200/70 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)] dark:block dark:border-white/10 dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]"
           />
           <Image
             src={heroScreenshotLight}
             alt="Aperçu du dashboard Zyraa"
-            placeholder="blur"
             priority
             className="w-full rounded-2xl border border-slate-200/70 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)] dark:hidden dark:border-white/10 dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]"
           />
