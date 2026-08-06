@@ -3,7 +3,6 @@
 import { useForm, FieldValues } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Mail, Lock, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
 import { ownerAuthService } from '@/services/ownerAuthService'
@@ -12,6 +11,13 @@ import { useRouter } from 'next/navigation'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from '@zyra/conf/lib/firebase'
 import { memberStatusEnum } from '@zyra/conf/domain/enums/MemberEnum'
+import { AuthImageCarousel } from '@/presentation/components/common/AuthImageCarousel'
+import loginSlide1 from '@/public/images/pexels-admar-kamosso-oficial-623570766-27987128.jpg'
+import loginSlide2 from '@/public/images/pexels-bmh-shot-it-1861805935-35276951.jpg'
+import loginSlide3 from '@/public/images/pexels-gustavo-fring-7447142.jpg'
+import loginSlide4 from '@/public/images/pexels-nasiru-othman-447186959-36441633.jpg'
+
+const LOGIN_CAROUSEL_IMAGES = [loginSlide1, loginSlide2, loginSlide3, loginSlide4]
 
 export default function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm()
@@ -56,7 +62,7 @@ export default function Login() {
       }
 
       await signOut(auth)
-      setConnectionError('Ce compte est introuvable. Contactez le support Zyra.')
+      setConnectionError('Ce compte est introuvable. Contactez le support Zyraa.')
     } catch (error: any) {
       setConnectionError(error.message || 'Une erreur est survenue. Vérifiez votre connexion internet.')
     } finally {
@@ -71,38 +77,22 @@ export default function Login() {
 
       {/* Right: image panel */}
       <div className="hidden lg:block lg:w-[54%] relative">
-        <Image
-          src="/images/register.jpg"
-          alt="Une équipe de coiffeurs Zyra au travail"
-          fill
-          sizes="54vw"
-          priority
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-black/5" />
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/15 via-transparent to-transparent" />
+        <AuthImageCarousel images={LOGIN_CAROUSEL_IMAGES} alt="Une équipe de coiffeurs Zyraa au travail" />
       </div>
 
         {/* Left: form panel */}
       <div className="w-full lg:w-[46%] flex flex-col px-6 sm:px-10 lg:px-16">
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          aria-label="Retour"
-          className="mt-6 -ml-2 flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/70 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
+        
 
         <div className="flex-1 flex flex-col justify-center py-10">
           <div className="w-full max-w-[400px] mx-auto lg:mx-0">
 
-            <img src="/images/full-logo-light.png" alt="Zyra" className="h-6 w-auto mb-10 dark:hidden" />
-            <img src="/images/full-logo-dark.png" alt="Zyra" className="h-6 w-auto mb-10 hidden dark:block" />
+            <img src="/images/full-logo-light.png" alt="Zyraa" className="h-6 w-auto mb-10 dark:hidden" />
+            <img src="/images/full-logo-dark.png" alt="Zyraa" className="h-6 w-auto mb-10 hidden dark:block" />
 
             <h1 className="text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
-              Zyra pour les professionnels
+              Zyraa pour les professionnels
             </h1>
             <p className="text-[14px] text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
               Connectez-vous pour gérer votre salon, votre équipe et vos rendez-vous.
@@ -198,22 +188,12 @@ export default function Login() {
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-              <p className="text-[13px] text-slate-500 dark:text-slate-400">
-                Pas encore de salon sur Zyra ?{' '}
-                <Link
-                  href="/auth/register"
-                  className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline underline-offset-2"
-                >
-                  Créer un compte
-                </Link>
-              </p>
-            </div>
+            
           </div>
         </div>
 
         <p className="text-center text-[11px] text-slate-400 dark:text-slate-600 pb-6">
-          © {new Date().getFullYear()} Zyra · Tous droits réservés
+          © {new Date().getFullYear()} Zyraa · Tous droits réservés
         </p>
       </div>
     </div>

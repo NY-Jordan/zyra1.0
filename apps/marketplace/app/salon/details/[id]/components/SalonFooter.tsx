@@ -57,7 +57,7 @@ export function SalonFooter({ salon }: SalonFooterProps) {
 
         <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p className="text-[11px] text-gray-400">© {new Date().getFullYear()} {salon.name}. Tous droits réservés.</p>
-          <p className="text-[11px] text-gray-400">Propulsé par Zyra</p>
+          <p className="text-[11px] text-gray-400">Propulsé par Zyraa</p>
         </div>
       </div>
     </footer>

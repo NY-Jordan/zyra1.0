@@ -44,7 +44,7 @@ export function ProfileMenu() {
           {/* User info header */}
           <div className="px-4 py-3 border-b border-[#F8F4F0] dark:border-slate-800/60">
             <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Administrateur</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Zyra Platform</p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Zyraa Platform</p>
           </div>
           <div className="py-1.5">
             <button

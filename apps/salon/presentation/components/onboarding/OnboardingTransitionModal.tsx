@@ -36,7 +36,7 @@ const CONTENT: Record<TransitionVariant, {
     icon: <Trophy className="w-7 h-7 text-white" />,
     bg: 'bg-amber-500 shadow-amber-100 dark:shadow-amber-900/30',
     title: 'Votre salon est prêt !',
-    description: 'Félicitations ! Vous avez tout configuré. Votre salon est opérationnel sur Zyra. Bienvenue dans l\'aventure !',
+    description: 'Félicitations ! Vous avez tout configuré. Votre salon est opérationnel sur Zyraa. Bienvenue dans l\'aventure !',
     cta: 'Accéder au tableau de bord',
   },
 }

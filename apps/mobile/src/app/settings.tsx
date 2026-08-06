@@ -38,7 +38,7 @@ export default function SettingsScreen() {
               <Store size={20} color="#10b981" />
             </View>
             <View>
-              <Text className="text-[15px] font-extrabold text-slate-800 dark:text-white">Zyra Coiffure</Text>
+              <Text className="text-[15px] font-extrabold text-slate-800 dark:text-white">Zyraa Coiffure</Text>
               <Text className="text-[12px] text-slate-400">Salon de coiffure</Text>
             </View>
           </View>
@@ -46,7 +46,7 @@ export default function SettingsScreen() {
 
         <SectionCard icon={<Store size={14} color="#059669" />} title="Informations">
           <View className="gap-2">
-            <Text className="text-[13px] text-slate-600 dark:text-slate-300">Nom : Zyra Coiffure</Text>
+            <Text className="text-[13px] text-slate-600 dark:text-slate-300">Nom : Zyraa Coiffure</Text>
             <Text className="text-[13px] text-slate-600 dark:text-slate-300">Téléphone : +237 6 90 00 00 00</Text>
             <Text className="text-[13px] text-slate-600 dark:text-slate-300">Email : contact@zyracoiffure.com</Text>
           </View>

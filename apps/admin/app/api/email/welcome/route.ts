@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     await sendEmail({
       to: email,
-      subject: `Bienvenue sur Zyra — votre salon "${salonName}" est prêt !`,
+      subject: `Bienvenue sur Zyraa — votre salon "${salonName}" est prêt !`,
       react: React.createElement(WelcomeEmail, { ownerName, salonName, email, password, loginUrl }),
     })
 

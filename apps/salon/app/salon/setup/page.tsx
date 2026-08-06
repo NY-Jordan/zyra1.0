@@ -81,8 +81,8 @@ export default function SalonSetupPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4">
          <>
-              <img src="/images/full-logo-light.png" alt="Zyra" className="relative w-32 h-auto dark:hidden" />
-              <img src="/images/full-logo-dark.png" alt="Zyra" className="relative hidden w-32 h-auto dark:block" />
+              <img src="/images/full-logo-light.png" alt="Zyraa" className="relative w-32 h-auto dark:hidden" />
+              <img src="/images/full-logo-dark.png" alt="Zyraa" className="relative hidden w-32 h-auto dark:block" />
             </>
 
         <button
@@ -119,7 +119,7 @@ export default function SalonSetupPage() {
               </div>
               <p className="text-[15px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Aucun salon trouvé</p>
               <p className="text-[13px] text-slate-400 dark:text-slate-500">
-                Votre compte n'est associé à aucun salon. Contactez l'équipe Zyra.
+                Votre compte n'est associé à aucun salon. Contactez l'équipe Zyraa.
               </p>
             </div>
           ) : (
@@ -184,7 +184,7 @@ export default function SalonSetupPage() {
                   <div className="flex items-start gap-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/50 rounded-xl px-4 py-3">
                     <ShieldAlert className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
                     <p className="text-[12px] text-rose-600 dark:text-rose-400 leading-relaxed">
-                      Ce salon n'a pas de forfait actif. Contactez l'équipe Zyra pour activer votre abonnement.
+                      Ce salon n'a pas de forfait actif. Contactez l'équipe Zyraa pour activer votre abonnement.
                     </p>
                   </div>
                 )}

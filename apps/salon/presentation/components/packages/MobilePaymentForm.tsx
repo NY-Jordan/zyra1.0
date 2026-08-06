@@ -100,7 +100,7 @@ export default function MobilePaymentForm({
         redirect_url: `${window.location.origin}/dashboard?payment=success`,
         merchant_bears_cost: true,
         customer: {
-          name: userName || 'Utilisateur Zyra',
+          name: userName || 'Utilisateur Zyraa',
           email: userEmail || 'guest@zyra.app'
         },
         metadata: {

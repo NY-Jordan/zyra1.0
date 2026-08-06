@@ -187,8 +187,8 @@ export default function Dashboard() {
                   {salon?.logo
                     ? <img src={salon.logo} alt={salon.name} className="w-full h-full object-cover" />
                     : <>
-                      <img src="/images/icon-light.png" alt="Zyra" className="relative w-44 h-auto dark:hidden" />
-                      <img src="/images/icon-dark.png" alt="Zyra" className="relative hidden w-44 h-auto dark:block" />
+                      <img src="/images/icon-light.png" alt="Zyraa" className="relative w-44 h-auto dark:hidden" />
+                      <img src="/images/icon-dark.png" alt="Zyraa" className="relative hidden w-44 h-auto dark:block" />
                     </>
                   }
                 </div>

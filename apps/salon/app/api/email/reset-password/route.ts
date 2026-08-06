@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     await sendEmail({
       to: 'ynguetse@gmail.com',
-      subject: 'Réinitialisation de votre mot de passe Zyra',
+      subject: 'Réinitialisation de votre mot de passe Zyraa',
       react: React.createElement(PasswordResetEmail, { resetLink }),
     })
 

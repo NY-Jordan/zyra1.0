@@ -27,7 +27,7 @@ export default function SalonHomePage() {
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <Store className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl">Zyra Salon</CardTitle>
+          <CardTitle className="text-2xl">Zyraa Salon</CardTitle>
           <p className="text-muted-foreground">
             Vérification de la configuration...
           </p>

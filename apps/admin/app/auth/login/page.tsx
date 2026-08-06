@@ -106,7 +106,7 @@ export default function Login() {
             <div className="flex items-center gap-3">
               <ZyraMark light />
               <span className="text-white text-xl font-semibold tracking-[0.12em] uppercase">
-                Zyra
+                Zyraa
               </span>
             </div>
             <div className="mt-1 ml-[44px]">
@@ -130,7 +130,7 @@ export default function Login() {
           {/* Bottom: Version */}
           <div className="relative z-10">
             <p className="text-white/15 text-xs tracking-wide">
-              © {new Date().getFullYear()} Zyra · v1.0
+              © {new Date().getFullYear()} Zyraa · v1.0
             </p>
           </div>
         </div>
@@ -144,7 +144,7 @@ export default function Login() {
               <ZyraMark />
               <div>
                 <p className="text-[#0b0b14] dark:text-white text-lg font-semibold tracking-[0.12em] uppercase leading-none">
-                  Zyra
+                  Zyraa
                 </p>
                 <p className="text-slate-400 text-[10px] tracking-[0.25em] uppercase mt-0.5">
                   Administration
@@ -215,7 +215,7 @@ export default function Login() {
             {/* Footer */}
             <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800">
               <p className="text-xs text-slate-300 dark:text-slate-600">
-                Accès réservé aux administrateurs Zyra.
+                Accès réservé aux administrateurs Zyraa.
               </p>
             </div>
           </div>

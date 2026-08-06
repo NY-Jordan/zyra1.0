@@ -1,10 +1,11 @@
+import { useFonts } from "expo-font";
+
 import {
   Geist_400Regular,
   Geist_500Medium,
   Geist_600SemiBold,
   Geist_700Bold,
   Geist_800ExtraBold,
-  useFonts,
 } from '@expo-google-fonts/geist';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
@@ -27,6 +28,13 @@ anyTextInput.defaultProps = anyTextInput.defaultProps || {};
 anyTextInput.defaultProps.style = [{ fontFamily: 'Geist_400Regular' }, anyTextInput.defaultProps.style];
 
 function RootNavigator() {
+  useFonts({
+    Geist_400Regular,
+    Geist_500Medium,
+    Geist_600SemiBold,
+    Geist_700Bold,
+    Geist_800ExtraBold,
+  });
   const colorScheme = useColorScheme();
   useProtectedRoute();
 
@@ -51,13 +59,7 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  useFonts({
-    Geist_400Regular,
-    Geist_500Medium,
-    Geist_600SemiBold,
-    Geist_700Bold,
-    Geist_800ExtraBold,
-  });
+  
 
   return (
     <AuthProvider>

@@ -17,7 +17,7 @@ export default function WelcomeModal({ open, salonName, onContinue, isLoading }:
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogTitle className="sr-only">Bienvenue sur Zyra</DialogTitle>
+        <DialogTitle className="sr-only">Bienvenue sur Zyraa</DialogTitle>
 
         <div className="text-center py-2">
           {/* Icon */}
@@ -26,7 +26,7 @@ export default function WelcomeModal({ open, salonName, onContinue, isLoading }:
           </div>
 
           <h2 className="text-[22px] font-extrabold text-slate-800 dark:text-white mb-1">
-            Bienvenue sur Zyra !
+            Bienvenue sur Zyraa !
           </h2>
           {salonName && (
             <p className="text-[14px] font-semibold text-emerald-600 dark:text-emerald-400 mb-3">

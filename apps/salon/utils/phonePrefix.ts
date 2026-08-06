@@ -1,5 +1,5 @@
 // Maps ISO 3166-1 alpha-2 country codes to phone dial prefixes.
-// Countries likely used by Zyra clients are listed first; others follow.
+// Countries likely used by Zyraa clients are listed first; others follow.
 const PREFIXES: Record<string, string> = {
   // Africa
   cm: '+237', // Cameroun

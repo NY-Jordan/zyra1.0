@@ -6,8 +6,8 @@ import ReactQueryProvider from "@/presentation/layouts/ReactQueryProvider"
 import { Toaster } from "@zyra/ui/components/sonner"
 
 export const metadata: Metadata = {
-  title: "Zyra Admin",
-  description: "Plateforme d'administration Zyra",
+  title: "Zyraa Admin",
+  description: "Plateforme d'administration Zyraa",
 }
 
 const fontSans = Geist({

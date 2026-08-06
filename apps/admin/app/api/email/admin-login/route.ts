@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     await sendEmail({
       to: ADMIN_NOTIFY_EMAIL,
-      subject: `🔐 Connexion admin Zyra — ${loginAt}`,
+      subject: `🔐 Connexion admin Zyraa — ${loginAt}`,
       react: React.createElement(AdminLoginEmail, {
         adminEmail,
         loginAt,

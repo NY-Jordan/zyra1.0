@@ -112,7 +112,7 @@ export default function QRCodeDialog({ bookingUrl, salonName }: QRCodeDialogProp
               </ol>
             </div>
             <div class="footer">
-              <p>Propulsé par Zyra • Réservation en ligne 24h/24</p>
+              <p>Propulsé par Zyraa • Réservation en ligne 24h/24</p>
             </div>
           </div>
         </body>

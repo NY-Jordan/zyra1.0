@@ -4,7 +4,7 @@ import "@zyra/ui/globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 
 export const metadata: Metadata = {
-  title: "Zyra Salon - Gestion de salon de coiffure",
+  title: "Zyraa Salon - Gestion de salon de coiffure",
   description: "Plateforme de gestion complète pour salon de coiffure",
 };
 

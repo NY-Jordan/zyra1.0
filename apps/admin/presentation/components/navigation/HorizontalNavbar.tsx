@@ -29,7 +29,7 @@ export function HorizontalNavbar({ onMobileMenuToggle, isMobileMenuOpen }: Horiz
           {/* Desktop: page context / greeting */}
           <div className="hidden lg:block">
             <p className="text-[13px] text-slate-400 dark:text-slate-500">
-              Bonne journée 👋 — Bienvenue sur Zyra Admin
+              Bonne journée 👋 — Bienvenue sur Zyraa Admin
             </p>
           </div>
 

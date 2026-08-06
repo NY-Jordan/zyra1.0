@@ -205,7 +205,7 @@ export default function SalonConfigModal({ isOpen, onClose, salon }: SalonConfig
             )}
           </button>
           <p className="text-center text-[11px] text-slate-400 dark:text-slate-500 mt-3">
-            Ces horaires seront visibles par vos clients sur votre profil Zyra.
+            Ces horaires seront visibles par vos clients sur votre profil Zyraa.
           </p>
         </div>
       </DialogContent>

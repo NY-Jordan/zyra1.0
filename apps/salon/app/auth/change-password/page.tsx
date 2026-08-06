@@ -197,7 +197,7 @@ export default function ChangePassword() {
 
           {/* Footer */}
           <p className="text-center text-[11px] text-slate-400 dark:text-slate-600 mt-7">
-            © {new Date().getFullYear()} Zyra · Tous droits réservés
+            © {new Date().getFullYear()} Zyraa · Tous droits réservés
           </p>
         </div>
       </div>

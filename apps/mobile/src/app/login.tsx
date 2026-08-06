@@ -67,7 +67,7 @@ export default function LoginScreen() {
 
       if (context.type === 'unknown') {
         await authService.logout();
-        setConnectionError('Ce compte est introuvable. Contactez le support Zyra.');
+        setConnectionError('Ce compte est introuvable. Contactez le support Zyraa.');
         return;
       }
 
@@ -124,7 +124,7 @@ export default function LoginScreen() {
             />
 
             <Text className="mb-2 text-[26px] font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Zyra pour les professionnels
+              Zyraa pour les professionnels
             </Text>
             <Text className="mb-8 text-[14px] leading-relaxed text-slate-500 dark:text-slate-400">
               Connectez-vous pour gérer votre salon, votre équipe et vos rendez-vous.
@@ -216,7 +216,7 @@ export default function LoginScreen() {
 
             <View className="mt-8 border-t border-slate-100 pt-6 dark:border-slate-800">
               <Text className="text-center text-[13px] text-slate-500 dark:text-slate-400">
-                Pas encore de salon sur Zyra ?{' '}
+                Pas encore de salon sur Zyraa ?{' '}
                 <Text className="font-semibold text-emerald-600 dark:text-emerald-400">
                   Créer un compte
                 </Text>
@@ -225,7 +225,7 @@ export default function LoginScreen() {
           </View>
 
           <Text className="pt-6 text-center text-[11px] text-slate-400 dark:text-slate-600">
-            © {new Date().getFullYear()} Zyra · Tous droits réservés
+            © {new Date().getFullYear()} Zyraa · Tous droits réservés
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -49,7 +49,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
         {!collapsed && (
           <>
             <span className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight flex-1">
-              Zyra
+              Zyraa
             </span>
             <button
               onClick={() => setCollapsed(true)}
@@ -104,7 +104,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">Administrateur</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">Zyra Platform</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">Zyraa Platform</p>
             </div>
           </div>
         </div>

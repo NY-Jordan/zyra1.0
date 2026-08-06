@@ -9,8 +9,8 @@ export async function GET() {
     const { data, error } = await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: 'ynguetse@gmail.com',
-      subject: '✅ Test Resend — Zyra fonctionne',
-      html: '<h1>Test OK</h1><p>Resend est bien configuré sur Zyra.</p>',
+      subject: '✅ Test Resend — Zyraa fonctionne',
+      html: '<h1>Test OK</h1><p>Resend est bien configuré sur Zyraa.</p>',
     })
 
     if (error) {

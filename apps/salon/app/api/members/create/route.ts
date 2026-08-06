@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
       await sendEmail({
         to: "ynguetse@gmail.com",
-        subject: `Vous avez été ajouté(e) à l'équipe de ${salonName || 'votre salon'} sur Zyra`,
+        subject: `Vous avez été ajouté(e) à l'équipe de ${salonName || 'votre salon'} sur Zyraa`,
         react: React.createElement(MemberInvitationEmail, {
           memberName: name,
           salonName: salonName || 'votre salon',

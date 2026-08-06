@@ -112,7 +112,7 @@ export default function RegisterPage() {
         <div className="absolute inset-0">
           <Image
             src={ step === 1 ? '/images/register.jpg' : '/images/register2.jpg' }
-            alt="Inscription Zyra"
+            alt="Inscription Zyraa"
             fill
             sizes="50vw"
             priority
@@ -124,7 +124,7 @@ export default function RegisterPage() {
         <div className="relative z-10 h-full flex flex-col justify-center items-start px-16 py-24 text-white">
           <div className="max-w-lg">
             <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
-              {step === 1 ? 'Démarrez avec Zyra' : step === 2 ? 'Créez votre espace propriétaire' : 'Finalisez votre salon'}
+              {step === 1 ? 'Démarrez avec Zyraa' : step === 2 ? 'Créez votre espace propriétaire' : 'Finalisez votre salon'}
             </h2>
             <p className="text-zinc-200 mb-6">
               {step === 1
@@ -152,7 +152,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="absolute bottom-6 left-6 text-sm text-zinc-300 z-10">
-          © {new Date().getFullYear()} Zyra
+          © {new Date().getFullYear()} Zyraa
         </div>
       </div>
 
@@ -168,7 +168,7 @@ export default function RegisterPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 7a4 4 0 100-8 4 4 0 000 8z" />
                   </svg>
                 </div>
-                <h1 className="text-2xl font-semibold text-zinc-900 mt-4">Créer votre compte Zyra</h1>
+                <h1 className="text-2xl font-semibold text-zinc-900 mt-4">Créer votre compte Zyraa</h1>
                 <p className="text-sm text-zinc-600 mt-2">Simple, rapide et sécurisé — commencez en quelques étapes.</p>
               </div>
               {step > 1 && (

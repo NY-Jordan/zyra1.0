@@ -60,8 +60,8 @@ export default function ForgotPassword() {
           {/* Logo */}
           <div className="relative flex justify-center mb-9">
             <div className="absolute h-24 w-44 rounded-full bg-emerald-400/25 dark:bg-emerald-500/20 blur-3xl" />
-            <img src="/images/logo-light.png" alt="Zyra" className="relative w-44 h-auto dark:hidden" />
-            <img src="/images/logo-dark.png" alt="Zyra" className="relative hidden w-44 h-auto dark:block" />
+            <img src="/images/logo-light.png" alt="Zyraa" className="relative w-44 h-auto dark:hidden" />
+            <img src="/images/logo-dark.png" alt="Zyraa" className="relative hidden w-44 h-auto dark:block" />
           </div>
 
           {status === 'sent' ? (
@@ -76,7 +76,7 @@ export default function ForgotPassword() {
                 E-mail envoyé !
               </h2>
               <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed mb-5">
-                Si un compte Zyra est associé à{' '}
+                Si un compte Zyraa est associé à{' '}
                 <span className="font-semibold text-slate-700 dark:text-slate-200">{sentEmail}</span>,
                 vous recevrez un lien de réinitialisation dans quelques instants.
               </p>
@@ -196,7 +196,7 @@ export default function ForgotPassword() {
 
           {/* Footer */}
           <p className="text-center text-[11px] text-slate-400 dark:text-slate-600 mt-7">
-            © {new Date().getFullYear()} Zyra · Tous droits réservés
+            © {new Date().getFullYear()} Zyraa · Tous droits réservés
           </p>
         </div>
       </div>

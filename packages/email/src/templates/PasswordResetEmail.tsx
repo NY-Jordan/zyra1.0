@@ -16,13 +16,13 @@ export function PasswordResetEmail({
   return (
     <Html lang="fr">
       <Head />
-      <Preview>Réinitialisez votre mot de passe Zyra</Preview>
+      <Preview>Réinitialisez votre mot de passe Zyraa</Preview>
       <Body style={body}>
         <Container style={container}>
 
           {/* Header */}
           <Section style={header}>
-            <Heading style={logo}>Zyra</Heading>
+            <Heading style={logo}>Zyraa</Heading>
             <Text style={tagline}>Réinitialisation du mot de passe</Text>
           </Section>
 
@@ -30,7 +30,7 @@ export function PasswordResetEmail({
           <Section style={content}>
             <Heading style={h1}>Mot de passe oublié ?</Heading>
             <Text style={paragraph}>
-              Nous avons reçu une demande de réinitialisation du mot de passe associé à votre compte Zyra.
+              Nous avons reçu une demande de réinitialisation du mot de passe associé à votre compte Zyraa.
               Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe.
             </Text>
 
@@ -66,9 +66,9 @@ export function PasswordResetEmail({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              Cet e-mail a été envoyé suite à une demande de réinitialisation sur Zyra.
+              Cet e-mail a été envoyé suite à une demande de réinitialisation sur Zyraa.
             </Text>
-            <Text style={footerText}>© {new Date().getFullYear()} Zyra — Tous droits réservés</Text>
+            <Text style={footerText}>© {new Date().getFullYear()} Zyraa — Tous droits réservés</Text>
           </Section>
 
         </Container>

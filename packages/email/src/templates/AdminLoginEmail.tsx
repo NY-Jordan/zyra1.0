@@ -20,13 +20,13 @@ export function AdminLoginEmail({
   return (
     <Html lang="fr">
       <Head />
-      <Preview>Nouvelle connexion à l'interface admin Zyra</Preview>
+      <Preview>Nouvelle connexion à l'interface admin Zyraa</Preview>
       <Body style={body}>
         <Container style={container}>
 
           {/* Header */}
           <Section style={header}>
-            <Heading style={logo}>Zyra</Heading>
+            <Heading style={logo}>Zyraa</Heading>
             <Text style={tagline}>Notification de sécurité</Text>
           </Section>
 
@@ -39,7 +39,7 @@ export function AdminLoginEmail({
           <Section style={content}>
             <Heading style={h1}>Nouvelle connexion à l'admin</Heading>
             <Text style={paragraph}>
-              Une connexion à l'interface d'administration Zyra a été effectuée avec le compte <strong>{adminEmail}</strong>.
+              Une connexion à l'interface d'administration Zyraa a été effectuée avec le compte <strong>{adminEmail}</strong>.
             </Text>
 
             <Hr style={divider} />
@@ -87,7 +87,7 @@ export function AdminLoginEmail({
             <Text style={footerText}>
               Cette notification est envoyée automatiquement à chaque connexion admin.
             </Text>
-            <Text style={footerText}>© {new Date().getFullYear()} Zyra — Tous droits réservés</Text>
+            <Text style={footerText}>© {new Date().getFullYear()} Zyraa — Tous droits réservés</Text>
           </Section>
 
         </Container>

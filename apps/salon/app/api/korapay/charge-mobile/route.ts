@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       amount: amount,
       currency: currency,
       reference: reference,
-      description: `Paiement ${metadata?.packageName || 'Zyra'} - ${metadata?.billingPeriod || 'subscription'}`,
+      description: `Paiement ${metadata?.packageName || 'Zyraa'} - ${metadata?.billingPeriod || 'subscription'}`,
       notification_url: `${process.env.NEXTAUTH_URL}/api/webhooks/korapay`,
       redirect_url: `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
       customer: {

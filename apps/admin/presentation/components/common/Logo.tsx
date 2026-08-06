@@ -25,7 +25,7 @@ export function Logo({ className = '', size = 'md', showText = true }: LogoProps
       {showText && (
         <div>
           <span className={`font-semibold text-white tracking-[0.12em] uppercase leading-none ${textSizes[size]}`}>
-            Zyra
+            Zyraa
           </span>
           <div className="text-white/25 text-[9px] tracking-[0.25em] uppercase leading-none mt-0.5">
             Administration

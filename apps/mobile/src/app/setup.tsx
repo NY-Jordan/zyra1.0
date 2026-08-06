@@ -76,7 +76,7 @@ export default function SetupScreen() {
                 Aucun salon trouvé
               </Text>
               <Text className="mt-1 text-center text-[12px] text-slate-400">
-                Votre compte n'est associé à aucun salon. Contactez l'équipe Zyra.
+                Votre compte n'est associé à aucun salon. Contactez l'équipe Zyraa.
               </Text>
             </View>
           }

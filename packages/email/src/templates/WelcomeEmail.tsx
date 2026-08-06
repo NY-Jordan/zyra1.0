@@ -22,13 +22,13 @@ export function WelcomeEmail({
   return (
     <Html lang="fr">
       <Head />
-      <Preview>Bienvenue sur Zyra — votre salon {salonName} est prêt !</Preview>
+      <Preview>Bienvenue sur Zyraa — votre salon {salonName} est prêt !</Preview>
       <Body style={body}>
         <Container style={container}>
 
           {/* Header */}
           <Section style={header}>
-            <Heading style={logo}>Zyra</Heading>
+            <Heading style={logo}>Zyraa</Heading>
             <Text style={tagline}>Plateforme de gestion de salons</Text>
           </Section>
 
@@ -36,7 +36,7 @@ export function WelcomeEmail({
           <Section style={content}>
             <Heading style={h1}>Bienvenue, {ownerName} 👋</Heading>
             <Text style={paragraph}>
-              Votre salon <strong>{salonName}</strong> a été créé avec succès sur Zyra.
+              Votre salon <strong>{salonName}</strong> a été créé avec succès sur Zyraa.
               Vous pouvez dès maintenant vous connecter et commencer à configurer votre espace.
             </Text>
 
@@ -87,10 +87,10 @@ export function WelcomeEmail({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              Cet e-mail a été envoyé automatiquement par Zyra.
+              Cet e-mail a été envoyé automatiquement par Zyraa.
               Si vous n'êtes pas à l'origine de cette inscription, ignorez cet e-mail.
             </Text>
-            <Text style={footerText}>© {new Date().getFullYear()} Zyra — Tous droits réservés</Text>
+            <Text style={footerText}>© {new Date().getFullYear()} Zyraa — Tous droits réservés</Text>
           </Section>
 
         </Container>

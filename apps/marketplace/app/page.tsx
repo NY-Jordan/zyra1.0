@@ -1,42 +1,32 @@
-'use client'
-
-import React from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@zyra/ui/components/button'
-import { Scissors, ArrowRight } from 'lucide-react'
+import { LandingNavbar } from '@/components/landing/LandingNavbar'
+import { LandingFooter } from '@/components/landing/LandingFooter'
+import { HeroSection } from '@/components/landing/sections/HeroSection'
+import { ProblemSection } from '@/components/landing/sections/ProblemSection'
+import { SolutionSection } from '@/components/landing/sections/SolutionSection'
+import { FeaturesSection } from '@/components/landing/sections/FeaturesSection'
+import { DemoSection } from '@/components/landing/sections/DemoSection'
+import { MobileAppSection } from '@/components/landing/sections/MobileAppSection'
+import { PricingSection } from '@/components/landing/sections/PricingSection'
+import { TestimonialsSection } from '@/components/landing/sections/TestimonialsSection'
+import { ContactSection } from '@/components/landing/sections/ContactSection'
+import { LanguageProvider } from '@/components/landing/i18n/LanguageContext'
 
 export default function HomePage() {
-  const router = useRouter()
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="text-center space-y-8 px-4">
-        <div className="space-y-4">
-          <div className="inline-block p-4 bg-blue-100 rounded-full">
-            <Scissors className="h-12 w-12 text-blue-600" />
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900">
-            Bienvenue
-          </h1>
-          <p className="text-xl text-gray-600 max-w-lg mx-auto">
-            Découvrez les meilleurs salons de coiffure et réservez votre créneau en quelques clics
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          <Button
-            onClick={() => router.push('/booking/salon-id')}
-            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg gap-2"
-          >
-            Commencer une réservation
-            <ArrowRight className="h-5 w-5" />
-          </Button>
-          <p className="text-sm text-gray-600">
-            Accédez à la galerie complète de nos salons
-          </p>
-        </div>
+    <LanguageProvider>
+      <div className="min-h-screen bg-white font-[family-name:var(--font-inter)] dark:bg-[#0B0E12]">
+        <LandingNavbar />
+        <HeroSection />
+        <ProblemSection />
+        <SolutionSection />
+        <FeaturesSection />
+        <DemoSection />
+        <MobileAppSection />
+        <PricingSection />
+        <TestimonialsSection />
+        <ContactSection />
+        <LandingFooter />
       </div>
-    </div>
+    </LanguageProvider>
   )
 }
-

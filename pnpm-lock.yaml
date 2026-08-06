@@ -106,6 +106,9 @@ importers:
       '@zyra/conf':
         specifier: workspace:*
         version: link:../../packages/conf
+      '@zyra/email':
+        specifier: workspace:^
+        version: link:../../packages/email
       '@zyra/ui':
         specifier: workspace:*
         version: link:../../packages/ui

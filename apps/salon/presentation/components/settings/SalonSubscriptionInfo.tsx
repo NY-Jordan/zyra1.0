@@ -44,7 +44,7 @@ export default function SalonSubscriptionInfo({ salonId }: { salonId: string }) 
         <AlertTriangle className="w-10 h-10 text-amber-400" />
         <p className="text-[14px] font-semibold">Aucun forfait actif</p>
         <p className="text-[12px] text-center max-w-xs">
-          Votre salon ne dispose pas encore d'un forfait. Contactez l'équipe Zyra pour en configurer un.
+          Votre salon ne dispose pas encore d'un forfait. Contactez l'équipe Zyraa pour en configurer un.
         </p>
       </div>
     )
@@ -171,7 +171,7 @@ export default function SalonSubscriptionInfo({ salonId }: { salonId: string }) 
       )}
 
       <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center pb-2">
-        Pour modifier votre forfait, contactez l'équipe Zyra.
+        Pour modifier votre forfait, contactez l'équipe Zyraa.
       </p>
     </div>
   )

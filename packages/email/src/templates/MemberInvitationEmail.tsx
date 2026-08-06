@@ -24,13 +24,13 @@ export function MemberInvitationEmail({
   return (
     <Html lang="fr">
       <Head />
-      <Preview>Vous avez été ajouté(e) à l'équipe de {salonName} sur Zyra</Preview>
+      <Preview>Vous avez été ajouté(e) à l'équipe de {salonName} sur Zyraa</Preview>
       <Body style={body}>
         <Container style={container}>
 
           {/* Header */}
           <Section style={header}>
-            <Heading style={logo}>Zyra</Heading>
+            <Heading style={logo}>Zyraa</Heading>
             <Text style={tagline}>Plateforme de gestion de salons</Text>
           </Section>
 
@@ -39,7 +39,7 @@ export function MemberInvitationEmail({
             <Heading style={h1}>Bienvenue, {memberName} 👋</Heading>
             <Text style={paragraph}>
               Vous avez été ajouté(e) à l'équipe du salon <strong>{salonName}</strong> sur
-              Zyra, avec le rôle <strong>{roleLabel}</strong>.
+              Zyraa, avec le rôle <strong>{roleLabel}</strong>.
             </Text>
 
             {password && (
@@ -77,10 +77,10 @@ export function MemberInvitationEmail({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              Cet e-mail a été envoyé automatiquement par Zyra.
+              Cet e-mail a été envoyé automatiquement par Zyraa.
               Si vous ne vous attendiez pas à cet ajout, contactez le salon concerné.
             </Text>
-            <Text style={footerText}>© {new Date().getFullYear()} Zyra — Tous droits réservés</Text>
+            <Text style={footerText}>© {new Date().getFullYear()} Zyraa — Tous droits réservés</Text>
           </Section>
 
         </Container>
