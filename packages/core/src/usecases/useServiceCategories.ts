@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { editDocument } from '@zyra/conf/lib/query'
 import { useSalon } from '../hooks/useSalon'
 import { IServiceCategory } from '@zyra/conf/domain/entities/salons.entities'
@@ -9,6 +10,7 @@ export function useServiceCategories() {
   const queryClient = useQueryClient()
   const salonId = salon?.id
   const categories = salon?.serviceCategories || []
+  const services = salon?.services || []
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string; isActive?: boolean }) => {
@@ -66,7 +68,19 @@ export function useServiceCategories() {
       const updatedCategories = categories.map(c =>
         c.id === category.id ? { ...c, isActive: newActive, updatedAt: new Date().toISOString() } : c
       )
-      await editDocument('salons', salonId, { serviceCategories: updatedCategories, updatedAt: new Date().toISOString() })
+      // La catégorie entraîne ses services avec elle : pas de service actif
+      // dans une catégorie désactivée, et inversement à la réactivation.
+      const affectedServicesCount = services.filter(
+        s => s.categoryId === category.id && s.isActive !== newActive
+      ).length
+      const updatedServices = services.map(s =>
+        s.categoryId === category.id ? { ...s, isActive: newActive } : s
+      )
+      await editDocument('salons', salonId, {
+        serviceCategories: updatedCategories,
+        services: updatedServices,
+        updatedAt: new Date().toISOString(),
+      })
       await logActivity({
         salonId,
         ...getCurrentActor(),
@@ -75,10 +89,20 @@ export function useServiceCategories() {
         resourceId: category.id,
         resourceType: 'category',
         resourceLabel: category.name,
-        metadata: { statut: newActive ? 'Active' : 'Inactive' },
+        metadata: { statut: newActive ? 'Active' : 'Inactive', servicesAffectés: affectedServicesCount },
+      })
+      return { category, newActive, affectedServicesCount }
+    },
+    onSuccess: ({ category, newActive, affectedServicesCount }) => {
+      queryClient.invalidateQueries({ queryKey: ['salon'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
+      const statusLabel = newActive ? 'activée' : 'désactivée'
+      toast.success(`Catégorie "${category.name}" ${statusLabel}`, {
+        description: affectedServicesCount > 0
+          ? `${affectedServicesCount} service${affectedServicesCount > 1 ? 's' : ''} ${newActive ? 'réactivé' : 'désactivé'}${affectedServicesCount > 1 ? 's' : ''} avec elle.`
+          : undefined,
       })
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['salon'] }); queryClient.invalidateQueries({ queryKey: ['activities'] }) },
   })
 
   const deleteMutation = useMutation({

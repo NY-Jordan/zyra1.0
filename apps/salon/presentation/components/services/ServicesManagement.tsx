@@ -8,7 +8,6 @@ import {
   Edit,
   Trash2,
   Search,
-  Filter,
   MoreHorizontal,
   Clock,
   DollarSign,
@@ -42,9 +41,11 @@ export default function ServicesManagement({ services, categories }: ServicesMan
   const canEdit = hasPermission('services.edit')
   const canDelete = hasPermission('services.delete')
   const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 12;
 
   // Nouvel état pour le modal de mise à jour
   const [updateModal, setUpdateModal] = useState<{
@@ -79,9 +80,14 @@ export default function ServicesManagement({ services, categories }: ServicesMan
   // Filtrage et pagination des données
   const filteredServices = React.useMemo(() => {
     // Filter
-    const filtered = services.filter(service =>
-      service.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const filtered = services.filter(service => {
+      const matchesSearch = service.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = categoryFilter === 'all' || service.categoryId === categoryFilter
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' ? service.isActive !== false : service.isActive === false)
+      return matchesSearch && matchesCategory && matchesStatus
+    })
     //pagination
     const startIndex = (page - 1) * PAGE_SIZE
     const endIndex = startIndex + PAGE_SIZE
@@ -91,12 +97,12 @@ export default function ServicesManagement({ services, categories }: ServicesMan
       total: filtered.length,
       totalPages: Math.ceil(filtered.length / PAGE_SIZE)
     }
-  }, [services, searchTerm, page])
+  }, [services, searchTerm, categoryFilter, statusFilter, page])
 
-  // Reset page when search term changes
+  // Reset page when filters change
   React.useEffect(() => {
     setPage(1)
-  }, [searchTerm])
+  }, [searchTerm, categoryFilter, statusFilter])
 
   const formatDuration = (minutes: number) => {
     if (!minutes) return '0min'
@@ -197,13 +203,6 @@ export default function ServicesManagement({ services, categories }: ServicesMan
                   className="pl-9 h-10 w-full sm:w-64 rounded-xl border-[#E8E0D8] dark:border-slate-700"
                 />
               </div>
-              <button
-                type="button"
-                className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl text-[12px] font-bold text-slate-600 dark:text-slate-300 bg-[#F5F2EF] dark:bg-slate-700/50 hover:bg-[#EDE8E3] dark:hover:bg-slate-700 transition-colors"
-              >
-                <Filter className="h-3.5 w-3.5" />
-                Filtrer
-              </button>
               {canCreate && (
                 <button
                   type="button"
@@ -215,6 +214,31 @@ export default function ServicesManagement({ services, categories }: ServicesMan
                 </button>
               )}
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 mt-3 border-t border-[#F0EAE4] dark:border-slate-800/50">
+            <select
+              aria-label="Filtrer par catégorie"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="h-10 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+            >
+              <option value="all">Toutes les catégories</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Filtrer par statut"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+              className="h-10 px-3 rounded-xl border border-[#E8E0D8] dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="active">Actifs</option>
+              <option value="inactive">Inactifs</option>
+            </select>
           </div>
         </div>
 

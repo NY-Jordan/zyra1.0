@@ -40,7 +40,7 @@ export default function CategoriesManagement({ categories, services }: Categorie
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 5
+  const PAGE_SIZE = 6
   
   // Nouvel état pour le modal de mise à jour
   const [updateModal, setUpdateModal] = useState<{

@@ -14,6 +14,17 @@ import { auth } from '@zyra/conf/lib/firebase'
 import { LogoutauthSalon } from '@/services/ownerAuthService'
 import LoadingScreen from '@/presentation/components/common/LoadingScreen'
 import { SubscriptionStatus } from '@zyra/conf/domain/entities/subscriptions.entities'
+import { useUnreadNotificationsCount } from '@/hooks/useUnreadNotificationsCount'
+
+function UnreadNotificationsBadge({ salonId }: { salonId: string }) {
+  const count = useUnreadNotificationsCount(salonId)
+  if (count === 0) return null
+  return (
+    <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-emerald-500 text-[10px] font-extrabold text-white">
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
 
 export default function SalonSetupPage() {
   const { owner, isLoading: ownerLoading } = useOwner()
@@ -160,6 +171,7 @@ export default function SalonSetupPage() {
 
                     {/* Status + selected indicator */}
                     <div className="flex items-center gap-3 flex-shrink-0">
+                      <UnreadNotificationsBadge salonId={salon.id} />
                       {isConfigured
                         ? <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
                             <CheckCircle className="w-3 h-3" /> Actif
