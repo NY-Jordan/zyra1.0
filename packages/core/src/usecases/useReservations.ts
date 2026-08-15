@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchCollectionPaginate, fetchCollection, editDocument } from '@zyra/conf/lib/query'
+import { fetchCollectionPaginate, fetchCollection, editDocument, releaseAppointmentSlots, updateReservationSlots } from '@zyra/conf/lib/query'
 import { Timestamp, where } from 'firebase/firestore'
-import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
+import { IReservation, IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { logActivity, createNotification } from './notificationsUseCases'
 import { LogContext } from '../types/notifications.types'
@@ -24,7 +24,7 @@ export interface ReservationFilters {
  * - completed → état final (pas de transition)
  * - canceled → état final (pas de transition)
  */
-const isValidStatusTransition = (currentStatus: reservationStatusEnum, newStatus: reservationStatusEnum): boolean => {
+export const isValidStatusTransition = (currentStatus: reservationStatusEnum, newStatus: reservationStatusEnum): boolean => {
   // Les transitions valides
   const validTransitions: Record<reservationStatusEnum, reservationStatusEnum[]> = {
     [reservationStatusEnum.pending]: [
@@ -48,6 +48,64 @@ const isValidStatusTransition = (currentStatus: reservationStatusEnum, newStatus
 
   return validTransitions[currentStatus].includes(newStatus)
 }
+
+/** Statut effectif d'une personne, avec repli sur le statut global pour les
+ *  réservations créées avant l'introduction du statut par personne. */
+export const personStatus = (person: IReservationPerson, reservation: Pick<IReservation, 'status'>): reservationStatusEnum =>
+  person.status ?? reservation.status
+
+/**
+ * Dérive le statut global d'une réservation à partir du statut de chaque
+ * personne. Pour une réservation à une seule personne, le résultat est
+ * toujours exactement le statut de cette personne (comportement inchangé).
+ *
+ * Priorité : tant qu'une personne active n'a pas avancé, le groupe entier
+ * reste "en attente / à traiter" à ce niveau — c'est ce qu'un membre du salon
+ * doit voir en premier pour savoir s'il reste du travail sur la réservation.
+ */
+export const computeGroupStatus = (people: IReservationPerson[], fallback: reservationStatusEnum): reservationStatusEnum => {
+  const statuses: reservationStatusEnum[] = people.map(p => p.status ?? fallback)
+  if (statuses.length === 0) return fallback
+
+  const active: reservationStatusEnum[] = statuses.filter(s => s !== reservationStatusEnum.canceled)
+
+  if (active.length === 0) return reservationStatusEnum.canceled
+
+  const nonTerminal: reservationStatusEnum[] = active.filter(
+    s => s !== reservationStatusEnum.completed && s !== reservationStatusEnum.no_show,
+  )
+
+  if (nonTerminal.length === 0) {
+    // Tout le monde est dans un état final (hors annulé) : le groupe est
+    // "terminé" dès qu'au moins une personne l'est vraiment, sinon "absent".
+    return active.includes(reservationStatusEnum.completed)
+      ? reservationStatusEnum.completed
+      : reservationStatusEnum.no_show
+  }
+
+  const ladder: reservationStatusEnum[] = [reservationStatusEnum.pending, reservationStatusEnum.confirmed, reservationStatusEnum.checked_in]
+  const found = ladder.find(s => nonTerminal.includes(s))
+  return found ?? nonTerminal[0]!
+}
+
+/**
+ * Somme des `totalPrice` des personnes d'une réservation dont le statut
+ * effectif (voir `personStatus`) satisfait `predicate`.
+ *
+ * À utiliser à la place de `reservation.totalPrice` pour tout calcul de
+ * revenu : le statut global d'une réservation groupée (`computeGroupStatus`)
+ * peut valoir "completed" alors qu'une des personnes a été annulée
+ * individuellement — sommer `reservation.totalPrice` compterait alors aussi
+ * la part de la personne annulée.
+ */
+export const personRevenueSum = (
+  reservation: Pick<IReservation, 'people' | 'status'>,
+  predicate: (status: reservationStatusEnum) => boolean,
+): number =>
+  reservation.people.reduce(
+    (sum, p) => (predicate(personStatus(p, reservation)) ? sum + p.totalPrice : sum),
+    0,
+  )
 
 /** Heure de début la plus tôt d'une réservation (ms epoch). */
 const reservationStartMs = (reservation: Pick<IReservation, 'earliestScheduledAt' | 'people'>): number => {
@@ -161,15 +219,21 @@ export const useUpdateReservationStatus = () => {
   return useMutation({
     mutationFn: async ({
       reservationId,
+      salonId,
       currentStatus,
       newStatus,
+      people,
       additionalData = {},
       logContext,
       startMs,
     }: {
       reservationId: string
+      salonId: string
       currentStatus: reservationStatusEnum
       newStatus: reservationStatusEnum
+      /** Quand fourni, l'action s'applique à TOUTE la réservation : chaque
+       *  personne reçoit aussi le nouveau statut (ex: "Annuler" depuis la carte). */
+      people?: IReservationPerson[]
       additionalData?: Record<string, unknown>
       logContext?: LogContext
       startMs?: number
@@ -189,11 +253,19 @@ export const useUpdateReservationStatus = () => {
         throw new Error("L'heure de début est dépassée : la réservation ne peut plus être confirmée.")
       }
 
+      const updatedPeople = people?.map(p => ({ ...p, status: newStatus }))
+
       await editDocument('reservations', reservationId, {
         status: newStatus,
+        ...(updatedPeople ? { people: updatedPeople } : {}),
         ...additionalData,
         updatedAt: new Date(),
       })
+
+      // Le créneau est libéré : ne bloque plus les réservations futures.
+      if (people && (newStatus === reservationStatusEnum.canceled || newStatus === reservationStatusEnum.no_show)) {
+        await releaseAppointmentSlots(salonId, people)
+      }
 
       if (logContext) {
         const typeMap: Record<string, any> = {
@@ -219,7 +291,7 @@ export const useUpdateReservationStatus = () => {
         }
       }
 
-      return { reservationId, newStatus }
+      return { reservationId, newStatus, updatedPeople }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
@@ -302,6 +374,12 @@ export const useUpdatePersonHairdresser = () => {
       scheduledAt.setHours(h, m, 0, 0)
       const endsAt = new Date(scheduledAt.getTime() + person.totalDuration * 60 * 1000)
 
+      // Changer le créneau/coiffeur d'une personne revient à la reprogrammer :
+      // elle repart "en attente" comme le fait la reprogrammation globale
+      // (useRescheduleReservation), pour re-confirmation par le salon.
+      const currentStatus = personStatus(person, reservation)
+      const resetStatus = isValidStatusTransition(currentStatus, reservationStatusEnum.pending)
+
       const updatedPeople = reservation.people.map((p, i) =>
         i === personIndex
           ? {
@@ -310,12 +388,18 @@ export const useUpdatePersonHairdresser = () => {
               hairdresserName,
               scheduledAt: Timestamp.fromDate(scheduledAt),
               endsAt: Timestamp.fromDate(endsAt),
+              ...(resetStatus ? { status: reservationStatusEnum.pending } : {}),
             }
           : p,
       )
+      const newGroupStatus = computeGroupStatus(updatedPeople, reservation.status)
 
-      await editDocument('reservations', reservation.id, {
+      // Libère le verrou de l'ancien créneau de cette personne et pose celui du
+      // nouveau dans une seule transaction : échoue (SlotConflictError) si le
+      // nouveau coiffeur/créneau est déjà pris — non vérifié auparavant.
+      await updateReservationSlots(reservation.id, reservation.salonId, [person], [updatedPeople[personIndex]!], {
         people: updatedPeople,
+        status: newGroupStatus,
         updatedAt: new Date(),
       })
 
@@ -326,7 +410,94 @@ export const useUpdatePersonHairdresser = () => {
         ])
       }
 
-      return { personIndex, updatedPeople, scheduledAt, endsAt }
+      return { personIndex, updatedPeople, scheduledAt, endsAt, newGroupStatus }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-day'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations-calendar-month'] })
+      queryClient.invalidateQueries({ queryKey: ['salon-hairdressers-calendar'] })
+      queryClient.invalidateQueries({ queryKey: ['activities'] })
+    },
+  })
+}
+
+const PERSON_STATUS_TITLE: Record<string, string> = {
+  [reservationStatusEnum.confirmed]: 'confirmé(e)',
+  [reservationStatusEnum.canceled]: 'annulé(e)',
+  [reservationStatusEnum.checked_in]: 'arrivé(e)',
+  [reservationStatusEnum.no_show]: 'marqué(e) absent(e)',
+  [reservationStatusEnum.completed]: 'terminé(e)',
+}
+
+/**
+ * Hook pour changer le statut d'UNE personne dans une réservation groupée,
+ * sans affecter les autres. Le statut global de la réservation est recalculé
+ * et enregistré dans la même écriture (voir `computeGroupStatus`), donc tout
+ * le code existant qui lit `reservation.status` continue de fonctionner.
+ */
+export const useUpdatePersonStatus = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      reservation,
+      personIndex,
+      newStatus,
+      logContext,
+    }: {
+      reservation: IReservation
+      personIndex: number
+      newStatus: reservationStatusEnum
+      logContext?: LogContext
+    }) => {
+      const person = reservation.people[personIndex]
+      if (!person) throw new Error('Personne non trouvée')
+
+      const currentStatus = personStatus(person, reservation)
+      if (!isValidStatusTransition(currentStatus, newStatus)) {
+        throw new Error(`Transition invalide : ${currentStatus} → ${newStatus}.`)
+      }
+
+      const updatedPeople = reservation.people.map((p, i) =>
+        i === personIndex ? { ...p, status: newStatus } : p,
+      )
+      const newGroupStatus = computeGroupStatus(updatedPeople, reservation.status)
+
+      await editDocument('reservations', reservation.id, {
+        people: updatedPeople,
+        status: newGroupStatus,
+        updatedAt: new Date(),
+      })
+
+      // Le créneau de cette personne est libéré : ne bloque plus les réservations futures.
+      if (newStatus === reservationStatusEnum.canceled || newStatus === reservationStatusEnum.no_show) {
+        await releaseAppointmentSlots(reservation.salonId, [person])
+      }
+
+      if (logContext) {
+        const label = `Personne ${person.personNumber} ${PERSON_STATUS_TITLE[newStatus] ?? newStatus}`
+        await Promise.all([
+          logActivity({
+            ...logContext,
+            type: 'reservation_person_status_changed',
+            action: newStatus,
+            resourceId: reservation.id,
+            resourceType: 'reservation',
+            metadata: { personNumber: person.personNumber, status: newStatus },
+          }),
+          createNotification({
+            salonId: logContext.salonId,
+            type: 'reservation_person_status_changed',
+            title: label,
+            body: logContext.resourceLabel ?? '',
+            resourceId: reservation.id,
+            resourceType: 'reservation',
+          }),
+        ])
+      }
+
+      return { personIndex, updatedPeople, newGroupStatus }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
@@ -375,6 +546,9 @@ export const useRescheduleReservation = () => {
           ...(hairdresserId ? { hairdresserId, hairdresserName } : {}),
           scheduledAt: Timestamp.fromDate(scheduledAt),
           endsAt: Timestamp.fromDate(endsAt),
+          // Repart en attente comme le statut global, sinon le prochain calcul
+          // de computeGroupStatus se baserait sur un statut par personne obsolète.
+          status: reservationStatusEnum.pending,
         }
       })
 
@@ -384,7 +558,10 @@ export const useRescheduleReservation = () => {
         undefined,
       )
 
-      await editDocument('reservations', reservation.id, {
+      // Libère les anciens créneaux et verrouille les nouveaux dans une seule
+      // transaction : échoue proprement (SlotConflictError) si l'un d'eux vient
+      // d'être pris — la reprogrammation n'écrasait aucun conflit avant ce garde-fou.
+      await updateReservationSlots(reservation.id, reservation.salonId, reservation.people, updatedPeople, {
         people: updatedPeople,
         // Une résa reprogrammée repart en attente (re-confirmation nécessaire)
         status: reservationStatusEnum.pending,

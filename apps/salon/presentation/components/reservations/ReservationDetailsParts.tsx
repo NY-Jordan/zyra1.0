@@ -3,10 +3,14 @@
 import React from 'react'
 import {
   Calendar, Clock, User, DollarSign, Smartphone, Banknote, CreditCard, Scissors, UserPlus,
+  CheckCircle2, XCircle, LogIn, UserX, Award,
 } from 'lucide-react'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
-import { reservationPaymentMethodEnum } from '@zyra/conf/domain/enums/ReservationEnum'
+import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
+import { personStatus } from '@zyra/core/usecases/useReservations'
+import { useNow } from '@/hooks/useNow'
+import { useHasPermission } from '@/hooks/useHasPermission'
 
 // ── Formatters / payment helpers ───────────────────────────────────────────────
 
@@ -55,6 +59,37 @@ export function StatusBadge({ status }: { status: string }) {
   )
 }
 
+const PERSON_STATUS_LABEL: Record<string, string> = {
+  pending: 'en attente',
+  confirmed: 'confirmée(s)',
+  checked_in: 'arrivée(s)',
+  no_show: 'absente(s)',
+  completed: 'terminée(s)',
+  canceled: 'annulée(s)',
+}
+
+/**
+ * Résumé "1 confirmée(s) · 2 en attente" pour une réservation groupée dont
+ * les personnes n'ont pas toutes le même statut — le statut global affiché
+ * seul (le plus "en retard") ne montre pas la progression déjà faite.
+ * Retourne null pour une réservation à une personne ou un groupe homogène.
+ */
+export function personStatusBreakdown(reservation: Pick<IReservation, 'people' | 'status' | 'isSingleReservation'>): string | null {
+  if (reservation.isSingleReservation || reservation.people.length <= 1) return null
+
+  const counts = new Map<string, number>()
+  reservation.people.forEach(p => {
+    const s = personStatus(p, reservation)
+    counts.set(s, (counts.get(s) ?? 0) + 1)
+  })
+
+  if (counts.size <= 1) return null
+
+  return Array.from(counts.entries())
+    .map(([status, count]) => `${count} ${PERSON_STATUS_LABEL[status] ?? status}`)
+    .join(' · ')
+}
+
 export function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value?: React.ReactNode }) {
   if (!value) return null
   return (
@@ -77,19 +112,108 @@ interface ServicesListProps {
   hairdressersMap: Record<string, IHairDresser>
   editable: boolean
   onChangeHairdresser: (personIndex: number) => void
+  onConfirmPerson?: (personIndex: number) => void
+  onCancelPerson?: (personIndex: number) => void
+  onCheckInPerson?: (personIndex: number) => void
+  onNoShowPerson?: (personIndex: number) => void
+  onCompletePerson?: (personIndex: number) => void
 }
 
-export function ReservationServicesList({ reservation, hairdressersMap, editable, onChangeHairdresser }: ServicesListProps) {
+const PERSON_ACTION_BTN = 'flex items-center justify-center h-6 w-6 rounded-full transition-colors'
+
+export function ReservationServicesList({
+  reservation, hairdressersMap, editable, onChangeHairdresser,
+  onConfirmPerson, onCancelPerson, onCheckInPerson, onNoShowPerson, onCompletePerson,
+}: ServicesListProps) {
+  const now = useNow()
+  const { hasPermission } = useHasPermission()
+  const canEdit = hasPermission('bookings.edit')
+  const canCancelPermission = hasPermission('bookings.cancel')
+
   return (
     <div className="space-y-3">
       {reservation.people.map((person, idx) => {
         const hairdresser = person.hairdresserId ? hairdressersMap[String(person.hairdresserId)] : undefined
+        const status = personStatus(person, reservation)
+
+        // Même logique que useReservationActions (matrice du bandeau du haut),
+        // appliquée au coiffeur/statut/horaire de CETTE personne uniquement.
+        const hasStartedPerson = now >= person.scheduledAt.toDate().getTime()
+        const isPendingP = status === reservationStatusEnum.pending
+        const isConfirmedP = status === reservationStatusEnum.confirmed
+        const isCheckedInP = status === reservationStatusEnum.checked_in
+        const isActiveP = isPendingP || isConfirmedP
+
+        const canConfirmPerson = editable && !!person.hairdresserId && !hasStartedPerson && isPendingP && canEdit
+        const canCheckInPerson = editable && isConfirmedP && !hasStartedPerson && canEdit
+        const canNoShowPerson = editable && (isConfirmedP || (isActiveP && hasStartedPerson)) && canEdit
+        const canCompletePerson = editable && isCheckedInP && reservation.isPaid && canEdit
+        const canCancelPerson = editable && isActiveP && !hasStartedPerson && canCancelPermission
+        // Reprogrammer cette personne (coiffeur + date + heure) — même règle
+        // que la reprogrammation globale d'avant : pas sur une personne déjà
+        // dans un état final (completed/canceled), sauf no-show (rattrapable).
+        const canReschedulePerson = editable && (isActiveP || status === reservationStatusEnum.no_show) && canEdit
         return (
           <div key={idx} className="bg-[#F8F4F0] dark:bg-slate-800/40 rounded-xl p-4">
             {!reservation.isSingleReservation && (
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide mb-2">
-                Personne {person.personNumber}
-              </p>
+              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide">
+                  Personne {person.personNumber}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <StatusBadge status={status} />
+                  {onConfirmPerson && canConfirmPerson && (
+                    <button
+                      type="button"
+                      onClick={() => onConfirmPerson(idx)}
+                      title="Confirmer cette personne"
+                      className={`${PERSON_ACTION_BTN} bg-sky-50 dark:bg-sky-950/20 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-950/40`}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {onCheckInPerson && canCheckInPerson && (
+                    <button
+                      type="button"
+                      onClick={() => onCheckInPerson(idx)}
+                      title="Client arrivé"
+                      className={`${PERSON_ACTION_BTN} bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/40`}
+                    >
+                      <LogIn className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {onNoShowPerson && canNoShowPerson && (
+                    <button
+                      type="button"
+                      onClick={() => onNoShowPerson(idx)}
+                      title="Client absent"
+                      className={`${PERSON_ACTION_BTN} bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-950/40`}
+                    >
+                      <UserX className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {onCompletePerson && canCompletePerson && (
+                    <button
+                      type="button"
+                      onClick={() => onCompletePerson(idx)}
+                      title="Terminer cette personne"
+                      className={`${PERSON_ACTION_BTN} bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/40`}
+                    >
+                      <Award className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {onCancelPerson && canCancelPerson && (
+                    <button
+                      type="button"
+                      onClick={() => onCancelPerson(idx)}
+                      title="Annuler cette personne"
+                      className={`${PERSON_ACTION_BTN} bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/40`}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
             <div className="space-y-2.5">
               <div className="flex justify-between text-[13px]">
@@ -112,7 +236,7 @@ export function ReservationServicesList({ reservation, hairdressersMap, editable
                     {hairdresser?.name ?? person.hairdresserName ?? 'Non assigné'}
                   </p>
                 </div>
-                {editable ? (
+                {canReschedulePerson ? (
                   <button
                     type="button"
                     onClick={() => onChangeHairdresser(idx)}

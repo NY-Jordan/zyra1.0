@@ -14,17 +14,22 @@ import {
   Calendar, User, Phone, Mail, CheckCircle, XCircle, MessageCircle, X, CalendarCheck,
   CheckCircle as CheckIcon, LogIn, UserX, CalendarClock, DollarSign,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { fetchCollection } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { useReservationActions } from '@/hooks/useReservationActions'
+import { useUpdatePersonStatus } from '@zyra/core/usecases/useReservations'
+import { useSalon } from '@zyra/core/hooks/useSalon'
+import { getCurrentActor } from '@zyra/core/usecases/notificationsUseCases'
 import ReservationActionDialogs from './ReservationActionDialogs'
+import ReservationConfirmModal from './ReservationConfirmModal'
 import ChangeHairdresserDialog from './ChangeHairdresserDialog'
 import {
   StatusBadge, InfoRow, ReservationServicesList,
-  fmtDate, paymentMethodIcon, paymentMethodLabel,
+  fmtDate, paymentMethodIcon, paymentMethodLabel, personStatusBreakdown,
 } from './ReservationDetailsParts'
 
 interface ReservationDetailsModalProps {
@@ -45,6 +50,7 @@ export default function ReservationDetailsModal({
 }: ReservationDetailsModalProps) {
   const [reservation, setReservation] = useState(initialReservation)
   const [changingPersonIdx, setChangingPersonIdx] = useState<number | null>(null)
+  const [personAction, setPersonAction] = useState<{ index: number; type: 'confirm' | 'cancel' | 'checkin' | 'noshow' | 'complete' } | null>(null)
 
   useEffect(() => { setReservation(initialReservation) }, [initialReservation])
 
@@ -55,6 +61,52 @@ export default function ReservationDetailsModal({
 
   // Toute la machine à états + handlers (partagée avec la carte)
   const a = useReservationActions(reservation, { onUpdated: syncUpdated })
+
+  // Confirmation / annulation d'UNE personne, sans affecter les autres
+  const { salon } = useSalon()
+  const updatePersonStatus = useUpdatePersonStatus()
+  const PERSON_ACTION_STATUS: Record<NonNullable<typeof personAction>['type'], reservationStatusEnum> = {
+    confirm: reservationStatusEnum.confirmed,
+    cancel: reservationStatusEnum.canceled,
+    checkin: reservationStatusEnum.checked_in,
+    noshow: reservationStatusEnum.no_show,
+    complete: reservationStatusEnum.completed,
+  }
+  const PERSON_ACTION_LABEL: Record<NonNullable<typeof personAction>['type'], string> = {
+    confirm: 'Confirmer cette personne',
+    cancel: 'Annuler cette personne',
+    checkin: 'Marquer cette personne comme arrivée',
+    noshow: 'Marquer cette personne comme absente',
+    complete: 'Terminer cette personne',
+  }
+  const PERSON_ACTION_SUCCESS: Record<NonNullable<typeof personAction>['type'], string> = {
+    confirm: 'Personne confirmée',
+    cancel: 'Personne annulée',
+    checkin: 'Personne marquée comme arrivée',
+    noshow: 'Personne marquée comme absente',
+    complete: 'Personne marquée comme terminée',
+  }
+  const personActionLabel = personAction ? PERSON_ACTION_LABEL[personAction.type] : ''
+  const handlePersonAction = async () => {
+    if (!personAction) return
+    const newStatus = PERSON_ACTION_STATUS[personAction.type]
+    try {
+      const result = await updatePersonStatus.mutateAsync({
+        reservation,
+        personIndex: personAction.index,
+        newStatus,
+        logContext: salon?.id
+          ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: `Réservation #${reservation.reservationNumber} · ${reservation.clientName}` }
+          : undefined,
+      })
+      syncUpdated({ ...reservation, people: result.updatedPeople, status: result.newGroupStatus })
+      setPersonAction(null)
+      toast.success(PERSON_ACTION_SUCCESS[personAction.type])
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut de la personne:', error)
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la mise à jour')
+    }
+  }
 
   // Coiffeurs assignés → infos d'affichage
   const hairdresserIds = useMemo(() => {
@@ -102,6 +154,11 @@ export default function ReservationDetailsModal({
                 </AlertDialogTitle>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <StatusBadge status={reservation.status} />
+                  {personStatusBreakdown(reservation) && (
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                      {personStatusBreakdown(reservation)}
+                    </span>
+                  )}
                   {reservation.wasRescheduled && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/50">
                       <CalendarClock className="h-3 w-3" />Reprogrammée
@@ -190,6 +247,11 @@ export default function ReservationDetailsModal({
                 hairdressersMap={hairdressersMap}
                 editable={isEditable}
                 onChangeHairdresser={setChangingPersonIdx}
+                onConfirmPerson={(index) => setPersonAction({ index, type: 'confirm' })}
+                onCancelPerson={(index) => setPersonAction({ index, type: 'cancel' })}
+                onCheckInPerson={(index) => setPersonAction({ index, type: 'checkin' })}
+                onNoShowPerson={(index) => setPersonAction({ index, type: 'noshow' })}
+                onCompletePerson={(index) => setPersonAction({ index, type: 'complete' })}
               />
             </div>
 
@@ -235,6 +297,26 @@ export default function ReservationDetailsModal({
           reservation={reservation}
           personIndex={changingPersonIdx}
           onUpdated={syncUpdated}
+        />
+
+        {/* Confirmation / annulation d'une personne */}
+        <ReservationConfirmModal
+          open={personAction !== null}
+          title={personActionLabel}
+          description={
+            personAction
+              ? `Personne ${reservation.people[personAction.index]?.personNumber} — ${reservation.people[personAction.index]?.serviceName}. ${
+                  personAction.type === 'cancel'
+                    ? 'Le créneau de cette personne sera libéré. '
+                    : ''
+                }Les autres personnes de la réservation ne sont pas affectées.`
+              : ''
+          }
+          onCancel={() => setPersonAction(null)}
+          onConfirm={handlePersonAction}
+          confirmLabel={personActionLabel}
+          loading={updatePersonStatus.isPending}
+          confirmVariant={personAction?.type === 'cancel' ? 'destructive' : 'default'}
         />
       </AlertDialogContent>
     </AlertDialog>

@@ -26,6 +26,9 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
   const [editingSlot, setEditingSlot] = useState<OpeningHour | null>(null)
   const [editOpen, setEditOpen] = useState("")
   const [editClose, setEditClose] = useState("")
+  const [editHasBreak, setEditHasBreak] = useState(false)
+  const [editBreakStart, setEditBreakStart] = useState("")
+  const [editBreakEnd, setEditBreakEnd] = useState("")
 
   const timeSlots = salon.openingHours || []
 
@@ -33,6 +36,10 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
     setEditingSlot(slot)
     setEditOpen(slot.open || "09:00")
     setEditClose(slot.close || "18:00")
+    const firstBreak = slot.breaks?.[0]
+    setEditHasBreak(!!firstBreak)
+    setEditBreakStart(firstBreak?.start || "12:00")
+    setEditBreakEnd(firstBreak?.end || "13:00")
     setIsEditing(true)
   }
 
@@ -71,9 +78,10 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
     if (!editingSlot) return
     setLoading(true)
     try {
+      const breaks = editHasBreak && editBreakStart && editBreakEnd ? [{ start: editBreakStart, end: editBreakEnd }] : []
       const updatedSlots = timeSlots.map((slot) =>
-        slot.day === editingSlot.day 
-          ? { ...slot, day: editingSlot.day, open: editOpen, close: editClose, openDay: true }
+        slot.day === editingSlot.day
+          ? { ...slot, day: editingSlot.day, open: editOpen, close: editClose, openDay: true, breaks }
           : slot
       )
       await editDocument("salons", salon.id, { openingHours: updatedSlots })
@@ -104,6 +112,9 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
     setEditingSlot(null)
     setEditOpen("")
     setEditClose("")
+    setEditHasBreak(false)
+    setEditBreakStart("")
+    setEditBreakEnd("")
   }
 
   return (
@@ -149,33 +160,68 @@ export default function SalonOpeningHours({ salon, onUpdate }: SalonOpeningHours
                     </td>
                     <td className="px-4 py-2">
                       {isCurrentlyEditing ? (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="time"
-                            value={editOpen}
-                            onChange={(e) => setEditOpen(e.target.value)}
-                            className="w-24"
-                          />
-                          <span className="text-muted-foreground">à</span>
-                          <Input
-                            type="time"
-                            value={editClose}
-                            onChange={(e) => setEditClose(e.target.value)}
-                            className="w-24"
-                          />
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="time"
+                              value={editOpen}
+                              onChange={(e) => setEditOpen(e.target.value)}
+                              className="w-24"
+                            />
+                            <span className="text-muted-foreground">à</span>
+                            <Input
+                              type="time"
+                              value={editClose}
+                              onChange={(e) => setEditClose(e.target.value)}
+                              className="w-24"
+                            />
+                          </div>
+                          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <input
+                              type="checkbox"
+                              checked={editHasBreak}
+                              onChange={(e) => setEditHasBreak(e.target.checked)}
+                              className="h-3.5 w-3.5"
+                            />
+                            Pause
+                          </label>
+                          {editHasBreak && (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="time"
+                                value={editBreakStart}
+                                onChange={(e) => setEditBreakStart(e.target.value)}
+                                className="w-24"
+                              />
+                              <span className="text-muted-foreground">à</span>
+                              <Input
+                                type="time"
+                                value={editBreakEnd}
+                                onChange={(e) => setEditBreakEnd(e.target.value)}
+                                className="w-24"
+                              />
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          {slot.openDay && slot.open && slot.close ? (
-                            <>
-                              <Clock className="h-4 w-4 text-green-600" />
-                              <span>{slot.open} - {slot.close}</span>
-                            </>
-                          ) : (
-                            <>
-                              <X className="h-4 w-4 text-red-600" />
-                              <span className="text-muted-foreground">Fermé</span>
-                            </>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {slot.openDay && slot.open && slot.close ? (
+                              <>
+                                <Clock className="h-4 w-4 text-green-600" />
+                                <span>{slot.open} - {slot.close}</span>
+                              </>
+                            ) : (
+                              <>
+                                <X className="h-4 w-4 text-red-600" />
+                                <span className="text-muted-foreground">Fermé</span>
+                              </>
+                            )}
+                          </div>
+                          {slot.openDay && slot.breaks && slot.breaks.length > 0 && (
+                            <p className="text-xs text-muted-foreground pl-6">
+                              Pause {slot.breaks[0]!.start} - {slot.breaks[0]!.end}
+                            </p>
                           )}
                         </div>
                       )}

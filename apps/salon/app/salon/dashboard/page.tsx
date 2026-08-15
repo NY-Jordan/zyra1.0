@@ -7,6 +7,8 @@ import QRCodeDialog from '@/presentation/components/dashboard/QRCodeDialog'
 import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useDashboard } from '@/hooks/useDashboard'
 import { useBookingAccess } from '@/hooks/useBookingAccess'
+import { personRevenueSum } from '@zyra/core/usecases/useReservations'
+import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import {
   Store,
   Users,
@@ -441,7 +443,7 @@ export default function Dashboard() {
                                     && d < new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
                                     && res.isPaid
                                 })
-                                .reduce((s, r) => s + r.totalPrice, 0)
+                                .reduce((s, r) => s + personRevenueSum(r, st => st === reservationStatusEnum.completed), 0)
                                 .toFixed(2)
                             : '0.00'} XAF
                         </span>

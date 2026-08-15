@@ -1,10 +1,8 @@
-import React, { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCollection, fetchAllSubCollections } from '@zyra/conf/lib/query'
 import { where } from 'firebase/firestore'
 import { ISalon } from '@zyra/conf/domain/entities/salons.entities'
 import { HairDresserSalonAssociation, hairDresserAssociationNameEnum, IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
-import { generateTimeSlots } from '@/config/utils'
 
 export const useSalonData = (salonId: string) => {
   return useQuery({
@@ -52,14 +50,4 @@ export const useHairdressersData = (salonId: string, selectedService: any) => {
     },
     enabled: !!salonId,
   })
-}
-
-export const useAvailableSlots = (salon: ISalon | null, selectedDate: Date | null) => {
-  return useMemo(() => {
-    if (!salon || !selectedDate) return []
-    const dayOfWeek = selectedDate.toLocaleDateString('en-EN', { weekday: 'long' }).toLowerCase()
-    const daySchedule = salon.openingHours.find(h => h.day.toLowerCase() === dayOfWeek)
-    if (!daySchedule || !daySchedule.openDay) return []
-    return generateTimeSlots(daySchedule.open, daySchedule.close)
-  }, [salon, selectedDate])
 }

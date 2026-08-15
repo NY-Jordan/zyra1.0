@@ -1,11 +1,15 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Star, User, Edit2, Save, X } from 'lucide-react'
+import { Star, User, Edit2, Save, X, Trash2, CalendarOff, CalendarIcon, Plus } from 'lucide-react'
 import { Badge } from '@zyra/ui/components/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@zyra/ui/components/avatar'
 import { Button } from '@zyra/ui/components/button'
 import { Input } from '@zyra/ui/components/input'
+import { Checkbox } from '@zyra/ui/components/checkbox'
+import { Label } from '@zyra/ui/components/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@zyra/ui/components/popover'
+import { Calendar as DateCalendar } from '@zyra/ui/components/calendar'
 import {
   Dialog,
   DialogContent,
@@ -26,6 +30,12 @@ import { updateSubCollectionDocument } from '@zyra/conf/lib/query'
 import { toast } from 'sonner'
 import { hairDresserAssociationNameEnum } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { useHasPermission } from '@/hooks/useHasPermission'
+import {
+  useHairdresserAbsences,
+  useCreateHairdresserAbsence,
+  useDeleteHairdresserAbsence,
+} from '@zyra/core/usecases/absencesUseCases'
+import { toDateKey } from '@zyra/core/usecases/slotsUseCases'
 
 interface HairDresserDetailsModalProps {
   open: boolean
@@ -47,6 +57,55 @@ export default function HairDresserDetailsModal({
   const [editedWorkingHours, setEditedWorkingHours] = useState<any[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [serviceError, setServiceError] = useState('')
+
+  const [showAddAbsence, setShowAddAbsence] = useState(false)
+  const [newAbsenceDate, setNewAbsenceDate] = useState<Date | null>(null)
+  const [newAbsenceAllDay, setNewAbsenceAllDay] = useState(true)
+  const [newAbsenceStart, setNewAbsenceStart] = useState('09:00')
+  const [newAbsenceEnd, setNewAbsenceEnd] = useState('18:00')
+  const [newAbsenceReason, setNewAbsenceReason] = useState('')
+
+  const { data: absences = [] } = useHairdresserAbsences(hairdresser?.id)
+  const createAbsence = useCreateHairdresserAbsence()
+  const deleteAbsence = useDeleteHairdresserAbsence()
+
+  const resetAbsenceForm = () => {
+    setShowAddAbsence(false)
+    setNewAbsenceDate(null)
+    setNewAbsenceAllDay(true)
+    setNewAbsenceStart('09:00')
+    setNewAbsenceEnd('18:00')
+    setNewAbsenceReason('')
+  }
+
+  const handleAddAbsence = async () => {
+    if (!hairdresser || !newAbsenceDate) return
+    try {
+      await createAbsence.mutateAsync({
+        salonId: hairdresser.associationHairdresser.salonId,
+        hairdresserId: hairdresser.id,
+        date: toDateKey(newAbsenceDate),
+        allDay: newAbsenceAllDay,
+        ...(newAbsenceAllDay ? {} : { range: { start: newAbsenceStart, end: newAbsenceEnd } }),
+        ...(newAbsenceReason ? { reason: newAbsenceReason } : {}),
+      })
+      toast.success('Absence ajoutée')
+      resetAbsenceForm()
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de l\'absence:', error)
+      toast.error('Erreur lors de l\'ajout de l\'absence')
+    }
+  }
+
+  const handleDeleteAbsence = async (id: string) => {
+    if (!hairdresser) return
+    try {
+      await deleteAbsence.mutateAsync({ id, hairdresserId: hairdresser.id })
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'absence:', error)
+      toast.error('Erreur lors de la suppression')
+    }
+  }
 
   React.useEffect(() => {
     if (hairdresser) {
@@ -326,58 +385,87 @@ export default function HairDresserDetailsModal({
                         const workingHour = editedWorkingHours.find(
                           (h) => h.day === day.label || h.day === day.key
                         )
+                        const index = editedWorkingHours.findIndex(
+                          (h) => h.day === day.label || h.day === day.key
+                        )
                         return (
                           <div
                             key={day.key}
-                            className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded"
+                            className="p-2 bg-gray-50 dark:bg-slate-800 rounded space-y-2"
                           >
-                            <p className="font-medium text-sm w-24">{day.label}</p>
-                            <input
-                              type="checkbox"
-                              checked={workingHour?.openDay ?? false}
-                              onChange={(e) => {
-                                const index = editedWorkingHours.findIndex(
-                                  (h) => h.day === day.label || h.day === day.key
-                                )
-                                if (index !== -1) {
-                                  handleUpdateWorkingHour(index, 'openDay', e.target.checked)
-                                }
-                              }}
-                              className="h-4 w-4"
-                            />
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm w-24">{day.label}</p>
+                              <input
+                                type="checkbox"
+                                checked={workingHour?.openDay ?? false}
+                                onChange={(e) => {
+                                  if (index !== -1) handleUpdateWorkingHour(index, 'openDay', e.target.checked)
+                                }}
+                                className="h-4 w-4"
+                              />
+                              {workingHour?.openDay && (
+                                <>
+                                  <Input
+                                    type="time"
+                                    value={workingHour?.open || ''}
+                                    onChange={(e) => {
+                                      if (index !== -1) handleUpdateWorkingHour(index, 'open', e.target.value)
+                                    }}
+                                    className="text-sm w-24"
+                                  />
+                                  <span className="text-gray-400 dark:text-slate-500">-</span>
+                                  <Input
+                                    type="time"
+                                    value={workingHour?.close || ''}
+                                    onChange={(e) => {
+                                      if (index !== -1) handleUpdateWorkingHour(index, 'close', e.target.value)
+                                    }}
+                                    className="text-sm w-24"
+                                  />
+                                </>
+                              )}
+                              {!workingHour?.openDay && (
+                                <span className="text-sm text-gray-600 dark:text-slate-400 italic">Fermé</span>
+                              )}
+                            </div>
                             {workingHour?.openDay && (
-                              <>
-                                <Input
-                                  type="time"
-                                  value={workingHour?.open || ''}
-                                  onChange={(e) => {
-                                    const index = editedWorkingHours.findIndex(
-                                      (h) => h.day === day.label || h.day === day.key
-                                    )
-                                    if (index !== -1) {
-                                      handleUpdateWorkingHour(index, 'open', e.target.value)
-                                    }
-                                  }}
-                                  className="text-sm w-24"
-                                />
-                                <span className="text-gray-400 dark:text-slate-500">-</span>
-                                <Input
-                                  type="time"
-                                  value={workingHour?.close || ''}
-                                  onChange={(e) => {
-                                    const index = editedWorkingHours.findIndex(
-                                      (h) => h.day === day.label || h.day === day.key
-                                    )
-                                    if (index !== -1) {
-                                      handleUpdateWorkingHour(index, 'close', e.target.value)
-                                    }
-                                  }}
-                                  className="text-sm w-24"
-                                />
-                              </>
-                            )}
-                            {!workingHour?.openDay && (
-                              <span className="text-sm text-gray-600 dark:text-slate-400 italic">Fermé</span>
+                              <div className="flex items-center gap-2 pl-24">
+                                <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                                  <input
+                                    type="checkbox"
+                                    checked={!!workingHour?.breaks?.length}
+                                    onChange={(e) => {
+                                      if (index === -1) return
+                                      handleUpdateWorkingHour(index, 'breaks', e.target.checked ? [{ start: '12:00', end: '13:00' }] : [])
+                                    }}
+                                    className="h-3.5 w-3.5"
+                                  />
+                                  Pause
+                                </label>
+                                {!!workingHour?.breaks?.length && (
+                                  <>
+                                    <Input
+                                      type="time"
+                                      value={workingHour.breaks[0]?.start || ''}
+                                      onChange={(e) => {
+                                        if (index === -1) return
+                                        handleUpdateWorkingHour(index, 'breaks', [{ ...workingHour.breaks[0], start: e.target.value }])
+                                      }}
+                                      className="text-sm w-24"
+                                    />
+                                    <span className="text-gray-400 dark:text-slate-500">-</span>
+                                    <Input
+                                      type="time"
+                                      value={workingHour.breaks[0]?.end || ''}
+                                      onChange={(e) => {
+                                        if (index === -1) return
+                                        handleUpdateWorkingHour(index, 'breaks', [{ ...workingHour.breaks[0], end: e.target.value }])
+                                      }}
+                                      className="text-sm w-24"
+                                    />
+                                  </>
+                                )}
+                              </div>
                             )}
                           </div>
                         )
@@ -396,6 +484,7 @@ export default function HairDresserDetailsModal({
                               <p className="font-medium text-sm w-24">{dayLabel}</p>
                               <p className="text-sm text-gray-600 dark:text-slate-400">
                                 {hours.open} - {hours.close}
+                                {hours.breaks?.length > 0 && ` · pause ${hours.breaks[0].start}-${hours.breaks[0].end}`}
                               </p>
                             </div>
                           )
@@ -404,6 +493,128 @@ export default function HairDresserDetailsModal({
                   )}
                 </div>
               )}
+
+              {/* Absences */}
+              <div className="border-t dark:border-slate-700 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm flex items-center gap-1.5">
+                    <CalendarOff className="h-4 w-4" />
+                    Absences
+                  </h4>
+                  {canEdit && !showAddAbsence && (
+                    <Button variant="ghost" size="sm" onClick={() => setShowAddAbsence(true)} className="gap-1.5">
+                      <Plus className="h-4 w-4" />
+                      Ajouter
+                    </Button>
+                  )}
+                </div>
+
+                {absences.length === 0 && !showAddAbsence && (
+                  <p className="text-sm text-muted-foreground">Aucune absence enregistrée.</p>
+                )}
+
+                {absences.length > 0 && (
+                  <div className="space-y-2">
+                    {absences.map((absence) => {
+                      const [y, m, d] = absence.date.split('-').map(Number)
+                      const absenceDate = new Date(y!, (m ?? 1) - 1, d ?? 1)
+                      return (
+                      <div
+                        key={absence.id}
+                        className="flex items-center justify-between gap-3 p-3 rounded-md border-2 border-gray-200 dark:border-slate-600"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <p className="font-medium text-sm whitespace-nowrap">
+                            {absenceDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                          <Badge variant="secondary" className="whitespace-nowrap">
+                            {absence.allDay ? 'Journée entière' : `${absence.range?.start} - ${absence.range?.end}`}
+                          </Badge>
+                          {absence.reason && (
+                            <p className="text-sm text-muted-foreground truncate">{absence.reason}</p>
+                          )}
+                        </div>
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteAbsence(absence.id)}
+                            disabled={deleteAbsence.isPending}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        )}
+                      </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {canEdit && showAddAbsence && (
+                  <div className="space-y-3 p-3 rounded-md border-2 border-gray-200 dark:border-slate-600">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start font-normal gap-2">
+                            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                            {newAbsenceDate
+                              ? newAbsenceDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+                              : <span className="text-muted-foreground">Sélectionner une date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <DateCalendar
+                            mode="single"
+                            selected={newAbsenceDate ?? undefined}
+                            onSelect={(d) => d && setNewAbsenceDate(d)}
+                            disabled={(d) => { const today = new Date(); today.setHours(0, 0, 0, 0); return d < today }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <Label className="flex items-center gap-2 text-sm font-normal">
+                      <Checkbox checked={newAbsenceAllDay} onCheckedChange={(checked) => setNewAbsenceAllDay(checked === true)} />
+                      Journée entière
+                    </Label>
+
+                    {!newAbsenceAllDay && (
+                      <div className="flex items-center gap-2">
+                        <div className="space-y-1.5 flex-1">
+                          <Label className="text-xs text-muted-foreground">De</Label>
+                          <Input type="time" value={newAbsenceStart} onChange={(e) => setNewAbsenceStart(e.target.value)} />
+                        </div>
+                        <div className="space-y-1.5 flex-1">
+                          <Label className="text-xs text-muted-foreground">À</Label>
+                          <Input type="time" value={newAbsenceEnd} onChange={(e) => setNewAbsenceEnd(e.target.value)} />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Motif (optionnel)</Label>
+                      <Input
+                        type="text"
+                        placeholder="Congés, formation..."
+                        value={newAbsenceReason}
+                        onChange={(e) => setNewAbsenceReason(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-1">
+                      <Button variant="outline" size="sm" onClick={resetAbsenceForm}>
+                        Annuler
+                      </Button>
+                      <Button size="sm" onClick={handleAddAbsence} disabled={!newAbsenceDate || createAbsence.isPending} className="gap-1.5">
+                        <Save className="h-4 w-4" />
+                        {createAbsence.isPending ? 'Enregistrement...' : 'Enregistrer'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Stats */}
               <div className="border-t dark:border-slate-700 pt-4 grid grid-cols-3 gap-4">

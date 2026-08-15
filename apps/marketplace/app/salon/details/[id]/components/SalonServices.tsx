@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { List } from 'lucide-react'
+import type { salonDetailsDictionary } from '../i18n'
 
 interface SalonService {
   name: string
@@ -15,21 +16,24 @@ interface ServicesCategory {
   name: string
 }
 
+type ServicesCopy = (typeof salonDetailsDictionary)['fr']['services']
+
 interface SalonServicesProps {
   salonId: string
   serviceCategories: ServicesCategory[]
   services: SalonService[]
+  t: ServicesCopy
 }
 
-function formatDuration(min: number) {
+function formatDuration(min: number, t: ServicesCopy['duration']) {
   const m = min || 30
-  if (m < 60) return `${m} min`
+  if (m < 60) return t.minutes(m)
   const h = Math.floor(m / 60)
   const rem = m % 60
-  return rem === 0 ? `${h}h` : `${h} h et ${rem} min`
+  return rem === 0 ? t.hours(h) : t.hoursAndMinutes(h, rem)
 }
 
-export function SalonServices({ salonId, serviceCategories, services }: SalonServicesProps) {
+export function SalonServices({ salonId, serviceCategories, services, t }: SalonServicesProps) {
   const [selectedCategory, setSelectedCategory] = React.useState(serviceCategories[0]?.id || '')
   const [showAll, setShowAll] = React.useState(false)
 
@@ -40,7 +44,7 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
 
   return (
     <section id="services" className="scroll-mt-20">
-      <h2 className="text-gray-900 mb-5">Prestations</h2>
+      <h2 className="text-slate-900 mb-5">{t.title}</h2>
 
       {/* Pill category tabs */}
       <div className="flex items-center gap-2 mb-6">
@@ -53,8 +57,8 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
                 onClick={() => { setSelectedCategory(cat.id); setShowAll(false) }}
                 className={`px-4 py-2 rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-300 ease-out ${
                   active
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-800 border border-gray-200 hover:border-gray-400'
+                    ? 'bg-[#22C55E] text-white'
+                    : 'bg-white text-slate-800 border border-slate-200 hover:border-slate-400'
                 }`}
               >
                 {cat.name}
@@ -63,8 +67,8 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
           })}
         </div>
         <button
-          aria-label="Toutes les catégories"
-          className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors flex-shrink-0"
+          aria-label={t.allCategories}
+          className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors flex-shrink-0"
         >
           <List className="h-4 w-4" />
         </button>
@@ -75,20 +79,20 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
         {visible.map((service, idx) => (
           <div
             key={idx}
-            className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all"
+            className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all"
           >
             <div className="flex-1 min-w-0">
-              <p className="text-[16px] font-bold text-gray-900 leading-snug">{service.name}</p>
-              <p className="text-[14px] text-gray-500 mt-1">{formatDuration(service.duration)}</p>
-              <p className="text-[15px] font-semibold text-gray-900 mt-2">
-                à partir de {Number(service.price).toLocaleString('fr-FR')} FCFA
+              <p className="text-[16px] font-bold text-slate-900 leading-snug">{service.name}</p>
+              <p className="text-[14px] text-slate-500 mt-1">{formatDuration(service.duration, t.duration)}</p>
+              <p className="text-[15px] font-semibold text-slate-900 mt-2">
+                {t.from} {Number(service.price).toLocaleString('fr-FR')} FCFA
               </p>
             </div>
             <button
               onClick={() => window.location.href = `/booking/${salonId}`}
-              className="h-10 px-5 rounded-full text-gray-900 border border-gray-300 hover:bg-gray-50 transition-colors whitespace-nowrap flex-shrink-0"
+              className="h-10 px-5 rounded-full text-slate-900 border border-slate-300 hover:bg-slate-50 transition-colors whitespace-nowrap flex-shrink-0"
             >
-              Réserver
+              {t.book}
             </button>
           </div>
         ))}
@@ -97,14 +101,14 @@ export function SalonServices({ salonId, serviceCategories, services }: SalonSer
       {filtered.length > 6 && (
         <button
           onClick={() => setShowAll(v => !v)}
-          className="mt-4 text-gray-900 hover:underline"
+          className="mt-4 text-slate-900 hover:underline"
         >
-          {showAll ? 'Voir moins' : `Afficher tout (${filtered.length})`}
+          {showAll ? t.showLess : t.showMore(filtered.length)}
         </button>
       )}
 
       {filtered.length === 0 && (
-        <p className="text-[14px] text-gray-400 py-2">Aucun service dans cette catégorie.</p>
+        <p className="text-[14px] text-slate-400 py-2">{t.empty}</p>
       )}
     </section>
   )

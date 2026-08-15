@@ -79,6 +79,13 @@ export const ACTIVITY_CONFIG: Record<ActivityType, ActivityConfig> = {
     label: 'Réservation reprogrammée',
     actionVerb: 'a reprogrammé',
   },
+  reservation_person_status_changed: {
+    icon: <User className="h-3.5 w-3.5" />,
+    dotColor: 'bg-sky-400',
+    bgColor: 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400',
+    label: 'Statut d\'une personne modifié',
+    actionVerb: 'a modifié le statut de',
+  },
 
   // ── Orders ───────────────────────────────────────────────────────────────────
   order_created: {

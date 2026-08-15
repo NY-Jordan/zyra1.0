@@ -13,10 +13,12 @@ import {
   startAfter,
   getCountFromServer,
   setDoc,
+  runTransaction,
+  Timestamp,
   QueryConstraint,
   collectionGroup,
   Firestore,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 
 // Types
 type FirestoreData = Record<string, any>;
@@ -27,6 +29,21 @@ export interface PaginateOptions {
   orderByField?: string;
   orderDirection?: 'asc' | 'desc';
   constraints?: QueryConstraint[];
+}
+
+/** Levée quand un créneau demandé vient d'être pris par quelqu'un d'autre (détecté dans la transaction). */
+export class SlotConflictError extends Error {
+  constructor(message = "Ce créneau vient d'être réservé par quelqu'un d'autre.") {
+    super(message);
+    this.name = 'SlotConflictError';
+  }
+}
+
+/** Le strict nécessaire pour verrouiller un créneau : coiffeur + plage horaire d'une personne d'une réservation. */
+export interface LockablePerson {
+  hairdresserId?: string | null;
+  scheduledAt: Timestamp;
+  endsAt: Timestamp;
 }
 
 /**
@@ -262,6 +279,104 @@ export function createFirestoreQueries(db: Firestore) {
     await deleteDoc(docRef);
   };
 
+  // ─── Verrous de créneaux (intégrité transactionnelle) ──────────────────────
+  //
+  // Un document `slot_locks` par unité de 30 min réellement occupée par un
+  // coiffeur, à ID déterministe — pas de grille stockée à l'avance, juste les
+  // créneaux effectivement pris. `runTransaction` garantit qu'entre deux
+  // écritures concurrentes sur le même créneau, une seule peut réussir : la
+  // perdante relit un verrou déjà posé et échoue proprement (voir
+  // `SlotConflictError`) au lieu d'écrire une double réservation.
+  //
+  // Les personnes en "au choix du salon" (`hairdresserId` absent) ne sont pas
+  // verrouillées : aucune ressource précise n'est engagée tant qu'un coiffeur
+  // précis n'est pas assigné.
+
+  const SLOT_LOCK_STEP_MS = 30 * 60 * 1000;
+
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+
+  // Miroir de `toDateKey` dans `@zyra/core/usecases/slotsUseCases` — ce fichier
+  // ne peut pas importer `@zyra/core` (dépendance inverse), donc dupliqué ici
+  // à l'identique ; garder les deux en phase si la convention change.
+  const dateKeyOf = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+  /** IDs déterministes des verrous de 30 min couvrant [start, end) pour un coiffeur donné. */
+  const lockDocIds = (salonId: string, hairdresserId: string, start: Date, end: Date): string[] => {
+    const ids: string[] = [];
+    let cur = new Date(start);
+    while (cur.getTime() < end.getTime()) {
+      const hhmm = `${pad2(cur.getHours())}${pad2(cur.getMinutes())}`;
+      ids.push(`${salonId}__${hairdresserId}__${dateKeyOf(cur)}__${hhmm}`);
+      cur = new Date(cur.getTime() + SLOT_LOCK_STEP_MS);
+    }
+    return ids;
+  };
+
+  const lockIdsForPeople = (salonId: string, people: LockablePerson[]): string[] =>
+    people
+      .filter((p): p is LockablePerson & { hairdresserId: string } => !!p.hairdresserId)
+      .flatMap(p => lockDocIds(salonId, p.hairdresserId, p.scheduledAt.toDate(), p.endsAt.toDate()));
+
+  /**
+   * Crée une réservation et verrouille tous les créneaux de ses personnes (qui
+   * ont un coiffeur précis) dans une seule transaction : si un seul créneau
+   * est déjà verrouillé, rien n'est écrit et `SlotConflictError` est levée.
+   */
+  const bookAppointmentSlots = async (
+    reservationData: FirestoreData & { salonId: string; people: LockablePerson[] }
+  ): Promise<string> => {
+    const reservationRef = doc(collection(db, 'reservations'));
+    const lockIds = lockIdsForPeople(reservationData.salonId, reservationData.people);
+
+    await runTransaction(db, async (tx) => {
+      const lockRefs = lockIds.map(id => doc(db, 'slot_locks', id));
+      const snaps = await Promise.all(lockRefs.map(ref => tx.get(ref)));
+      if (snaps.some(s => s.exists())) throw new SlotConflictError();
+
+      lockRefs.forEach(ref => tx.set(ref, { reservationId: reservationRef.id, salonId: reservationData.salonId, createdAt: serverTimestamp() }));
+      tx.set(reservationRef, { ...reservationData, id: reservationRef.id, createdAt: serverTimestamp() });
+    });
+
+    return reservationRef.id;
+  };
+
+  /** Libère les verrous d'une réservation (annulation, no-show...). Pas besoin de transaction : une suppression sur un ID déterministe ne peut pas entrer en conflit. */
+  const releaseAppointmentSlots = async (salonId: string, people: LockablePerson[]): Promise<void> => {
+    const lockIds = lockIdsForPeople(salonId, people);
+    await Promise.all(lockIds.map(id => deleteDoc(doc(db, 'slot_locks', id))));
+  };
+
+  /**
+   * Déplace les verrous d'une réservation (reprogrammation globale, ou
+   * changement de coiffeur/créneau d'une seule personne — passer alors des
+   * tableaux à un seul élément) et met à jour le document en une seule
+   * transaction. Les verrous déjà détenus par cette même réservation ne
+   * comptent pas comme un conflit (ex: décaler de 30 min un créneau déjà à
+   * soi) ; seuls les nouveaux créneaux réellement libres sont exigés.
+   */
+  const updateReservationSlots = async (
+    reservationId: string,
+    salonId: string,
+    oldPeople: LockablePerson[],
+    newPeople: LockablePerson[],
+    updateData: FirestoreData,
+  ): Promise<void> => {
+    const oldLockIds = new Set(lockIdsForPeople(salonId, oldPeople));
+    const newLockIds = Array.from(new Set(lockIdsForPeople(salonId, newPeople)));
+    const idsToCheck = newLockIds.filter(id => !oldLockIds.has(id));
+
+    await runTransaction(db, async (tx) => {
+      const refsToCheck = idsToCheck.map(id => doc(db, 'slot_locks', id));
+      const snaps = await Promise.all(refsToCheck.map(ref => tx.get(ref)));
+      if (snaps.some(s => s.exists())) throw new SlotConflictError();
+
+      oldLockIds.forEach(id => tx.delete(doc(db, 'slot_locks', id)));
+      newLockIds.forEach(id => tx.set(doc(db, 'slot_locks', id), { reservationId, salonId, createdAt: serverTimestamp() }));
+      tx.update(doc(db, 'reservations', reservationId), updateData);
+    });
+  };
+
   return {
     createSubCollectionDocument,
     fetchAllSubCollections,
@@ -273,5 +388,8 @@ export function createFirestoreQueries(db: Firestore) {
     getDocument,
     editDocument,
     deleteDocument,
+    bookAppointmentSlots,
+    releaseAppointmentSlots,
+    updateReservationSlots,
   };
 }

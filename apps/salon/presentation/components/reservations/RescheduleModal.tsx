@@ -52,6 +52,7 @@ export default function RescheduleModal({ open, onOpenChange, reservation }: Res
   const { slots, isFetching, workingHours } = useHairdresserSlots({
     hairdresserId,
     date,
+    durationMin: totalDuration,
     excludeReservationId: reservation.id,
     enabled: open,
   })

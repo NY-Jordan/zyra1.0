@@ -66,6 +66,7 @@ export default function ChangeHairdresserDialog({
   const { slots, isFetching, workingHours } = useHairdresserSlots({
     hairdresserId,
     date,
+    durationMin: duration,
     excludeReservationId: reservation.id,
     enabled: open,
   })
@@ -86,7 +87,7 @@ export default function ChangeHairdresserDialog({
           ? { salonId: salon.id, ...getCurrentActor(), resourceLabel: `Réservation #${reservation.reservationNumber} · ${reservation.clientName}` }
           : undefined,
       })
-      onUpdated({ ...reservation, people: result.updatedPeople })
+      onUpdated({ ...reservation, people: result.updatedPeople, status: result.newGroupStatus })
       onOpenChange(false)
       toast.success('Coiffeur mis à jour avec succès')
     } catch (error) {

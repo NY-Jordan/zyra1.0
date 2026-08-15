@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
+import { isDayClosed as isDayClosedForHours, getEffectiveWorkingHours } from '@zyra/core/usecases/slotsUseCases'
 
 interface UseDatePickerProps {
   openingHours: OpeningHour[]
@@ -36,26 +37,7 @@ export function useDatePicker({ openingHours, hairdresserWorkingHours }: UseDate
 
   // Vérifier si un jour est fermé (pour le salon ET le coiffeur si sélectionné)
   const isDayClosed = useCallback(
-    (date: Date) => {
-      const dayOfWeek = date
-        .toLocaleDateString('en-EN', { weekday: 'long' })
-        .toLowerCase()
-      // Vérifier les horaires du salon
-      const salonSchedule = openingHours.find(h => h.day.toLowerCase() === dayOfWeek)
-      if (!salonSchedule || !salonSchedule.openDay) {
-        return true // Le salon est fermé ce jour
-      }
-      // Si un coiffeur est sélectionné, vérifier ses horaires aussi
-      if (hairdresserWorkingHours && hairdresserWorkingHours.length > 0) {
-        const hairdresserSchedule = hairdresserWorkingHours.find(
-          h => h.day.toLowerCase() === dayOfWeek
-        )
-        if (!hairdresserSchedule || !hairdresserSchedule.openDay) {
-          return true // Le coiffeur ne travaille pas ce jour
-        }
-      }
-      return false
-    },
+    (date: Date) => isDayClosedForHours(date, getEffectiveWorkingHours(openingHours, hairdresserWorkingHours)),
     [openingHours, hairdresserWorkingHours]
   )
 
@@ -128,75 +110,6 @@ export function useDatePicker({ openingHours, hairdresserWorkingHours }: UseDate
     input.click() */
   }, [visibleDates])
 
-  // Filtrer les heures passées pour la date d'aujourd'hui
-  const filterPassedHours = useCallback((slots: string[], selectedDate: Date | null) => {
-    if (!selectedDate) return slots
-    // Créer deux instances: une pour la date normalisée, une pour l'heure actuelle
-    const today = new Date()
-    const todayNormalized = new Date()
-    todayNormalized.setHours(0, 0, 0, 0)
-    const selectedDateNormalized = new Date(selectedDate)
-    selectedDateNormalized.setHours(0, 0, 0, 0)
-    // Si la date sélectionnée n'est pas aujourd'hui, retourner tous les slots
-    if (selectedDateNormalized.getTime() !== todayNormalized.getTime()) {
-      return slots
-    }
-    // Si c'est aujourd'hui, filtrer les heures passées
-    const currentHour = today.getHours()
-    const currentMinutes = today.getMinutes()
-    return slots.filter(slot => {
-      const [slotHour, slotMinutes] = slot.split(':').map(Number)
-      if(!slotHour && slotHour !== 0 || !slotMinutes && slotMinutes !== 0) return false
-      return slotHour > currentHour || (slotHour === currentHour && slotMinutes > currentMinutes)
-    })
-  }, []);
-
-
-  const filterHairDresserHours = useCallback((slots: string[], selectedDate: Date | null) => {
-    if (!selectedDate || !hairdresserWorkingHours || hairdresserWorkingHours.length === 0) {
-      return slots
-    }
-    // Obtenir le jour de la semaine pour la date sélectionnée
-    const dayOfWeek = selectedDate
-      .toLocaleDateString('en-EN', { weekday: 'long' })
-      .toLowerCase()
-
-    const hairdresserSchedule = hairdresserWorkingHours.find(
-      h => h.day.toLowerCase() === dayOfWeek
-    )
-    // Si le coiffeur ne travaille pas ce jour, retourner un tableau vide
-    if (!hairdresserSchedule || !hairdresserSchedule.openDay) {
-      return []
-    }
-
-    // Filtrer les slots en fonction des horaires de travail du coiffeur
-    return slots.filter(slot => {
-      const [slotHour, slotMinutes] = slot.split(':').map(Number)
-      if (slotHour === undefined || slotMinutes === undefined) return false
-      // Convertir le slot en minutes
-      const slotTime = slotHour * 60 + slotMinutes
-      // Convertir les horaires du coiffeur en minutes (même base)
-      let openTime = 0
-      if (hairdresserSchedule.open) {
-        const [openHour, openMin] = hairdresserSchedule.open.split(':').map(Number)
-        openTime = (openHour || 0) * 60 + (openMin || 0)
-      }
-      let closeTime = 1439 // 23:59 par défaut
-      if (hairdresserSchedule.close) {
-        const [closeHour, closeMin] = hairdresserSchedule.close.split(':').map(Number)
-        closeTime = (closeHour || 23) * 60 + (closeMin || 0)
-      }
-      return slotTime >= openTime && slotTime <= closeTime
-    })
-  }, [hairdresserWorkingHours])
-
-
-  function filterHours(slots: string[], selectedDate: Date | null) {
-     const passedHours = filterPassedHours(slots, selectedDate)
-     const data =  filterHairDresserHours(passedHours, selectedDate);
-     return data
-  }
-
   return {
     visibleDates,
     isDayClosed,
@@ -204,7 +117,5 @@ export function useDatePicker({ openingHours, hairdresserWorkingHours }: UseDate
     scroll,
     openDatePicker,
     visibleMonths,
-    filterPassedHours,
-    filterHours
   }
 }

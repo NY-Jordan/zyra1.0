@@ -212,6 +212,28 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
     })
   }
 
+  const handleBreakToggle = (dayKey: string) => {
+    setInvitationData(prev => ({
+      ...prev,
+      workingHours: prev.workingHours.map(hour =>
+        hour.day === dayKey
+          ? { ...hour, breaks: hour.breaks?.length ? [] : [{ start: '12:00', end: '13:00' }] }
+          : hour
+      )
+    }))
+  }
+
+  const handleBreakChange = (dayKey: string, type: 'start' | 'end', value: string) => {
+    setInvitationData(prev => ({
+      ...prev,
+      workingHours: prev.workingHours.map(hour =>
+        hour.day === dayKey
+          ? { ...hour, breaks: [{ ...(hour.breaks?.[0] ?? { start: '12:00', end: '13:00' }), [type]: value }] }
+          : hour
+      )
+    }))
+  }
+
   const handleSendInvitation = () => {
     inviteMutation.mutate(invitationData)
   }
@@ -289,6 +311,8 @@ export default function InviteHairDresserModal({ open, onOpenChange }: InviteHai
               workingHours={invitationData.workingHours}
               onWorkingDayToggle={handleWorkingDayToggle}
               onHourChange={handleHourChange}
+              onBreakToggle={handleBreakToggle}
+              onBreakChange={handleBreakChange}
               salonOpeningHours={salon?.openingHours}
             />
           )}

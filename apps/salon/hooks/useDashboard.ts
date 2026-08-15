@@ -4,6 +4,7 @@ import { fetchCollection } from '@zyra/conf/lib/query'
 import { where, orderBy } from 'firebase/firestore'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
+import { personRevenueSum } from '@zyra/core/usecases/useReservations'
 import { useSalon } from './useSalon'
 
 export interface DashboardStats {
@@ -84,7 +85,13 @@ export const useDashboard = () => {
         })
 
         // Calculer les statistiques
-        const monthlyRevenue = monthReservations.reduce((sum, res) => sum + res.totalPrice, 0)
+        // Par personne (pas res.totalPrice) et sur le statut "completed" de
+        // chacune : dans un groupe mixte (ex. 1 absente, 1 terminée), seule
+        // la part de la personne terminée doit compter dans le revenu.
+        const monthlyRevenue = monthReservations.reduce(
+          (sum, res) => sum + personRevenueSum(res, st => st === reservationStatusEnum.completed),
+          0,
+        )
         // Compter les clients uniques du mois
         const uniqueClients = new Set(
           monthReservations.map(res => res.clientEmail || res.clientPhone || res.clientName)

@@ -5,8 +5,7 @@ import { Calendar, Clock, CheckCircle, Loader2 } from 'lucide-react'
 import { Calendar as DateCalendar } from '@zyra/ui/components/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@zyra/ui/components/popover'
 import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
-import { getEndTime } from './helpers/timeSlots'
-import { toast } from 'sonner'
+import { getEndTime, isDayClosed } from '@zyra/core/usecases/slotsUseCases'
 
 export interface SlotPickerHairdresser {
   id: string
@@ -48,10 +47,7 @@ export default function SlotPicker({
   isFetching,
   workingHours,
 }: SlotPickerProps) {
-  const dayIsOpen = (d: Date) => {
-    const dayName = d.toLocaleDateString('en-EN', { weekday: 'long' }).toLowerCase()
-    return !!workingHours.find(h => h.day.toLowerCase() === dayName)?.openDay
-  }
+  const dayIsOpen = (d: Date) => !isDayClosed(d, workingHours)
 
   return (
     <div className="space-y-5">
@@ -148,25 +144,14 @@ export default function SlotPicker({
             <div className="grid grid-cols-4 gap-2">
               {slots.map(slot => {
                 const isSelected = time === slot
-                const endTime = getEndTime(slot, durationMin)
-                const possible = slots.includes(endTime)
                 return (
                   <button
                     key={slot}
                     type="button"
-                    disabled={!possible && !isSelected}
-                    onClick={() => {
-                      if (!possible) {
-                        toast.error(`La prestation finirait à ${endTime}, hors des horaires`)
-                        return
-                      }
-                      onSelectTime(isSelected ? null : slot)
-                    }}
+                    onClick={() => onSelectTime(isSelected ? null : slot)}
                     className={`py-2 rounded-xl text-[12px] font-semibold border transition-all ${
                       isSelected
                         ? 'bg-emerald-500 text-white border-emerald-500 shadow-md'
-                        : !possible
-                        ? 'opacity-30 cursor-not-allowed bg-[#F5F2EF] dark:bg-slate-800 border-[#F0EAE4] dark:border-slate-700 text-slate-400'
                         : 'border-[#F0EAE4] dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-300 hover:bg-emerald-50 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/20'
                     }`}
                   >

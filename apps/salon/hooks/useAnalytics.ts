@@ -7,6 +7,7 @@ import { IOrder } from '@zyra/conf/domain/entities/orders.entities'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import { orderStatusEnum } from '@zyra/conf/domain/enums/OrderEnum'
+import { personStatus, personRevenueSum } from '@zyra/core/usecases/useReservations'
 import { useSalon } from './useSalon'
 
 export type AnalyticsPeriod = 'today' | '7d' | '30d' | '3m' | '6m' | 'all'
@@ -104,14 +105,18 @@ export const useAnalytics = (period: AnalyticsPeriod = 'all') => {
       const paidReservations = reservations.filter(r => r.isPaid && r.status !== reservationStatusEnum.canceled)
       const paidOrders = orders.filter(o => o.isPaid && o.status !== 'canceled')
 
+      // On somme par personne (personRevenueSum) le revenu des personnes
+      // effectivement "completed" — pas r.totalPrice ni "non annulé" : dans un
+      // groupe mixte (ex. 1 absente, 1 terminée), seule la part de la
+      // personne terminée doit compter, pas celle de l'absente/en attente/etc.
       const totalRevenue =
-        paidReservations.reduce((s, r) => s + r.totalPrice, 0) +
+        paidReservations.reduce((s, r) => s + personRevenueSum(r, st => st === reservationStatusEnum.completed), 0) +
         paidOrders.reduce((s, o) => s + o.totalPrice, 0)
 
       const monthRevenue =
         paidReservations
           .filter(r => { const d = r.people?.[0]?.scheduledAt?.toDate?.(); return d && d >= startOfMonth })
-          .reduce((s, r) => s + r.totalPrice, 0) +
+          .reduce((s, r) => s + personRevenueSum(r, st => st === reservationStatusEnum.completed), 0) +
         paidOrders
           .filter(o => new Date(o.createdAt) >= startOfMonth)
           .reduce((s, o) => s + o.totalPrice, 0)
@@ -119,21 +124,22 @@ export const useAnalytics = (period: AnalyticsPeriod = 'all') => {
       const weekRevenue =
         paidReservations
           .filter(r => { const d = r.people?.[0]?.scheduledAt?.toDate?.(); return d && d >= startOfWeek })
-          .reduce((s, r) => s + r.totalPrice, 0) +
+          .reduce((s, r) => s + personRevenueSum(r, st => st === reservationStatusEnum.completed), 0) +
         paidOrders
           .filter(o => new Date(o.createdAt) >= startOfWeek)
           .reduce((s, o) => s + o.totalPrice, 0)
 
       const avgReservationValue = paidReservations.length > 0
-        ? paidReservations.reduce((s, r) => s + r.totalPrice, 0) / paidReservations.length
+        ? paidReservations.reduce((s, r) => s + personRevenueSum(r, st => st === reservationStatusEnum.completed), 0) / paidReservations.length
         : 0
 
       const revenueByMethod = { cash: 0, mobile: 0, card: 0 }
       paidReservations.forEach(r => {
         const m = r.paymentMethod as string
-        if (m === 'cash') revenueByMethod.cash += r.totalPrice
-        else if (m === 'mobile') revenueByMethod.mobile += r.totalPrice
-        else if (m === 'card') revenueByMethod.card += r.totalPrice
+        const rev = personRevenueSum(r, st => st === reservationStatusEnum.completed)
+        if (m === 'cash') revenueByMethod.cash += rev
+        else if (m === 'mobile') revenueByMethod.mobile += rev
+        else if (m === 'card') revenueByMethod.card += rev
       })
       paidOrders.forEach(o => {
         if (o.paymentMethod === 'cash') revenueByMethod.cash += o.totalPrice
@@ -184,7 +190,7 @@ export const useAnalytics = (period: AnalyticsPeriod = 'all') => {
         const key = r.clientPhone || r.clientName
         if (!clientSpend[key]) clientSpend[key] = { name: r.clientName, phone: r.clientPhone, visits: 0, total: 0 }
         clientSpend[key].visits++
-        clientSpend[key].total += r.totalPrice
+        clientSpend[key].total += personRevenueSum(r, st => st === reservationStatusEnum.completed)
       })
       const topClients = Object.values(clientSpend).sort((a, b) => b.total - a.total).slice(0, 5)
 
@@ -195,7 +201,7 @@ export const useAnalytics = (period: AnalyticsPeriod = 'all') => {
         r.people?.forEach(p => {
           if (!serviceMap[p.serviceName]) serviceMap[p.serviceName] = { count: 0, revenue: 0 }
           serviceMap[p.serviceName].count++
-          if (r.isPaid) serviceMap[p.serviceName].revenue += p.totalPrice
+          if (r.isPaid && personStatus(p, r) === reservationStatusEnum.completed) serviceMap[p.serviceName].revenue += p.totalPrice
         })
       })
       const topServices = Object.entries(serviceMap)
@@ -212,7 +218,7 @@ export const useAnalytics = (period: AnalyticsPeriod = 'all') => {
           const id = p.hairdresserId as string
           if (!hdMap[id]) hdMap[id] = { name: p.hairdresserName, reservations: 0, revenue: 0 }
           hdMap[id].reservations++
-          if (r.isPaid) hdMap[id].revenue += p.totalPrice
+          if (r.isPaid && personStatus(p, r) === reservationStatusEnum.completed) hdMap[id].revenue += p.totalPrice
         })
       })
       const hairdresserStats = Object.values(hdMap).sort((a, b) => b.reservations - a.reservations)
@@ -243,7 +249,7 @@ export const useAnalytics = (period: AnalyticsPeriod = 'all') => {
           return od >= start && od < end && o.status !== 'canceled'
         })
         const mRev =
-          mRes.filter(r => r.isPaid).reduce((s, r) => s + r.totalPrice, 0) +
+          mRes.filter(r => r.isPaid).reduce((s, r) => s + personRevenueSum(r, st => st === reservationStatusEnum.completed), 0) +
           mOrd.filter(o => o.isPaid).reduce((s, o) => s + o.totalPrice, 0)
 
         monthlyTrend.push({

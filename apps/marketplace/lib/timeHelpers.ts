@@ -1,27 +1,4 @@
 /**
- * Calcule l'heure de fin basée sur l'heure de début et une durée en minutes
- * @param startTime - Heure de début au format "HH:MM"
- * @param durationMinutes - Durée en minutes
- * @returns Heure de fin au format "HH:MM"
- */
-export const getEndTime = (startTime: string, durationMinutes: number): string => {
-  if (durationMinutes === 0) return startTime
-  
-  const [startHour, startMin] = startTime.split(':').map(Number)
-  if (startHour === undefined || startMin === undefined) return startTime
-  
-  let endHour = startHour
-  let endMin = startMin + durationMinutes
-  
-  if (endMin >= 60) {
-    endHour += Math.floor(endMin / 60)
-    endMin = endMin % 60
-  }
-  
-  return `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`
-}
-
-/**
  * Convertit une heure au format "HH:MM" en minutes depuis minuit
  * @param time - Heure au format "HH:MM"
  * @returns Nombre de minutes depuis minuit
@@ -41,6 +18,19 @@ export const minutesToTime = (minutes: number): string => {
   const hours = Math.floor(minutes / 60)
   const mins = minutes % 60
   return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
+}
+
+/**
+ * Formate une durée en minutes pour l'affichage (ex: "45 min", "1h30")
+ * @param minutes - Durée en minutes
+ * @returns Durée formatée
+ */
+export const formatDuration = (minutes: number): string => {
+  const m = minutes || 0
+  if (m < 60) return `${m} min`
+  const h = Math.floor(m / 60)
+  const rem = m % 60
+  return rem === 0 ? `${h}h` : `${h}h${String(rem).padStart(2, '0')}`
 }
 
 /**

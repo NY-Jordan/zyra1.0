@@ -5,8 +5,7 @@ import { Calendar, Clock, Loader2 } from 'lucide-react'
 import { Calendar as DateCalendar } from '@zyra/ui/components/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@zyra/ui/components/popover'
 import { OpeningHour } from '@zyra/conf/domain/entities/salons.entities'
-import { toast } from 'sonner'
-import { getBlockedSlots, getEndTime } from '../helpers/timeSlots'
+import { getBlockedSlots, getEndTime, isDayClosed } from '@zyra/core/usecases/slotsUseCases'
 import { FieldLabel } from '../ui/ReservationWizardPrimitives'
 
 interface DateTimeStepProps {
@@ -19,12 +18,6 @@ interface DateTimeStepProps {
   isLoadingSlots?: boolean
   onDateChange: (date: Date) => void
   onTimeChange: (time: string | null) => void
-}
-
-function isDayClosed(date: Date, workingHours: OpeningHour[]): boolean {
-  const dayName = date.toLocaleDateString('en-EN', { weekday: 'long' }).toLowerCase()
-  const schedule = workingHours.find(h => h.day.toLowerCase() === dayName)
-  return !schedule?.openDay
 }
 
 export function DateTimeStep({
@@ -94,8 +87,6 @@ export function DateTimeStep({
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
               {availableSlots.map(slot => {
                 const isSelected = time === slot
-                const endTime = getEndTime(slot, totalDuration)
-                const possible = availableSlots.includes(slot) && availableSlots.includes(endTime)
                 const covered = time
                   ? getBlockedSlots(time, totalDuration).includes(slot) && !isSelected
                   : false
@@ -104,22 +95,12 @@ export function DateTimeStep({
                   <button
                     key={slot}
                     type="button"
-                    disabled={!possible && !isSelected}
-                    title={!possible ? `Fin à ${endTime} — hors horaires` : undefined}
-                    onClick={() => {
-                      if (!possible) {
-                        toast.error(`La prestation finirait à ${endTime}, hors des horaires du coiffeur`)
-                        return
-                      }
-                      onTimeChange(isSelected ? null : slot)
-                    }}
+                    onClick={() => onTimeChange(isSelected ? null : slot)}
                     className={`py-2 rounded-xl text-[12px] font-semibold border transition-all ${
                       isSelected
                         ? 'bg-emerald-500 text-white border-emerald-500 shadow-md'
                         : covered
                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                        : !possible
-                        ? 'opacity-30 cursor-not-allowed bg-[#F5F2EF] dark:bg-slate-800 border-[#F0EAE4] dark:border-slate-700 text-slate-400'
                         : 'border-[#F0EAE4] dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-300 hover:bg-emerald-50 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/20'
                     }`}
                   >

@@ -46,8 +46,8 @@ export default function MultipleTimeSelection({
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">Créneaux horaires</h2>
-        <p className="text-gray-600">Sélectionnez un créneau pour chaque personne</p>
+        <h2 className="text-2xl font-bold text-slate-900">Créneaux horaires</h2>
+        <p className="text-slate-600">Sélectionnez un créneau pour chaque personne</p>
       </div>
 
       {/* Person Navigation */}
@@ -58,8 +58,8 @@ export default function MultipleTimeSelection({
             onClick={() => onPersonChange(idx)}
             className={`px-4 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
               currentPersonIndex === idx
-                ? 'bg-gray-900 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-[#22C55E] text-white shadow-md'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             Personne {idx + 1}
@@ -78,19 +78,19 @@ export default function MultipleTimeSelection({
             {timeSlots.map((slot, idx) => (
               <div
                 key={idx}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                className="flex justify-between items-center p-3 bg-slate-50 rounded-lg"
               >
-                <span className="font-semibold text-gray-900">Personne {idx + 1}</span>
+                <span className="font-semibold text-slate-900">Personne {idx + 1}</span>
                 <div className="text-right">
                   {slot.date && slot.time ? (
                     <div>
-                      <div className="font-semibold text-gray-900">
+                      <div className="font-semibold text-slate-900">
                         {slot.date.toLocaleDateString('fr-FR')}
                       </div>
-                      <div className="text-sm text-gray-600">{slot.time}</div>
+                      <div className="text-sm text-slate-600">{slot.time}</div>
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-400">À sélectionner</div>
+                    <div className="text-sm text-slate-400">À sélectionner</div>
                   )}
                 </div>
               </div>
@@ -103,20 +103,20 @@ export default function MultipleTimeSelection({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Date Selection */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
+          <label className="block text-sm font-semibold text-slate-900 mb-2">
             Date
           </label>
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => handleDateChange(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className="w-full p-3 border border-slate-300 rounded-lg"
           />
         </div>
 
         {/* Time Selection */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">
+          <label className="block text-sm font-semibold text-slate-900 mb-2">
             Heure
           </label>
           <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
@@ -126,8 +126,8 @@ export default function MultipleTimeSelection({
                 onClick={() => handleTimeChange(time)}
                 className={`p-2 rounded-lg font-semibold transition-all ${
                   currentSlot.time === time
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                    ? 'bg-[#22C55E] text-white'
+                    : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
                 }`}
               >
                 {time}

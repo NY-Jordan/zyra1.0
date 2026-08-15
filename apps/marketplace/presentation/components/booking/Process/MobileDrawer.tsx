@@ -24,7 +24,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     <div className="lg:hidden mb-4 flex justify-end">
       <Drawer>
         <DrawerTrigger asChild>
-          <Button className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800">
+          <Button className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16A34A]">
             <ShoppingCart className="h-5 w-5" />
             <span className="font-semibold">
               {multipleBookings.filter(b => b.service).length}/{multipleBookings.length}

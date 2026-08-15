@@ -21,7 +21,10 @@ export interface ISalonFormValues  {
   country : string
 }
 
-export type OpeningHour = { day: string; open: string; close: string, openDay : boolean}
+export type TimeRange = { start: string; end: string } // "HH:MM"
+
+/** `breaks` est optionnel : les documents existants sans pause gardent le même comportement qu'avant. */
+export type OpeningHour = { day: string; open: string; close: string, openDay : boolean, breaks?: TimeRange[] }
 
 export type OnboardingStep = 'welcome' | 'config' | 'services' | 'hairdressers' | 'done'
 

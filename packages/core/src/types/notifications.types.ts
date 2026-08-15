@@ -11,6 +11,7 @@ export type ActivityType =
   | 'reservation_checked_in'
   | 'reservation_no_show'
   | 'reservation_rescheduled'
+  | 'reservation_person_status_changed'
   // Orders
   | 'order_created'
   | 'order_completed'

@@ -2,12 +2,14 @@
 
 import React from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import type { salonDetailsDictionary } from '../i18n'
 
 interface SalonGalleryProps {
   photos: string[]
+  t: (typeof salonDetailsDictionary)['fr']['gallery']
 }
 
-export function SalonGallery({ photos }: SalonGalleryProps) {
+export function SalonGallery({ photos, t }: SalonGalleryProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [currentIndex, setCurrentIndex] = React.useState(0)
 
@@ -27,7 +29,7 @@ export function SalonGallery({ photos }: SalonGalleryProps) {
           style={{ height: galleryHeight }}
           onClick={() => open(0)}
         >
-          <img src={main} alt="Photo" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={main} alt={t.onePhotoAlt} className="absolute inset-0 w-full h-full object-cover" />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-[1.9fr_1fr] gap-3" style={{ height: galleryHeight }}>
@@ -36,7 +38,7 @@ export function SalonGallery({ photos }: SalonGalleryProps) {
             className="relative rounded-2xl overflow-hidden cursor-pointer group min-h-0"
             onClick={() => open(0)}
           >
-            <img src={main} alt="Photo principale" className="absolute inset-0 w-full h-full object-cover group-hover:brightness-95 transition-all" />
+            <img src={main} alt={t.mainPhotoAlt} className="absolute inset-0 w-full h-full object-cover group-hover:brightness-95 transition-all" />
           </div>
 
           {/* Right stack */}
@@ -47,13 +49,13 @@ export function SalonGallery({ photos }: SalonGalleryProps) {
                 className="relative rounded-2xl overflow-hidden cursor-pointer group min-h-0"
                 onClick={() => open(idx + 1)}
               >
-                <img src={photo} alt={`Photo ${idx + 2}`} className="absolute inset-0 w-full h-full object-cover group-hover:brightness-95 transition-all" />
+                <img src={photo} alt={t.photoAlt(idx + 2)} className="absolute inset-0 w-full h-full object-cover group-hover:brightness-95 transition-all" />
                 {idx === right.length - 1 && (
                   <button
                     onClick={(e) => { e.stopPropagation(); open(0) }}
-                    className="absolute bottom-3 right-3 bg-white hover:bg-gray-50 text-gray-900 text-[13px] font-semibold px-4 py-2 rounded-full shadow-md transition-colors"
+                    className="absolute bottom-3 right-3 bg-white hover:bg-slate-50 text-slate-900 text-[13px] font-semibold px-4 py-2 rounded-full shadow-md transition-colors"
                   >
-                    Afficher toutes les images
+                    {t.showAll}
                   </button>
                 )}
               </div>
@@ -66,9 +68,9 @@ export function SalonGallery({ photos }: SalonGalleryProps) {
       {photos.length > 1 && (
         <button
           onClick={() => open(0)}
-          className="sm:hidden mt-2.5 w-full text-[13px] font-semibold text-gray-700 border border-gray-200 rounded-full py-2.5 hover:bg-gray-50 transition-colors"
+          className="sm:hidden mt-2.5 w-full text-[13px] font-semibold text-slate-700 border border-slate-200 rounded-full py-2.5 hover:bg-slate-50 transition-colors"
         >
-          Afficher toutes les images ({photos.length})
+          {t.showAllCount(photos.length)}
         </button>
       )}
 
@@ -85,7 +87,7 @@ export function SalonGallery({ photos }: SalonGalleryProps) {
             {currentIndex + 1} / {photos.length}
           </div>
           <div className="w-full max-w-4xl px-16">
-            <img src={photos[currentIndex]} alt={`Photo ${currentIndex + 1}`} className="w-full max-h-[80vh] object-contain" />
+            <img src={photos[currentIndex]} alt={t.photoAlt(currentIndex + 1)} className="w-full max-h-[80vh] object-contain" />
           </div>
           {photos.length > 1 && (
             <>

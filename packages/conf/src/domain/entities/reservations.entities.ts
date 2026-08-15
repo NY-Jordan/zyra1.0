@@ -18,6 +18,9 @@ export interface IReservationPerson {
   totalDuration: number;
   scheduledAt: Timestamp;
   endsAt: Timestamp;
+  // Optionnel pour compatibilité avec les réservations créées avant l'introduction
+  // du statut par personne — retomber sur IReservation.status si absent.
+  status?: reservationStatusEnum;
 }
 
 // Réservation globale (peut contenir plusieurs personnes)

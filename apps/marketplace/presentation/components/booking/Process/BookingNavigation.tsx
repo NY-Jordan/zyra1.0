@@ -25,16 +25,16 @@ export const BookingNavigation: React.FC<BookingNavigationProps> = ({
   isSubmitting,
 }) => {
   const showSubmit = (reservationType === 'single' && currentStep === 6) ||
-                     (reservationType === 'multiple' && currentStep === 8)
+                     (reservationType === 'multiple' && currentStep === 7)
 
   return (
-    <div className="flex items-center justify-between pt-5 border-t border-gray-200 mt-6">
+    <div className="flex items-center justify-between pt-5 border-t border-slate-200 mt-6">
       <button
         onClick={onPrevious}
         disabled={disablePrevious || currentStep === 1}
-        className="flex items-center gap-2 h-10 px-4 rounded-xl text-[13px] font-semibold text-gray-600 border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+        className="group flex items-center gap-2 h-10 px-4 rounded-xl text-[13px] font-semibold text-slate-600 border border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all active:scale-[0.98]"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
+        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
         Retour
       </button>
 
@@ -42,10 +42,10 @@ export const BookingNavigation: React.FC<BookingNavigationProps> = ({
         <button
           onClick={onNext}
           disabled={!canGoNext}
-          className="flex items-center gap-2 h-10 px-5 rounded-xl text-[13px] font-bold text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm shadow-gray-900/10"
+          className="group flex items-center gap-2 h-10 px-5 rounded-xl text-[13px] font-bold text-white bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm shadow-emerald-500/10 active:scale-[0.98]"
         >
           Continuer
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </button>
       )}
 
@@ -53,7 +53,7 @@ export const BookingNavigation: React.FC<BookingNavigationProps> = ({
         <button
           onClick={onSubmit}
           disabled={!canGoNext || isSubmitting}
-          className="flex items-center gap-2 h-10 px-5 rounded-xl text-[13px] font-bold text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm shadow-gray-900/10"
+          className="flex items-center gap-2 h-10 px-5 rounded-xl text-[13px] font-bold text-white bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-40 disabled:pointer-events-none transition-all shadow-sm shadow-emerald-500/10 active:scale-[0.98]"
         >
           {isSubmitting ? (
             <>

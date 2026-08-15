@@ -15,6 +15,9 @@ import {
   DesktopSidebar,
 } from '../../../presentation/components/booking/Process'
 import StepIndicator from '../../../presentation/components/booking/StepIndicator'
+import { BookingSummary } from '@/presentation/components/booking/BookingSummary'
+import { MobileBookingSummaryBar } from '@/presentation/components/booking/MobileBookingSummaryBar'
+import { BookingSuccess } from '@/presentation/components/booking/BookingSuccess'
 import './booking.css'
 
 // Types
@@ -22,9 +25,10 @@ import { Booking } from './types'
 import { useBookingReducerHook } from '@/hooks/useBookingReducerHook'
 import { useBookingValidation } from '@/hooks/useBookingValidation'
 import { useReservationSave } from '@/hooks/useReservationSave'
-import { useAvailableSlots, useHairdressersData, useSalonData } from '@/hooks/useData'
-import { useOccupiedSlots } from '@/hooks/useOccupiedSlots'
-import { getEndTime, addMinutesToDate } from '@/lib/timeHelpers'
+import { useHairdressersData, useSalonData } from '@/hooks/useData'
+import { useAvailableSlots } from '@zyra/core/usecases/slotsUseCases'
+import { addMinutesToDate } from '@/lib/timeHelpers'
+import { computeBookingTotals } from './bookingTotals'
 import { ISalonServiceSupplement } from '@zyra/conf/domain/entities/salons.entities'
 
 const SINGLE_STEPS = [
@@ -42,9 +46,8 @@ const MULTIPLE_STEPS = [
   { number: 3, title: 'Options' },
   { number: 4, title: 'Coiffeur' },
   { number: 5, title: 'Horaire' },
-  { number: 6, title: 'Infos' },
-  { number: 7, title: 'Résumé' },
-  { number: 8, title: 'Confirmer' },
+  { number: 6, title: 'Résumé' },
+  { number: 7, title: 'Confirmer' },
 ]
 
 export default function BookingPage() {
@@ -52,6 +55,7 @@ export default function BookingPage() {
   const router = useRouter()
   const salonId = params.id as string
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [successResult, setSuccessResult] = React.useState<{ reservationId: string; booking: Booking } | null>(null)
 
   const bookingState = useBookingReducerHook()
   const { state } = bookingState
@@ -65,14 +69,40 @@ export default function BookingPage() {
     salonId,
     currentBooking?.service
   )
-  const openingSlots = useAvailableSlots(salon || null, currentBooking?.date || null)
-  const occupiedSlots = useOccupiedSlots(salonId, currentBooking?.date || null, currentBooking?.hairdresser || null)
-  // Créneaux réellement disponibles = ouverture − déjà réservés (temps réel)
-  const availableSlots = React.useMemo(
-    () => openingSlots.filter(s => !occupiedSlots.has(s)),
-    [openingSlots, occupiedSlots],
-  )
+  const currentHairdresserId = currentBooking?.hairdresser?.parentId || null
+  const currentDurationMin = computeBookingTotals(currentBooking).duration
+
+  // Créneaux déjà choisis par les autres personnes de cette réservation multiple :
+  // pas encore en base, donc à exclure nous-mêmes des créneaux disponibles.
+  const localBusyRanges = React.useMemo(() => {
+    if (!currentBooking?.date) return []
+    const dayKey = currentBooking.date.toDateString()
+    const ranges: { start: string; durationMin: number }[] = []
+    state.multipleBookings.forEach((booking, idx) => {
+      if (idx === state.currentPersonIndex) return
+      if (!booking.date || !booking.time) return
+      if (booking.date.toDateString() !== dayKey) return
+      const siblingHairdresserId = booking.hairdresser?.parentId || null
+      if (currentHairdresserId && siblingHairdresserId !== currentHairdresserId) return
+      const { duration } = computeBookingTotals(booking)
+      ranges.push({ start: booking.time, durationMin: duration > 0 ? duration : 30 })
+    })
+    return ranges
+  }, [state.multipleBookings, state.currentPersonIndex, currentBooking?.date, currentHairdresserId])
+
+  const { slots: availableSlots } = useAvailableSlots({
+    salonId,
+    date: currentBooking?.date || null,
+    durationMin: currentDurationMin,
+    openingHours: salon?.openingHours || [],
+    hairdresserId: currentHairdresserId,
+    hairdresserWorkingHours: currentBooking?.hairdresser?.workingHours || null,
+    localBusyRanges,
+  })
   const hairdressers = hairdressersData
+  const selectedHairdresserName = currentBooking?.hairdresser
+    ? hairdressers?.find((h) => h.association?.parentId === currentBooking.hairdresser?.parentId)?.hairdresser?.name
+    : null
 
   const handleSelectBooking = (index: number) => {
     bookingState.setCurrentPersonIndex(index)
@@ -99,7 +129,7 @@ export default function BookingPage() {
   }
 
   const handleFinalize = () => {
-    bookingState.setCurrentStep(8)
+    bookingState.setCurrentStep(7)
   }
 
   const handleMultipleDateSelect = (date: Date) => {
@@ -183,9 +213,13 @@ export default function BookingPage() {
         state.reservationType === 'single'
       )
 
-      if (result.success) {
-        toast.success(`Réservation #${result.reservationId} créée avec succès!`)
-        router.push('/')
+      if (result.success && result.reservationId) {
+        if (state.reservationType === 'single') {
+          setSuccessResult({ reservationId: result.reservationId, booking: currentBooking })
+        } else {
+          toast.success(`Réservation #${result.reservationId} créée avec succès!`)
+          router.push('/')
+        }
       } else {
         toast.error(result.error || 'Erreur lors de la création de la réservation')
       }
@@ -199,6 +233,20 @@ export default function BookingPage() {
 
   const isLoading = loadingSalon || loadingHairdressers
   const steps = state.reservationType === 'multiple' ? MULTIPLE_STEPS : SINGLE_STEPS
+
+  if (successResult && salon) {
+    return (
+      <BookingSuccess
+        salonName={salon.name}
+        salonAddress={[salon.address, salon.city].filter(Boolean).join(', ') || null}
+        reservationNumber={successResult.reservationId}
+        booking={successResult.booking}
+        hairdresserName={selectedHairdresserName}
+        onBackHome={() => router.push('/')}
+        onViewSalon={() => router.push(`/salon/details/${salonId}`)}
+      />
+    )
+  }
 
   return (
     <div
@@ -215,7 +263,7 @@ export default function BookingPage() {
       {!isLoading && salon && (
         <div className="pt-14">
           {/* Step indicator */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <div className="bg-white border-b border-slate-200 px-4 py-3">
             <div className="max-w-4xl mx-auto">
               <StepIndicator steps={steps} currentStep={state.currentStep} />
             </div>
@@ -234,7 +282,7 @@ export default function BookingPage() {
               <div className="max-w-6xl mx-auto px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
                   <div className="lg:col-span-4">
-                    <div className="bg-white rounded-2xl border border-gray-200 p-5">
+                    <div key={`${state.currentStep}-${state.currentPersonIndex}`} className="booking-step bg-white rounded-2xl border border-slate-200 p-5">
                       <MultipleReservationFlow
                         salon={salon}
                         currentStep={state.currentStep}
@@ -269,11 +317,11 @@ export default function BookingPage() {
                           state.currentPersonIndex,
                           state.multipleBookings
                         )}
-                        isLastStep={state.currentStep === 7}
+                        isLastStep={state.currentStep === 6}
                         onPrevious={handlePrev}
                         onNext={handleNext}
                         onSubmit={handleSubmit}
-                        disablePrevious={state.currentStep === 1 || state.currentStep === 7}
+                        disablePrevious={state.currentStep === 1 || state.currentStep === 6}
                         isSubmitting={isSubmitting}
                       />
                     </div>
@@ -290,46 +338,68 @@ export default function BookingPage() {
               </div>
             </>
           ) : (
-            <div className="max-w-4xl mx-auto px-4 py-6">
-              <div className="bg-white rounded-2xl border border-gray-200 p-5">
-                <SingleReservationFlow
-                  salon={salon}
-                  currentStep={state.currentStep}
-                  currentPersonIndex={state.currentPersonIndex}
-                  multipleBookings={state.multipleBookings}
-                  availableSlots={availableSlots}
-                  hairdressers={hairdressers}
-                  reservationType={state.reservationType}
-                  clientInfo={state.clientInfo}
-                  onSelectReservationType={(type) => {
-                    bookingState.setReservationType(type)
-                    setTimeout(() => bookingState.setCurrentStep(2), 300)
-                  }}
-                  onSelectService={handleServiceSelect}
-                  onToggleSupplement={handleMultipleSupplementToggle}
-                  onSelectHairdresser={handleHairdresserSelect}
-                  onSelectDate={handleMultipleDateSelect}
-                  onSelectTime={handleTimeSelect}
-                  onChangeClientInfo={bookingState.updateClientInfo}
+            <div className="max-w-5xl mx-auto px-4 py-6">
+              <div className="mb-4">
+                <MobileBookingSummaryBar
+                  salonName={salon.name}
+                  booking={currentBooking}
+                  hairdresserName={selectedHairdresserName}
                 />
               </div>
 
-              <div className="mt-4">
-                <BookingNavigation
-                  currentStep={state.currentStep}
-                  reservationType={state.reservationType}
-                  canGoNext={canGoNext(
-                    state.reservationType,
-                    state.currentStep,
-                    state.currentPersonIndex,
-                    state.multipleBookings
-                  )}
-                  isLastStep={state.currentStep === 6}
-                  onPrevious={handlePrev}
-                  onNext={handleNext}
-                  onSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
-                />
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+                <div className="min-w-0">
+                  <div key={state.currentStep} className="booking-step bg-white rounded-2xl border border-slate-200 p-5">
+                    <SingleReservationFlow
+                      salon={salon}
+                      currentStep={state.currentStep}
+                      currentPersonIndex={state.currentPersonIndex}
+                      multipleBookings={state.multipleBookings}
+                      availableSlots={availableSlots}
+                      hairdressers={hairdressers}
+                      reservationType={state.reservationType}
+                      clientInfo={state.clientInfo}
+                      onSelectReservationType={(type) => {
+                        bookingState.setReservationType(type)
+                        setTimeout(() => bookingState.setCurrentStep(2), 300)
+                      }}
+                      onSelectService={handleServiceSelect}
+                      onToggleSupplement={handleMultipleSupplementToggle}
+                      onSelectHairdresser={handleHairdresserSelect}
+                      onSelectDate={handleMultipleDateSelect}
+                      onSelectTime={handleTimeSelect}
+                      onChangeClientInfo={bookingState.updateClientInfo}
+                    />
+                  </div>
+
+                  <div className="mt-4">
+                    <BookingNavigation
+                      currentStep={state.currentStep}
+                      reservationType={state.reservationType}
+                      canGoNext={canGoNext(
+                        state.reservationType,
+                        state.currentStep,
+                        state.currentPersonIndex,
+                        state.multipleBookings
+                      )}
+                      isLastStep={state.currentStep === 6}
+                      onPrevious={handlePrev}
+                      onNext={handleNext}
+                      onSubmit={handleSubmit}
+                      isSubmitting={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div className="hidden lg:block">
+                  <div className="sticky top-20">
+                    <BookingSummary
+                      salonName={salon.name}
+                      booking={currentBooking}
+                      hairdresserName={selectedHairdresserName}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}

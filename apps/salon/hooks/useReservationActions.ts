@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { editDocument } from '@zyra/conf/lib/query'
+import { updateReservationSlots, SlotConflictError } from '@zyra/conf/lib/query'
 import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { IHairDresser } from '@zyra/conf/domain/entities/hairdressers.entities'
 import { reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
@@ -10,6 +10,7 @@ import { useUpdateReservationStatus, useUpdateReservationPayment } from '@zyra/c
 import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useNow } from '@/hooks/useNow'
 import { useHasPermission } from '@/hooks/useHasPermission'
+import { toast } from 'sonner'
 import { logActivity, createNotification, getCurrentActor } from '@zyra/core/usecases/notificationsUseCases'
 
 /**
@@ -65,14 +66,23 @@ export function useReservationActions(
   const isActive = isPending || isConfirmed
 
   // ── Matrice d'actions (process validé + permissions du rôle) ───────
+  // Pour une réservation groupée, les actions de statut (confirmer, arrivée,
+  // absence, terminer, annuler) ET la reprogrammation se font UNIQUEMENT
+  // personne par personne (voir ReservationServicesList / ChangeHairdresserDialog,
+  // qui permet déjà de changer coiffeur + date + heure d'UNE personne) — le
+  // bouton global forcerait à décaler ou valider tout le monde d'un coup en
+  // les enchaînant séquentiellement, ce qui casse des rendez-vous en parallèle
+  // chez des coiffeurs différents. Seul "Marquer payé" reste global : le
+  // paiement n'est pas suivi par personne dans le modèle actuel.
+  const isMultiPerson = !reservation.isSingleReservation
   const canAssign = !hasHairdresser && !hasStarted && isActive && canEdit
-  const canConfirm = hasHairdresser && !hasStarted && isPending && canEdit
-  const canCheckIn = isConfirmed && !hasStarted && canEdit
-  const canNoShow = (isConfirmed || (isActive && hasStarted)) && canEdit
-  const canReschedule = (isActive || isNoShow) && canEdit
-  const canCancel = isActive && !hasStarted && canCancelPermission
+  const canConfirm = !isMultiPerson && hasHairdresser && !hasStarted && isPending && canEdit
+  const canCheckIn = !isMultiPerson && isConfirmed && !hasStarted && canEdit
+  const canNoShow = !isMultiPerson && (isConfirmed || (isActive && hasStarted)) && canEdit
+  const canReschedule = !isMultiPerson && (isActive || isNoShow) && canEdit
+  const canCancel = !isMultiPerson && isActive && !hasStarted && canCancelPermission
   const canMarkPaid = isCheckedIn && !reservation.isPaid && canManagePayments
-  const canComplete = isCheckedIn && reservation.isPaid && canEdit
+  const canComplete = !isMultiPerson && isCheckedIn && reservation.isPaid && canEdit
   const hasAnyAction =
     canAssign || canConfirm || canCheckIn || canNoShow || canReschedule || canCancel || canMarkPaid || canComplete
 
@@ -85,14 +95,17 @@ export function useReservationActions(
 
   // ── Handlers ──────────────────────────────────────────────────────
   const setStatus = async (newStatus: reservationStatusEnum, extra?: { startMs?: number }) => {
-    await updateStatusMutation.mutateAsync({
+    const result = await updateStatusMutation.mutateAsync({
       reservationId: reservation.id,
+      salonId: reservation.salonId,
       currentStatus: status as reservationStatusEnum,
       newStatus,
+      // Action globale : chaque personne du groupe reçoit aussi ce statut.
+      people: reservation.people,
       logContext,
       ...extra,
     })
-    opts?.onUpdated?.({ ...reservation, status: newStatus })
+    opts?.onUpdated?.({ ...reservation, status: newStatus, people: result.updatedPeople ?? reservation.people })
   }
 
   const confirm = async () => {
@@ -125,7 +138,22 @@ export function useReservationActions(
   /** Assigne le même coiffeur à toutes les personnes de la réservation. */
   const assignHairdresser = async (hairdresser: IHairDresser) => {
     const updatedPeople = reservation.people.map(p => ({ ...p, hairdresserId: hairdresser.id, hairdresserName: hairdresser.name }))
-    await editDocument('reservations', reservation.id, { people: updatedPeople, updatedAt: new Date() })
+    try {
+      // Ces personnes n'avaient pas encore de coiffeur précis (canAssign l'exige) :
+      // aucun ancien verrou à libérer, mais on vérifie et pose bien les nouveaux —
+      // non vérifié auparavant, alors que deux personnes du groupe pourraient se
+      // chevaucher une fois assignées au même coiffeur.
+      await updateReservationSlots(reservation.id, reservation.salonId, reservation.people, updatedPeople, {
+        people: updatedPeople,
+        updatedAt: new Date(),
+      })
+    } catch (error) {
+      if (error instanceof SlotConflictError) {
+        toast.error('Ce coiffeur a déjà un rendez-vous sur ce créneau.')
+        return
+      }
+      throw error
+    }
     if (logContext) {
       await Promise.all([
         logActivity({ ...logContext, type: 'reservation_hairdresser_changed', action: 'hairdresser_changed', resourceId: reservation.id, resourceType: 'reservation', metadata: { hairdresser: hairdresser.name } }),

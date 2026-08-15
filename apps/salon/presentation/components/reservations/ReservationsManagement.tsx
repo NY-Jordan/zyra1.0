@@ -23,7 +23,7 @@ import Pagination from '../common/Pagination'
 import ConfirmReservationModal from './ConfirmReservationModal'
 import CalendarReservationsModal from './CalendarReservationsModal'
 import NewReservationSheet from './NewReservationSheet'
-import { useReservations } from '@zyra/core/usecases/useReservations'
+import { useReservations, personRevenueSum } from '@zyra/core/usecases/useReservations'
 
 export default function ReservationsManagement() {
   const { salon } = useSalon()
@@ -61,12 +61,15 @@ export default function ReservationsManagement() {
       confirmed: reservations.filter(r => r.status === reservationStatusEnum.confirmed).length,
       completed: reservations.filter(r => r.status === reservationStatusEnum.completed).length,
       canceled: reservations.filter(r => r.status === reservationStatusEnum.canceled).length,
+      // On somme par personne (pas r.totalPrice) : le statut global d'une
+      // réservation groupée peut être "completed" même si une personne a été
+      // annulée individuellement — sa part ne doit pas compter dans le revenu.
       totalRevenue: reservations
-        .filter(r => r.status === reservationStatusEnum.completed && r.isPaid)
-        .reduce((acc, r) => acc + r.totalPrice, 0),
+        .filter(r => r.isPaid)
+        .reduce((acc, r) => acc + personRevenueSum(r, s => s === reservationStatusEnum.completed), 0),
       unpaidRevenue: reservations
-        .filter(r => r.status !== reservationStatusEnum.canceled && !r.isPaid)
-        .reduce((acc, r) => acc + r.totalPrice, 0)
+        .filter(r => !r.isPaid)
+        .reduce((acc, r) => acc + personRevenueSum(r, s => s !== reservationStatusEnum.canceled), 0)
     }
   }, [reservations, totalReservations])
 

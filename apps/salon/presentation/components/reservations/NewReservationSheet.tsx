@@ -1,26 +1,21 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Dialog, DialogContent, DialogTitle } from '@zyra/ui/components/dialog'
 import { Calendar, Check, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
 import { Timestamp, where } from 'firebase/firestore'
-import { createDocument, editDocument, fetchCollection } from '@zyra/conf/lib/query'
+import { createDocument, editDocument, fetchCollection, bookAppointmentSlots } from '@zyra/conf/lib/query'
 import { logActivity, createNotification, getCurrentActor } from '@zyra/core/usecases/notificationsUseCases'
 import { IClient } from '@zyra/conf/domain/entities/clients.entities'
 import { reservationPaymentMethodEnum, reservationStatusEnum } from '@zyra/conf/domain/enums/ReservationEnum'
-import { IReservation, IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
+import { IReservationPerson } from '@zyra/conf/domain/entities/reservations.entities'
 import { useSalon } from '@zyra/core/hooks/useSalon'
 import { useHairDressers } from '@zyra/core/usecases/useHairDressers'
+import { useHairdresserSlots } from '@/hooks/useHairdresserSlots'
 import ClientSearchModal from '../orders/ClientSearchModal'
 import { toast } from 'sonner'
 
-import {
-  filterByHairdresserHours,
-  filterPassedHours,
-  generateTimeSlots,
-  getOccupiedSlots,
-} from './helpers/timeSlots'
 import { PersonBooking, PersonSubStep, emptyPerson } from './types'
 import { getPhonePrefix } from '@/utils/phonePrefix'
 import { Stepper } from './ui/ReservationWizardPrimitives'
@@ -116,49 +111,33 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
     [selectedHairdresser, salon?.openingHours],
   )
 
-  // Fetch existing reservations for the selected hairdresser on the selected date
-  const { data: hairdresserDayReservations = [], isFetching: isFetchingSlots } = useQuery({
-    queryKey: ['hd-day-reservations-new', salon?.id, currentBooking.hairdresserId, currentBooking.date?.toISOString().slice(0, 10)],
-    queryFn: async () => {
-      if (!salon?.id || !currentBooking.hairdresserId || !currentBooking.date) return []
-      const startOfDay = new Date(currentBooking.date); startOfDay.setHours(0, 0, 0, 0)
-      const endOfDay = new Date(currentBooking.date); endOfDay.setHours(23, 59, 59, 999)
-      const all = await fetchCollection('reservations', [
-        where('salonId', '==', salon.id),
-      ]) as IReservation[]
-      return all.filter(res =>
-        res.status !== reservationStatusEnum.canceled &&
-        res.people.some(p => {
-          if (p.hairdresserId !== currentBooking.hairdresserId) return false
-          const d = p.scheduledAt.toDate()
-          return d >= startOfDay && d <= endOfDay
-        }),
-      )
-    },
-    enabled: !!salon?.id && !!currentBooking.hairdresserId && !!currentBooking.date,
+  // Créneaux déjà choisis par les autres personnes de cette réservation multiple :
+  // pas encore en base, donc à exclure nous-mêmes des créneaux disponibles.
+  const localBusyRanges = useMemo(() => {
+    if (!currentBooking.date || !currentBooking.hairdresserId) return []
+    const dayKey = currentBooking.date.toDateString()
+    const ranges: { start: string; durationMin: number }[] = []
+    bookings.forEach((booking, idx) => {
+      if (idx === currentPersonIndex) return
+      if (!booking.date || !booking.time) return
+      if (booking.date.toDateString() !== dayKey) return
+      if (booking.hairdresserId !== currentBooking.hairdresserId) return
+      const svc = salon?.services.find(s => s.id === booking.serviceId)
+      if (!svc) return
+      const suppDur = svc.supplements
+        ?.filter(s => booking.supplementNames.includes(s.name))
+        .reduce((a, s) => a + s.duration, 0) ?? 0
+      ranges.push({ start: booking.time, durationMin: svc.duration + suppDur || 30 })
+    })
+    return ranges
+  }, [bookings, currentPersonIndex, currentBooking.date, currentBooking.hairdresserId, salon?.services])
+
+  const { slots: availableSlots, isFetching: isFetchingSlots } = useHairdresserSlots({
+    hairdresserId: currentBooking.hairdresserId,
+    date: currentBooking.date,
+    durationMin: totalDuration,
+    localBusyRanges,
   })
-
-  const availableSlots = useMemo(() => {
-    if (!currentBooking.date) return []
-    const dayName = currentBooking.date.toLocaleDateString('en-EN', { weekday: 'long' }).toLowerCase()
-    const schedule = hairdresserWorkingHours.find(h => h.day.toLowerCase() === dayName)
-    if (!schedule?.openDay) return []
-
-    const blockedSet = new Set<string>()
-    hairdresserDayReservations.forEach(res =>
-      res.people.forEach(p => {
-        if (p.hairdresserId !== currentBooking.hairdresserId) return
-        const d = p.scheduledAt.toDate()
-        const start = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-        getOccupiedSlots(start, p.totalDuration).forEach(s => blockedSet.add(s))
-      }),
-    )
-
-    let slots = generateTimeSlots(schedule.open, schedule.close)
-    slots = filterByHairdresserHours(slots, currentBooking.date, hairdresserWorkingHours)
-    slots = filterPassedHours(slots, currentBooking.date)
-    return slots.filter(s => !blockedSet.has(s))
-  }, [currentBooking.date, currentBooking.hairdresserId, hairdresserWorkingHours, hairdresserDayReservations])
 
   const totalSummaryPrice = useMemo(() =>
     bookings.reduce((sum, booking) => {
@@ -209,6 +188,7 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
           totalDuration: personDuration,
           scheduledAt: Timestamp.fromDate(scheduledAt),
           endsAt: Timestamp.fromDate(endsAt),
+          status: initialStatus,
         }
       })
 
@@ -218,7 +198,10 @@ export default function NewReservationSheet({ open, onOpenChange }: NewReservati
       const totalPrice = people.reduce((sum, p) => sum + p.totalPrice, 0)
       const isSingle = bookings.length === 1
 
-      const reservationId = await createDocument('reservations', {
+      // bookAppointmentSlots vérifie et verrouille les créneaux de chaque personne
+      // dans une transaction Firestore — lève SlotConflictError si l'un d'eux
+      // vient d'être pris (ex: par une réservation marketplace concurrente).
+      const reservationId = await bookAppointmentSlots({
         salonId: salon.id,
         reservationNumber,
         createdAt: Timestamp.now(),

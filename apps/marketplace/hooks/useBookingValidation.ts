@@ -21,7 +21,7 @@ export const useBookingValidation = () => {
         case 3:
           return true // Suppléments optionnels
         case 4:
-          return currentBooking.hairdresser !== null
+          return true // "Coiffeur au choix du salon" (null) is a valid selection
         case 5:
           return !!currentBooking.date && !!currentBooking.time
         case 6:
@@ -38,12 +38,12 @@ export const useBookingValidation = () => {
         case 3:
           return true // Suppléments optionnels
         case 4:
-          return currentBooking.hairdresser !== null
+          return true // "Coiffeur au choix du salon" (null) is a valid selection
         case 5:
           return !!currentBooking.date && !!currentBooking.time
+        case 6:
+          return true // Résumé — reviewing, nothing to validate
         case 7:
-          return true
-        case 8:
           return true // Client info validation elsewhere
         default:
           return false
@@ -62,7 +62,7 @@ export const useBookingValidation = () => {
       toast.error('Veuillez compléter cette étape avant de continuer')
       return
     }
-    if (currentStep < (reservationType === 'single' ? 6 : 8)) {
+    if (currentStep < (reservationType === 'single' ? 6 : 7)) {
       setCurrentStep(currentStep + 1)
     }
   }, [])

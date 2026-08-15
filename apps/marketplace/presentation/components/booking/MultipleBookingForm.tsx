@@ -76,8 +76,8 @@ export default function MultipleBookingForm({
             onClick={() => onPersonChange(idx)}
             className={`px-4 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
               currentPersonIndex === idx
-                ? 'bg-gray-900 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-[#22C55E] text-white shadow-md'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             Personne {idx + 1}
@@ -98,13 +98,13 @@ export default function MultipleBookingForm({
                 onClick={() => handleServiceChange(service)}
                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                   currentBooking?.service?.id === service.id
-                    ? 'border-gray-900 bg-gray-100'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <div className="font-semibold text-gray-900">{service.name}</div>
-                <div className="text-sm text-gray-600">{service.duration} min</div>
-                <div className="text-lg font-bold text-gray-900 mt-2">${service.price}</div>
+                <div className="font-semibold text-slate-900">{service.name}</div>
+                <div className="text-sm text-slate-600">{service.duration} min</div>
+                <div className="text-lg font-bold text-slate-900 mt-2">${service.price}</div>
               </button>
             ))}
           </div>
@@ -119,7 +119,7 @@ export default function MultipleBookingForm({
           </CardHeader>
           <CardContent className="space-y-3">
             {supplements.map((supplement) => (
-              <label key={supplement.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+              <label key={supplement.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={currentBooking?.supplements.includes(supplement.id)}
@@ -127,10 +127,10 @@ export default function MultipleBookingForm({
                   className="w-5 h-5"
                 />
                 <div className="flex-1">
-                  <div className="font-semibold text-gray-900">{supplement.name}</div>
-                  <div className="text-sm text-gray-600">{supplement.description}</div>
+                  <div className="font-semibold text-slate-900">{supplement.name}</div>
+                  <div className="text-sm text-slate-600">{supplement.description}</div>
                 </div>
-                <div className="font-bold text-gray-900">+${supplement.price}</div>
+                <div className="font-bold text-slate-900">+${supplement.price}</div>
               </label>
             ))}
           </CardContent>
@@ -143,7 +143,7 @@ export default function MultipleBookingForm({
           <CardTitle>Coiffeur (Optionnel)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <button className="w-full p-3 border-2 rounded-lg text-left font-semibold transition-all hover:border-gray-300">
+          <button className="w-full p-3 border-2 rounded-lg text-left font-semibold transition-all hover:border-slate-300">
             Coiffeur au choix du salon
           </button>
           {hairdressers.map((hairdresser) => (
@@ -152,13 +152,13 @@ export default function MultipleBookingForm({
               onClick={() => handleHairdresserChange(hairdresser)}
               className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
                 currentBooking?.hairdresser?.id === hairdresser.id
-                  ? 'border-gray-900 bg-gray-100'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-emerald-500 bg-emerald-50'
+                  : 'border-slate-200 hover:border-slate-300'
               }`}
             >
-              <div className="font-semibold text-gray-900">{hairdresser.name}</div>
+              <div className="font-semibold text-slate-900">{hairdresser.name}</div>
               {hairdresser.speciality && (
-                <div className="text-sm text-gray-600">{hairdresser.speciality}</div>
+                <div className="text-sm text-slate-600">{hairdresser.speciality}</div>
               )}
             </button>
           ))}
@@ -166,24 +166,24 @@ export default function MultipleBookingForm({
       </Card>
 
       {/* Summary Cart */}
-      <div className="bg-white border-2 border-gray-300 rounded-lg p-4 space-y-3">
-        <h3 className="font-bold text-gray-900">Résumé pour Personne {currentPersonIndex + 1}</h3>
+      <div className="bg-white border-2 border-slate-300 rounded-lg p-4 space-y-3">
+        <h3 className="font-bold text-slate-900">Résumé pour Personne {currentPersonIndex + 1}</h3>
         <div className="space-y-2 text-sm">
           {currentBooking?.service && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Service:</span>
+              <span className="text-slate-600">Service:</span>
               <span className="font-semibold">{currentBooking?.service.name}</span>
             </div>
           )}
           {currentBooking.supplements.length > 0 && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Suppléments:</span>
+              <span className="text-slate-600">Suppléments:</span>
               <span className="font-semibold">{currentBooking?.supplements.length}</span>
             </div>
           )}
           {currentBooking?.hairdresser && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Coiffeur:</span>
+              <span className="text-slate-600">Coiffeur:</span>
               <span className="font-semibold">{currentBooking?.hairdresser.name}</span>
             </div>
           )}

@@ -20,6 +20,7 @@ import {
   UserX,
   LogIn,
   CalendarClock,
+  Users,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -31,6 +32,7 @@ import { IReservation } from '@zyra/conf/domain/entities/reservations.entities'
 import { reservationStatusEnum, reservationPaymentMethodEnum } from '@zyra/conf/domain/enums/ReservationEnum'
 import ReservationDetailsModal from './ReservationDetailsModal'
 import ReservationActionDialogs from './ReservationActionDialogs'
+import { personStatusBreakdown } from './ReservationDetailsParts'
 import { useReservationActions } from '@/hooks/useReservationActions'
 
 interface ReservationCardProps {
@@ -99,6 +101,15 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
                     <h3 className="font-semibold text-base">#{reservation.reservationNumber}</h3>
+                    {!reservation.isSingleReservation && (
+                      <span
+                        title={`Réservation groupée — ${reservation.people.length} personnes`}
+                        className="inline-flex items-center gap-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 px-2 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400"
+                      >
+                        <Users className="h-3 w-3" />
+                        {reservation.people.length} personnes
+                      </span>
+                    )}
                     {reservation.wasRescheduled && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 dark:bg-violet-900/30 px-2 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-400">
                         <CalendarClock className="h-3 w-3" />
@@ -114,6 +125,11 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     {getStatusBadge(reservation.status)}
+                    {personStatusBreakdown(reservation) && (
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {personStatusBreakdown(reservation)}
+                      </span>
+                    )}
                     {reservation.isPaid ? (
                       <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -124,11 +140,6 @@ export default function ReservationCard({ reservation }: ReservationCardProps) {
                         <XCircle className="h-3 w-3 mr-1" />
                         Non payé
                       </Badge>
-                    )}
-                    {reservation.isSingleReservation ? (
-                      <Badge variant="outline" className="bg-blue-50">1 personne</Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-blue-50">{reservation.people.length} personnes</Badge>
                     )}
                   </div>
                 </div>

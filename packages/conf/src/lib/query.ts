@@ -1,6 +1,9 @@
 import { db } from "./firebase";
 import { createFirestoreQueries } from "./firestoreQueries";
 
+export { SlotConflictError } from "./firestoreQueries";
+export type { LockablePerson } from "./firestoreQueries";
+
 // Web app's default instance — unchanged call sites (`import { fetchCollection }
 // from '@zyra/conf/lib/query'`) keep working exactly as before. Other apps
 // (mobile, ...) should import `createFirestoreQueries` from `./firestoreQueries`
@@ -17,4 +20,7 @@ export const {
   getDocument,
   editDocument,
   deleteDocument,
+  bookAppointmentSlots,
+  releaseAppointmentSlots,
+  updateReservationSlots,
 } = createFirestoreQueries(db);

@@ -12,6 +12,8 @@ interface WorkingHoursFormProps {
   workingHours: OpeningHour[]
   onWorkingDayToggle: (dayKey: string) => void
   onHourChange: (dayKey: string, type: 'open' | 'close', value: string) => void
+  onBreakToggle?: (dayKey: string) => void
+  onBreakChange?: (dayKey: string, type: 'start' | 'end', value: string) => void
   salonOpeningHours?: OpeningHour[]
 }
 
@@ -21,6 +23,8 @@ export default function WorkingHoursForm({
   workingHours,
   onWorkingDayToggle,
   onHourChange,
+  onBreakToggle,
+  onBreakChange,
   salonOpeningHours
 }: WorkingHoursFormProps) {
   // Convertir format HH:MM en format français HH:MM (24h)
@@ -46,7 +50,6 @@ export default function WorkingHoursForm({
 
       <div className="space-y-3">
         {DAYS_OF_WEEK.map((day) => {
-          console.log(salonOpeningHours)
           const dayHours = workingHours.find(wh => wh.day === day.key)
           const isChecked = dayHours?.openDay || false
           const salonDay = salonOpeningHours?.find(oh => oh.day === day.key)
@@ -119,6 +122,37 @@ export default function WorkingHoursForm({
                     </div>
                   )}
                 </div>
+
+                {isChecked && isSalonOpen && onBreakToggle && (
+                  <div className="mt-3 pt-3 border-t space-y-2">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={!!dayHours?.breaks?.length}
+                        onChange={() => onBreakToggle(day.key)}
+                        className="h-3.5 w-3.5"
+                      />
+                      Pause
+                    </label>
+                    {!!dayHours?.breaks?.length && (
+                      <div className="flex items-center gap-2 text-sm pl-6">
+                        <input
+                          type="time"
+                          value={dayHours.breaks[0]!.start}
+                          onChange={(e) => onBreakChange?.(day.key, 'start', e.target.value)}
+                          className="border rounded px-2 py-1 text-xs"
+                        />
+                        <span className="text-muted-foreground">à</span>
+                        <input
+                          type="time"
+                          value={dayHours.breaks[0]!.end}
+                          onChange={(e) => onBreakChange?.(day.key, 'end', e.target.value)}
+                          className="border rounded px-2 py-1 text-xs"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )

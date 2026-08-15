@@ -6,6 +6,7 @@ import SupplementsSelection from '@/presentation/components/booking/SupplementsS
 import HairdresserSelection from '@/presentation/components/booking/HairdresserSelection'
 import DateTimeSelection from '@/presentation/components/booking/DateTimeSelection'
 import ClientInfoForm from '@/presentation/components/booking/ClientInfoForm'
+import { BookingSummary } from '@/presentation/components/booking/BookingSummary'
 import { Booking } from '../../../../app/booking/[id]/types'
 
 interface SingleReservationFlowProps {
@@ -49,6 +50,9 @@ export const SingleReservationFlow: React.FC<SingleReservationFlowProps> = ({
   const selectedHairdresser = currentBooking?.hairdresser || null
   const selectedDate = currentBooking?.date || null
   const selectedTime = currentBooking?.time || null
+  const hairdresserName = selectedHairdresser
+    ? hairdressers?.find((h: any) => h.association?.parentId === selectedHairdresser.parentId)?.hairdresser?.name
+    : null
   return (
     <>
       {currentStep === 1 && (
@@ -103,6 +107,9 @@ export const SingleReservationFlow: React.FC<SingleReservationFlowProps> = ({
             <ClientInfoForm
               formData={clientInfo}
               onChange={onChangeClientInfo}
+              summary={
+                <BookingSummary salonName={salon.name} booking={currentBooking} hairdresserName={hairdresserName} />
+              }
             />
           )}
         </>
